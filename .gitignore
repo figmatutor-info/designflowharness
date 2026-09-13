@@ -1,0 +1,44 @@
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# 산출물 (프로젝트마다 다름 - 팀 공유 여부 결정)
+# design/ 폴더는 프로젝트마다 판단해서 커밋 or 무시
+# - 개인 프로젝트: 커밋 (design/ 유지)
+# - 팀 프로젝트: 무시 (아래 주석 해제)
+# design/
+
+# 하지만 이것들은 항상 무시:
+# (gitignore 는 인라인 주석을 지원하지 않으므로 주석은 반드시 별도 줄로)
+# 매번 갱신되는 임시 데이터
+design/**/figma-snapshot.json
+# 매번 갱신되는 검증 결과
+design/**/audit-structural.json
+design/**/*.tmp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# 로그
+logs/
+*.log
+
+# 캐시
+.cache/
+.tmp/

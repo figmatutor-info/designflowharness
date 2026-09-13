@@ -1,0 +1,33 @@
+{
+  "name": "design-flow-harness",
+  "version": "1.0.0",
+  "description": "디자이너가 AI와 일관되게 일하기 위한 4단계 파이프라인. 레퍼런스 수집부터 Figma 화면 생성까지.",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "check": "node scripts/check-phase.mjs --phase all",
+    "check:references": "node scripts/check-phase.mjs --phase references",
+    "check:structure": "node scripts/check-phase.mjs --phase structure",
+    "check:rules": "node scripts/check-phase.mjs --phase rules",
+    "check:screens": "node scripts/check-phase.mjs --phase screens",
+    "check:snapshot": "node scripts/check-snapshot.mjs",
+    "check:snapshot:tokens": "node scripts/check-snapshot.mjs --stage tokens",
+    "verify": "node scripts/verify-design-rules.mjs",
+    "verify:strict": "node scripts/verify-design-rules.mjs --strict",
+    "audit": "node scripts/figma-audit.mjs",
+    "audit:json": "node scripts/figma-audit.mjs --json"
+  },
+  "keywords": [
+    "design-system",
+    "figma",
+    "ai",
+    "claude",
+    "harness",
+    "design-flow"
+  ],
+  "author": "",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
