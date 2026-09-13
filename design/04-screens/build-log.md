@@ -172,3 +172,70 @@ node scripts/check-snapshot.mjs --stage components
 figma_read_calls: 약 17 (12건 fill 수정 1회 + 페이지 전체 재추출 9회[tokens 1 + components 8배치])
 snapshot: design/04-screens/figma-snapshot.json 전체 재작성 (수기 수정 없이 기계적 병합만)
 next: STAGE=screens (사용자 확인 필요) — screens STAGE는 이번 지시에 포함되지 않아 진행하지 않음
+
+## STAGE=components (fix 2) ✅
+
+완료: 2026-09-13 23:15
+대상: Chip, Tabs > Tab/Unselected, TabBar > Item/* — 탭 영역 44×44 미달 수정 (M안: 시각 크기 유지 + 투명 히트영역).
+design-rules.md는 수정하지 않음.
+
+### 수정 내용
+
+1. **Chip** (COMPONENT_SET, 2 variants)
+   - 기존 36 높이 pill 전체를 내부 `Pill` 프레임으로 분리 (기존 배경/테두리/라운드/패딩/텍스트 그대로 이동).
+   - 바깥 variant 프레임은 투명(`fills=[]`)으로 비우고 높이를 `tap-min`(44) 변수에 바인딩, `Pill`을 세로 중앙 정렬.
+   - COMPONENT_SET 래퍼 프레임 자체의 캐시된 높이(36)가 자동 갱신되지 않아 `resize(width, 44)`로 수동 보정.
+   - 결과: `State=selected` 62×44, `State=unselected` 81×44 (Pill은 그대로 36 높이 유지, 시각 변화 없음 — 스크린샷으로 확인).
+
+2. **Tabs > Tab/Unselected** (×2, "스킬"/"자산")
+   - `minWidth = 44` 설정. 기존 40 → 44로 확장, Tab/Selected(49×49)는 손대지 않음.
+   - Tabs 전체 너비 177 → 185로 자동 증가 (오토레이아웃 반영).
+
+3. **TabBar > Item/Selected, Item/Unselected** (총 4개: 홈/스킬 라이브러리/내 자산/허들링 픽)
+   - 전부 `minWidth = 44` 적용 (이미 44 이상이던 항목도 일관성을 위해 동일 적용).
+   - 기존 20/37 폭이던 항목만 44로 확장, 82/49였던 항목은 변화 없음.
+
+### 레이어 이름 규칙 준수
+
+- Chip 바깥 히트영역은 기존 variant 이름(`State=selected`/`State=unselected`) 유지.
+- 안쪽 시각 프레임은 `Pill`로 명명 (container/content 계열 — NON_TAP_RE에 걸려 탭 판정에서 제외됨, 탭 판정 단어 없음 확인).
+- Tabs/TabBar의 기존 이름(`Tab/Unselected`, `Item/Selected`, `Item/Unselected`)은 원래도 탭 타겟으로 판정되어야 하는 노드라 그대로 유지.
+
+### 재추출 및 병합 (배치 기능 정식 사용)
+
+`scripts/figma-snapshot.js`의 `FRAME_FROM`/`FRAME_TO`로 `02 Components`(총 25개 프레임)를
+8개 배치로 나눠 추출: [0,8) icons · [8,9) Button · [9,14) Badge·Chip·SearchBar·Input·SegmentedControl ·
+[14,15) Card · [15,19) ListRow·SpecBox·PriceBlock·ProgressIndicator · [19,21) Tabs·TabBar ·
+[21,23) BottomCTA·BottomActionBar · [23,25) EmptyState·ExpandButton (FRAME_TO=0 = 끝까지).
+
+병합은 `node scripts/merge-snapshot.mjs b1.json ... b8.json` 로만 수행 — 즉흥 병합 스크립트를
+작성하지 않았고 배치 결과 값을 손으로 고치지 않았다. 병합 스크립트가 frame_range 로 구멍·중복·
+누락을 검사해 25/25 통과, `01 Tokens` 페이지는 그대로 유지된 채 `02 Components` 만 교체됨.
+
+### 검증
+
+```
+node scripts/check-snapshot.mjs --stage components
+```
+결과: 11/11 통과.
+
+02 Components 페이지 직접 전수 카운트:
+
+- `isTapTarget` 인데 width 또는 height < 44인 노드: **5건 발견** (이번 수정 대상 밖)
+  - `[Card] Row` 326×26 (id 4:159)
+  - `[Card] Row` 326×22 (id 4:179)
+  - `[SpecBox] Row` 326×23 ×3 (id 4:192, 4:195, 4:198)
+  - 원인: 지난 STAGE=components (fix) 에서 미바인딩 fill을 제거하며 투명화했던 바로 그 내부
+    레이아웃 컨테이너들이다. 이름이 "Row"라서 `WEAK_TAP_RE`에 매칭되어 탭 타겟으로 잘못
+    분류된 것으로 보인다(실제로는 클릭 가능한 요소가 아니라 텍스트를 좌우로 배치하는
+    레이아웃 컨테이너). 이번 지시 범위는 Chip·Tabs·TabBar 3개로 한정되어 있어 **손대지
+    않고 그대로 보고**한다. 후속 조치가 필요하면 별도 지시 요청.
+- 미바인딩 SOLID fill/stroke 개수: **0**
+- textStyle 없는 TEXT 노드 개수: **0**
+
+figma_read_calls: 약 14 (수정 3회[Chip/Tabs/TabBar 일괄 1회 + Chip 리사이즈 1회] +
+스크린샷 확인 4회 + 배치 추출 8회)
+snapshot: design/04-screens/figma-snapshot.json 의 "02 Components" 페이지 갱신
+(scripts/merge-snapshot.mjs 로 기계적 병합, 수기 수정 없음)
+next: STAGE=screens (사용자 확인 필요) — 이번 지시에도 screens STAGE는 포함되지 않아 진행하지 않음.
+미해결 사항: Card/SpecBox의 "Row" 노드 탭타겟 오분류 5건은 범위 밖이라 보고만 하고 남겨둠.
