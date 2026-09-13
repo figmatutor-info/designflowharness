@@ -13,9 +13,19 @@
  *
  * ── 사용법 (figma-builder) ──────────────────────────────────────────────
  *   1. Read scripts/figma-snapshot.js
- *   2. 상단 CONFIG 의 두 값을 치환:
+ *   2. 상단 CONFIG 치환:
  *        __FILE_KEY__   → design/04-screens/figma-file-key.txt 의 내용
  *        __PAGE_NAME__  → "01 Tokens" | "02 Components" | "03 Screens"
+ *        __FRAME_FROM__ / __FRAME_TO__ → 배치 추출할 때만. 안 쓰면 그대로 두면 된다.
+ *
+ *   ── 응답이 잘릴 때 (프레임 많은 페이지) ─────────────────────────────
+ *   use_figma 응답에는 크기 상한이 있다. 한 번에 다 못 뽑으면 범위를 나눠 여러 번 호출하고
+ *   결과를 각각 파일로 저장한 뒤 병합 스크립트로 합친다. 손으로 합치지 말 것.
+ *     예) FRAME_FROM=0  FRAME_TO=8   → batch-1.json
+ *         FRAME_FROM=8  FRAME_TO=16  → batch-2.json
+ *         FRAME_FROM=16 FRAME_TO=0   → batch-3.json (0 = 끝까지)
+ *     node scripts/merge-snapshot.mjs batch-1.json batch-2.json batch-3.json
+ *   병합 스크립트가 frame_range 로 구멍·중복·누락을 검사한다.
  *   3. use_figma 로 실행 (skillNames 에 figma-use 포함)
  *   4. 반환된 JSON 의 page 를 기존 figma-snapshot.json 의 pages 배열에
  *      같은 name 이 있으면 교체, 없으면 추가 → Write
@@ -37,6 +47,13 @@
 
 const FILE_KEY = "__FILE_KEY__";
 const PAGE_NAME = "__PAGE_NAME__";
+
+// 배치 추출 범위 (0-based, from 포함 / to 미포함).
+// use_figma 응답에는 크기 상한이 있어서 프레임이 많은 페이지는 한 번에 못 뽑는다.
+// 그때만 이 두 값을 치환해 나눠 뽑고, scripts/merge-snapshot.mjs 로 합친다.
+// 치환하지 않으면(= 플레이스홀더 그대로) Number() 가 NaN → 0 이 되어 페이지 전체를 뽑는다.
+const FRAME_FROM = Number("__FRAME_FROM__") || 0;
+const FRAME_TO = Number("__FRAME_TO__") || 0; // 0 = 끝까지
 
 const SCHEMA_VERSION = 1;
 const MAX_NODES_PER_FRAME = 2000; // 폭주 방지
@@ -298,15 +315,24 @@ if (!page) {
 // 페이지는 지연 로딩된다. 전환해야 children 이 채워진다. (호출당 1회만)
 await figma.setCurrentPageAsync(page);
 
+// 이 페이지의 추출 대상 프레임 전체 목록 (범위 계산의 기준이 된다)
+const targets = page.children.filter(
+  (c) =>
+    c.type === "FRAME" || c.type === "COMPONENT" || c.type === "COMPONENT_SET",
+);
+
+const from = Math.max(0, Math.min(FRAME_FROM, targets.length));
+const to = FRAME_TO > 0 ? Math.min(FRAME_TO, targets.length) : targets.length;
+
+if (from >= to && targets.length > 0) {
+  throw new Error(
+    `빈 범위: FRAME_FROM=${from} / FRAME_TO=${FRAME_TO} (이 페이지의 프레임 ${targets.length}개)`,
+  );
+}
+
 const frames = [];
-for (const child of page.children) {
-  if (
-    child.type === "FRAME" ||
-    child.type === "COMPONENT" ||
-    child.type === "COMPONENT_SET"
-  ) {
-    frames.push(await extractFrame(child));
-  }
+for (const child of targets.slice(from, to)) {
+  frames.push(await extractFrame(child));
 }
 
 const styles = await extractStyles();
@@ -315,6 +341,9 @@ return {
   schema_version: SCHEMA_VERSION,
   file_key: FILE_KEY,
   snapshot_date: new Date().toISOString(),
+  // 배치 병합의 근거. merge-snapshot.mjs 가 이 값으로 순서를 잡고
+  // 구멍/중복 없이 total_frames 를 전부 덮었는지 검사한다.
+  frame_range: { from, to, total_frames: targets.length },
   page: {
     name: page.name,
     frames,

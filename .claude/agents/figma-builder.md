@@ -192,6 +192,19 @@ STAGE 종료 시 아래 5단계를 그대로 실행:
       여러 페이지가 필요하면 페이지 수만큼 병렬 호출한다.
    ⚠️ 스크립트는 로컬 파일에 쓸 수 없다. 결과는 return 값으로만 온다.
 
+   ── 응답이 잘리면 (프레임 많은 페이지) ──────────────────────────
+   use_figma 응답에는 크기 상한이 있다. 프레임이 많은 페이지는 한 번에 안 뽑힌다.
+   그때는 CONFIG 의 `__FRAME_FROM__` / `__FRAME_TO__` 를 치환해 범위를 나눠 뽑고,
+   각 결과를 파일로 저장한 뒤 **merge-snapshot.mjs 로 합친다.**
+     FRAME_FROM=0  FRAME_TO=10 → batch-1.json
+     FRAME_FROM=10 FRAME_TO=18 → batch-2.json
+     FRAME_FROM=18 FRAME_TO=0  → batch-3.json   (0 = 끝까지)
+     node scripts/merge-snapshot.mjs batch-1.json batch-2.json batch-3.json
+
+   병합 스크립트가 frame_range 로 구멍·중복·누락을 검사하고, 하나라도 걸리면
+   아무것도 쓰지 않는다. 기존 스냅샷의 다른 페이지는 그대로 보존된다.
+   ❌ 즉흥 병합 스크립트를 새로 짜지 말 것. ❌ 배치 결과의 값을 손으로 고치지 말 것.
+
 4) 반환된 JSON 을 design/04-screens/figma-snapshot.json 에 Write
    - 파일이 없으면: { schema_version, file_key, snapshot_date, pages: [반환된 page],
                      variables, textStyles, effectStyles, paintStyles }
@@ -634,6 +647,10 @@ design/04-screens/figma-snapshot.json (audit 준비 완료)
 - ❌ 기존 노드 확인 없이 중복 생성
 - ❌ **figma-snapshot.json 갱신 없이 STAGE 종료** (audit 불가)
 - ❌ **snapshot 추출 코드 직접 작성** (scripts/figma-snapshot.js 만 사용 — 스키마 드리프트 시 audit 이 조용히 오판)
+- ❌ **배치 병합 스크립트 즉흥 작성** (scripts/merge-snapshot.mjs 만 사용)
+- ❌ **스냅샷의 값을 "정확성"을 이유로 손으로 정정** — 인스턴스 오버라이드 시 자식 레이어
+  name 이 마스터 기본값으로 남는 것은 Figma 의 정상 동작이다. 스냅샷은 그 정상 동작을
+  그대로 담아야 한다. 고치고 싶으면 Figma 쪽 이름을 바꾸고 재추출할 것.
 - ❌ **check-snapshot.mjs 실패 상태로 다음 STAGE 진입**
 - ❌ **스냅샷 JSON 을 손으로 수정해 검증 통과시키기** (Figma 쪽을 고치고 재추출할 것)
 - ❌ **사용자가 준 키 외의 Figma 파일에 작업하거나 새 파일 생성**

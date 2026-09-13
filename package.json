@@ -12,6 +12,7 @@
     "check:screens": "node scripts/check-phase.mjs --phase screens",
     "check:snapshot": "node scripts/check-snapshot.mjs",
     "check:snapshot:tokens": "node scripts/check-snapshot.mjs --stage tokens",
+    "merge:snapshot": "node scripts/merge-snapshot.mjs",
     "verify": "node scripts/verify-design-rules.mjs",
     "verify:strict": "node scripts/verify-design-rules.mjs --strict",
     "audit": "node scripts/figma-audit.mjs",

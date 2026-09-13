@@ -1,0 +1,270 @@
+#!/usr/bin/env node
+/**
+ * merge-snapshot.mjs
+ *
+ * figma-snapshot.js 의 배치 추출 결과를 figma-snapshot.json 에 병합한다.
+ *
+ * 왜 필요한가:
+ *   use_figma 응답에는 크기 상한이 있어서, 프레임이 많은 페이지는 한 번에 추출되지 않는다.
+ *   그래서 FRAME_FROM/FRAME_TO 로 나눠 뽑게 되는데, 그 결과를 사람(에이전트)이 매번
+ *   즉흥 스크립트로 이어 붙이면 그 지점이 곧 "손으로 만지는 구간"이 된다.
+ *   실제로 그 구간에서 스냅샷이 수정된 사고가 있었다. 병합을 이 파일 하나로 고정한다.
+ *
+ * 사용법:
+ *   node scripts/merge-snapshot.mjs batch-1.json batch-2.json batch-3.json
+ *   node scripts/merge-snapshot.mjs batch-*.json --out design/04-screens/figma-snapshot.json
+ *
+ * 옵션:
+ *   --out <path>   병합 결과 경로 (기본: design/04-screens/figma-snapshot.json)
+ *   --dry-run      파일을 쓰지 않고 검사 결과만 출력
+ *   --json         JSON 으로 출력
+ *
+ * 동작:
+ *   - 배치는 전부 같은 file_key / schema_version / page.name 이어야 한다.
+ *   - frame_range 로 정렬한 뒤 구멍(gap)·중복(overlap)·누락을 검사한다.
+ *     하나라도 걸리면 아무것도 쓰지 않고 exit 1.
+ *   - 값은 절대 고치지 않는다. frames 배열을 순서대로 이어 붙이기만 한다.
+ *   - 기존 figma-snapshot.json 이 있으면 같은 이름의 page 만 교체하고 나머지 page 는 유지한다.
+ *     (01 Tokens 를 남긴 채 02 Components 만 갱신하는 경우)
+ *
+ * exit code:
+ *   0: 병합 성공
+ *   1: 검사 실패 (아무것도 쓰지 않음)
+ */
+
+import { readFileSync, writeFileSync, existsSync } from "node:fs";
+
+const COLORS = {
+  reset: "\x1b[0m",
+  red: "\x1b[31m",
+  green: "\x1b[32m",
+  yellow: "\x1b[33m",
+  cyan: "\x1b[36m",
+};
+
+const args = process.argv.slice(2);
+const isJson = args.includes("--json");
+const isDryRun = args.includes("--dry-run");
+
+// --name 의 값을 읽는다. (다른 스크립트와 동일한 헬퍼 —
+//  `args[indexOf(name)+1] || fallback` 은 플래그가 없을 때 args[0] 을 값으로 잡는다)
+function getArg(name, fallback) {
+  const i = args.indexOf(name);
+  if (i === -1) return fallback;
+  const v = args[i + 1];
+  if (v === undefined || v.startsWith("--")) return fallback;
+  return v;
+}
+
+const outPath = getArg("--out", "design/04-screens/figma-snapshot.json");
+
+// 플래그와 그 값을 뺀 나머지가 배치 파일 목록
+const outValue = getArg("--out", null);
+const batchPaths = args.filter((a) => !a.startsWith("--") && a !== outValue);
+
+function log(msg, color = "reset") {
+  if (isJson) return;
+  console.log(`${COLORS[color]}${msg}${COLORS.reset}`);
+}
+
+function die(msg, detail) {
+  if (isJson) {
+    console.log(JSON.stringify({ ok: false, error: msg, detail }, null, 2));
+  } else {
+    log(`\n❌ ${msg}`, "red");
+    if (detail) log(`   ${detail}`);
+    log("");
+  }
+  process.exit(1);
+}
+
+// ==================== 로드 ====================
+
+if (batchPaths.length === 0) {
+  die(
+    "배치 파일을 하나도 받지 못했다",
+    "사용법: node scripts/merge-snapshot.mjs batch-1.json batch-2.json [--out <path>]",
+  );
+}
+
+const batches = batchPaths.map((p) => {
+  if (!existsSync(p)) die(`파일 없음: ${p}`);
+  try {
+    return { path: p, data: JSON.parse(readFileSync(p, "utf-8")) };
+  } catch (err) {
+    die(`JSON 파싱 실패: ${p}`, err.message);
+  }
+});
+
+// ==================== 검사 ====================
+
+const problems = [];
+
+// 1. 메타 일치
+const first = batches[0].data;
+const pageName = first.page?.name;
+
+if (!pageName) {
+  die(
+    `page.name 없음: ${batches[0].path}`,
+    "figma-snapshot.js 의 반환값을 그대로 저장한 파일이어야 한다",
+  );
+}
+
+for (const { path, data } of batches) {
+  if (data.schema_version !== first.schema_version)
+    problems.push(
+      `schema_version 불일치: ${path} (${data.schema_version} ≠ ${first.schema_version})`,
+    );
+  if (data.file_key !== first.file_key)
+    problems.push(
+      `file_key 불일치: ${path} (${data.file_key} ≠ ${first.file_key}) — 다른 파일에서 뽑은 배치다`,
+    );
+  if (data.page?.name !== pageName)
+    problems.push(
+      `page.name 불일치: ${path} (${data.page?.name} ≠ ${pageName}) — 한 번에 한 페이지만 병합한다`,
+    );
+  if (!data.frame_range)
+    problems.push(
+      `frame_range 없음: ${path} — 구버전 figma-snapshot.js 로 뽑았다. 다시 추출할 것`,
+    );
+  if (!Array.isArray(data.page?.frames))
+    problems.push(`page.frames 배열 아님: ${path}`);
+}
+
+if (problems.length > 0) {
+  die("배치 메타가 맞지 않는다", problems.join("\n   "));
+}
+
+// 2. 범위 정렬 + 커버리지
+const sorted = [...batches].sort(
+  (a, b) => a.data.frame_range.from - b.data.frame_range.from,
+);
+
+const total = sorted[0].data.frame_range.total_frames;
+for (const { path, data } of sorted) {
+  if (data.frame_range.total_frames !== total)
+    problems.push(
+      `total_frames 불일치: ${path} (${data.frame_range.total_frames} ≠ ${total}) — 추출 도중 페이지가 바뀌었다. 전부 다시 추출할 것`,
+    );
+}
+
+let cursor = 0;
+for (const { path, data } of sorted) {
+  const { from, to } = data.frame_range;
+  const got = data.page.frames.length;
+  const want = to - from;
+
+  if (got !== want)
+    problems.push(
+      `프레임 개수가 범위와 다름: ${path} (범위 ${from}~${to} = ${want}개인데 실제 ${got}개)`,
+    );
+
+  if (from > cursor)
+    problems.push(
+      `범위에 구멍: 인덱스 ${cursor}~${from} 이 어느 배치에도 없다 (${path} 앞)`,
+    );
+  if (from < cursor)
+    problems.push(
+      `범위 중복: ${path} 의 ${from}~${to} 가 앞 배치와 겹친다 (직전까지 ${cursor})`,
+    );
+
+  cursor = Math.max(cursor, to);
+}
+
+if (cursor < total)
+  problems.push(
+    `범위 누락: ${cursor}~${total} 가 빠졌다. 마지막 배치를 FRAME_TO=0 (끝까지) 으로 다시 뽑을 것`,
+  );
+
+if (problems.length > 0) {
+  die("배치 범위 검사 실패 — 아무것도 쓰지 않았다", problems.join("\n   "));
+}
+
+// ==================== 병합 ====================
+
+// frames 를 순서대로 이어 붙이기만 한다. 값은 건드리지 않는다.
+const mergedFrames = sorted.flatMap(({ data }) => data.page.frames);
+
+// 파일 단위 정보(변수/스타일)는 어느 배치에나 같은 값이 들어 있다. 마지막 추출본을 쓴다.
+const latest = [...batches]
+  .sort((a, b) =>
+    String(a.data.snapshot_date).localeCompare(String(b.data.snapshot_date)),
+  )
+  .at(-1).data;
+
+let out;
+if (existsSync(outPath)) {
+  out = JSON.parse(readFileSync(outPath, "utf-8"));
+  if (out.file_key && out.file_key !== latest.file_key)
+    die(
+      `기존 스냅샷과 file_key 가 다르다`,
+      `${outPath}=${out.file_key} / 배치=${latest.file_key}`,
+    );
+} else {
+  out = {
+    schema_version: latest.schema_version,
+    file_key: latest.file_key,
+    pages: [],
+  };
+}
+
+out.schema_version = latest.schema_version;
+out.file_key = latest.file_key;
+out.snapshot_date = latest.snapshot_date;
+out.variables = latest.variables;
+out.textStyles = latest.textStyles;
+out.effectStyles = latest.effectStyles;
+out.paintStyles = latest.paintStyles;
+if (!Array.isArray(out.pages)) out.pages = [];
+
+const newPage = { name: pageName, frames: mergedFrames };
+const idx = out.pages.findIndex((p) => p?.name === pageName);
+const replaced = idx >= 0;
+if (replaced) out.pages[idx] = newPage;
+else out.pages.push(newPage);
+
+if (!isDryRun) writeFileSync(outPath, JSON.stringify(out, null, 2));
+
+// ==================== 출력 ====================
+
+if (isJson) {
+  console.log(
+    JSON.stringify(
+      {
+        ok: true,
+        out: outPath,
+        page: pageName,
+        batches: sorted.map((b) => ({
+          path: b.path,
+          from: b.data.frame_range.from,
+          to: b.data.frame_range.to,
+        })),
+        frames: mergedFrames.length,
+        total_frames: total,
+        page_replaced: replaced,
+        dry_run: isDryRun,
+      },
+      null,
+      2,
+    ),
+  );
+} else {
+  log("");
+  log(`🧩 snapshot 병합 · ${pageName}`, "cyan");
+  log("─".repeat(50));
+  sorted.forEach(({ path, data }) => {
+    const { from, to } = data.frame_range;
+    log(`  ✓ ${path}  [${from}~${to}) ${data.page.frames.length}개`, "green");
+  });
+  log("");
+  log(`  프레임 ${mergedFrames.length}/${total}개 · 구멍·중복 없음`, "green");
+  log(
+    `  ${replaced ? "교체" : "추가"}: pages["${pageName}"] → ${outPath}`,
+    "green",
+  );
+  if (isDryRun) log("  (--dry-run: 파일은 쓰지 않았다)", "yellow");
+  log("");
+  log(`→ 다음: node scripts/check-snapshot.mjs`, "cyan");
+  log("");
+}
