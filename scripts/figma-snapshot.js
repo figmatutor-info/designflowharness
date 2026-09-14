@@ -129,8 +129,10 @@ const STRONG_TAP_RE =
   /\b(button|btn|cta|fab|list item|menu item|card action)\b/i;
 
 // 탭 타겟일 가능성이 높은 단어 (아래 NON_TAP 에 걸리지 않을 때만)
-const WEAK_TAP_RE =
-  /\b(tab|chip|toggle|switch|checkbox|radio|link|row|item)\b/i;
+// 'row' 는 뺐다. Card > Row, SpecBox > Row 처럼 좌라벨/우값을 배치하는 레이아웃
+// 컨테이너 이름으로 흔히 쓰여 오탐이 크다(누를 수 없는 노드가 tap-min 44 위반으로 잡힌다).
+// 진짜 눌리는 행은 STRONG_TAP_RE 의 'list item' 이 이미 잡는다.
+const WEAK_TAP_RE = /\b(tab|chip|toggle|switch|checkbox|radio|link|item)\b/i;
 
 // 컨테이너·장식 요소. 실제 탭 단위는 이들의 부모다.
 // TabBar("Tab Bar") 같은 크롬 컨테이너와 아이콘·라벨을 여기서 걸러낸다.
