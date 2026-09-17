@@ -42,6 +42,16 @@
  *   (figma-audit.mjs 의 getAllNodes() 가 frame.nodes 를 재귀 없이 그대로 쓴다)
  *   position 은 화면 프레임 기준 좌표다. (safe-area 검사가 844 와 직접 비교)
  *
+ * ── schema_version 3 (레이아웃 거동) ───────────────────────────────────
+ *   v2 대비 추가된 것 (전부 추가이며, 기존 필드는 그대로다):
+ *   1) node.layout = {layoutMode, layoutSizingHorizontal/Vertical,
+ *                     primaryAxisSizingMode, counterAxisSizingMode, vSizing}
+ *      vSizing 이 "FIXED" 면 그 컨테이너는 내용을 감싸지 않는다.
+ *      scripts/check-layout.mjs 가 이걸로 고정 높이를 잡는다.
+ *   2) node.parentId — 넘침(자식이 부모 밖으로 삐져나감) 계산의 근거
+ *   3) node.textAutoResize — 텍스트가 잘리는지 판정
+ *   4) frame.layout / frame.padding — 프레임 루트 자신의 거동
+ *
  * ── schema_version 2 (토큰 2계층) ──────────────────────────────────────
  *   v1 대비 바뀐 것:
  *   1) variables 가 {컬렉션: [이름]} → {컬렉션: [{name, type, aliasOf}]}
@@ -64,7 +74,7 @@ const PAGE_NAME = "__PAGE_NAME__";
 const FRAME_FROM = Number("__FRAME_FROM__") || 0;
 const FRAME_TO = Number("__FRAME_TO__") || 0; // 0 = 끝까지
 
-const SCHEMA_VERSION = 2;
+const SCHEMA_VERSION = 3;
 const MAX_NODES_PER_FRAME = 2000; // 폭주 방지
 
 // ==================== 유틸 ====================
@@ -232,6 +242,42 @@ function isPrimary(node, mainName) {
   return false;
 }
 
+// 레이아웃 거동. "컨테이너가 내용을 감싸는가"를 판정할 유일한 근거다.
+// 이 필드들이 없으면 고정 높이를 아무도 못 잡는다 (schema_version 3 에서 추가).
+//
+// layoutSizingVertical 은 오토레이아웃 "자식"에서만 의미가 있고,
+// primaryAxisSizingMode / counterAxisSizingMode 는 오토레이아웃 "컨테이너" 자신의 값이다.
+// 세로 스택(VERTICAL)에서 높이를 지배하는 건 primaryAxisSizingMode,
+// 가로 스택(HORIZONTAL)에서 높이를 지배하는 건 counterAxisSizingMode 다.
+// 판정기가 헷갈리지 않게 vSizing 으로 정규화해서 같이 내보낸다.
+function layoutInfo(node) {
+  const mode = node.layoutMode || "NONE";
+  const info = {
+    layoutMode: mode,
+    layoutSizingHorizontal: node.layoutSizingHorizontal ?? null,
+    layoutSizingVertical: node.layoutSizingVertical ?? null,
+    primaryAxisSizingMode: null,
+    counterAxisSizingMode: null,
+    vSizing: null, // "HUG" | "FIXED" | "FILL" | null(오토레이아웃 아님)
+  };
+
+  if (mode !== "NONE") {
+    info.primaryAxisSizingMode = node.primaryAxisSizingMode ?? null;
+    info.counterAxisSizingMode = node.counterAxisSizingMode ?? null;
+    const own =
+      mode === "VERTICAL"
+        ? info.primaryAxisSizingMode
+        : info.counterAxisSizingMode;
+    // AUTO = 내용을 감싼다(HUG), FIXED = 높이를 박았다
+    info.vSizing = own === "AUTO" ? "HUG" : own === "FIXED" ? "FIXED" : null;
+  }
+
+  // 부모가 오토레이아웃이면 자식의 layoutSizingVertical 이 더 정확하다 (FILL 구분 가능)
+  if (info.layoutSizingVertical) info.vSizing = info.layoutSizingVertical;
+
+  return info;
+}
+
 function autoLayoutPadding(node) {
   if (!node.layoutMode || node.layoutMode === "NONE") return null;
   return {
@@ -244,7 +290,7 @@ function autoLayoutPadding(node) {
 
 // ==================== 노드 추출 ====================
 
-async function extractNode(node, frameOrigin) {
+async function extractNode(node, frameOrigin, parentId) {
   const box = node.absoluteBoundingBox;
 
   // 프레임 기준 좌표. absoluteBoundingBox 가 없으면 로컬 x/y 로 폴백.
@@ -273,6 +319,9 @@ async function extractNode(node, frameOrigin) {
 
   const out = {
     id: node.id,
+    // 부모 노드 id. 프레임 직속이면 null.
+    // check-layout.mjs 가 "자식이 부모를 넘쳤는가"를 계산하는 근거다.
+    parentId: parentId ?? null,
     name: node.name,
     type: node.type,
     fills: await paints(node.fills),
@@ -281,6 +330,8 @@ async function extractNode(node, frameOrigin) {
     padding: autoLayoutPadding(node),
     size,
     position,
+    layout: layoutInfo(node),
+    textAutoResize: node.type === "TEXT" ? (node.textAutoResize ?? null) : null,
     isTapTarget: isTapTarget(node, mainName),
     isPrimary: isPrimary(node, mainName),
     isInstance: node.type === "INSTANCE",
@@ -310,9 +361,13 @@ async function extractFrame(frame) {
   const nodes = [];
   let truncated = false;
 
-  const stack = [...(frame.children || [])];
+  // { node, parentId } 로 들고 다닌다. parentId 는 프레임 직속이면 null.
+  const stack = (frame.children || []).map((n) => ({
+    node: n,
+    parentId: null,
+  }));
   while (stack.length > 0) {
-    const node = stack.shift();
+    const { node, parentId } = stack.shift();
     if (!node || node.visible === false) continue;
 
     if (nodes.length >= MAX_NODES_PER_FRAME) {
@@ -320,10 +375,10 @@ async function extractFrame(frame) {
       break;
     }
 
-    nodes.push(await extractNode(node, origin));
+    nodes.push(await extractNode(node, origin, parentId));
 
     if (node.children && node.children.length > 0) {
-      stack.push(...node.children);
+      stack.push(...node.children.map((c) => ({ node: c, parentId: node.id })));
     }
   }
 
@@ -331,6 +386,9 @@ async function extractFrame(frame) {
     name: frame.name,
     width: Math.round(frame.width ?? 0),
     height: Math.round(frame.height ?? 0),
+    // 프레임 자신의 레이아웃 거동 (화면·컴포넌트 루트가 고정 높이인지 판정)
+    layout: layoutInfo(frame),
+    padding: autoLayoutPadding(frame),
     truncated,
     nodes,
   };

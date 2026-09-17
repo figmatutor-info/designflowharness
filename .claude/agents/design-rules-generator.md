@@ -408,9 +408,17 @@ scripts/default-tokens.md §I 의 기본 문구를 그대로 쓰고 가정 로�
 
 > 모든 값은 **semantic 토큰 이름**으로 적는다. primitive 이름이나 생값 금지.
 
+> **높이 거동 (Height) — 모든 컴포넌트에 반드시 한 줄씩 적는다**
+> 컨테이너는 내용을 감싸는 것이 기본이다 (`hug`). `fixed` 로 적은 것만 고정 높이가 허용된다.
+> `scripts/check-layout.mjs` 와 게이트 4 audit 이 이 줄을 **예외 목록으로 읽는다.**
+> 줄을 빠뜨리면 그 컴포넌트는 hug 로 간주되고, Figma 가 고정 높이로 나오면 게이트에서 FAIL 한다.
+> `fixed` 는 기기·크롬 치수(AppBar / BottomTabBar / BottomCTA / DeviceFrame)와
+> 탭 규격(Button) 정도로 제한한다. 카드·리스트·뱃지는 예외 없이 hug 다.
+
 ### Button
 
 - Variants: primary / secondary / ghost / danger
+- Height: fixed(size-button-sm/md/lg)
 - Sizes: size-button-sm / size-button-md / size-button-lg
 - States: default / pressed / disabled / loading
 - Radius: radius-button
@@ -418,13 +426,20 @@ scripts/default-tokens.md §I 의 기본 문구를 그대로 쓰고 가정 로�
 
 ### Card
 
-...
+- Height: hug
+- ...
 
 ### SearchBar
 
-...
+- Height: hug
+- ...
 
-(screens.md에서 언급된 모든 컴포넌트 나열)
+### AppBar / BottomTabBar / BottomCTA / DeviceFrame
+
+- Height: fixed(app-bar-height / tab-bar-height / safe-area-bottom / 844)
+- 기기·크롬 치수라 내용이 아니라 규격이 높이를 정한다
+
+(screens.md에서 언급된 모든 컴포넌트 나열 — 전부 Height 줄 포함)
 
 ---
 

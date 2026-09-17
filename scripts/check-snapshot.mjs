@@ -64,7 +64,10 @@ const fileKeyPath = getArg(
 const stage = getArg("--stage", "screens");
 const minFrames = parseInt(getArg("--min-frames", "5"), 10);
 
-const SCHEMA_VERSION = 2;
+// 최신 계약. 3 부터 레이아웃 거동(node.layout / parentId)이 들어있다.
+const SCHEMA_VERSION = 3;
+// 2 도 통과시킨다 (기존 산출물 보호). 단 레이아웃 검사는 못 돌린다고 경고한다.
+const MIN_SCHEMA_VERSION = 2;
 
 // figma-audit.mjs 가 각 노드에서 읽는 필드
 const REQUIRED_NODE_FIELDS = [
@@ -118,11 +121,22 @@ function loadSnapshot() {
 // ==================== 검사 ====================
 
 function checkMeta(snap) {
+  const v = snap.schema_version;
   add(
-    "schema_version 일치",
-    snap.schema_version === SCHEMA_VERSION,
-    `현재 ${snap.schema_version ?? "없음"} (기대 ${SCHEMA_VERSION}) — figma-snapshot.js 로 생성했는지 확인`,
+    "schema_version 허용 범위",
+    typeof v === "number" && v >= MIN_SCHEMA_VERSION && v <= SCHEMA_VERSION,
+    `현재 ${v ?? "없음"} (허용 ${MIN_SCHEMA_VERSION}~${SCHEMA_VERSION}) — figma-snapshot.js 로 생성했는지 확인`,
   );
+
+  // v2 스냅샷은 layout / parentId 가 없어 고정 높이를 판정할 수 없다.
+  // 통과는 시키되, 검사에 구멍이 있다는 사실은 반드시 눈에 보이게 남긴다.
+  if (v === 2) {
+    log(
+      "  ⚠ schema_version 2 — 레이아웃 거동 필드 없음. check-layout.mjs 를 돌리려면",
+      "yellow",
+    );
+    log("    figma-snapshot.js(v3)로 스냅샷을 다시 추출해야 한다.", "yellow");
+  }
 
   const hasKey = typeof snap.file_key === "string" && snap.file_key.length > 0;
   const placeholder = snap.file_key === "__FILE_KEY__";

@@ -133,6 +133,7 @@ node scripts/figma-audit.mjs \
 | primary 개수                  | 화면당 primary 버튼                                                                                  | 정확히 1개                   |
 | 컴포넌트 재사용률             | 인스턴스 / (인스턴스 + 로컬 프레임)                                                                  | ≥ 90%                        |
 | **토큰 계층 (semantic 전용)** | 노드가 `primitives` 컬렉션 변수를 직접 바인딩했는지                                                  | primitive 직접 바인딩 0개    |
+| **레이아웃 거동 (HUG · 넘침)** | 컨테이너가 세로 FIXED 인지 / 자식이 부모 밖으로 넘쳤는지<br>예외는 design-rules 의 `Height: fixed` 선언만 | 고정 높이·넘침 0개 |
 
 **스크립트 출력 JSON 예시:**
 
@@ -167,7 +168,7 @@ node scripts/figma-audit.mjs \
         }
       ]
     }
-    // ... (나머지 항목 — 총 8개)
+    // ... (나머지 항목 — 총 9개)
   }
 }
 ```
@@ -326,8 +327,9 @@ A + C 결과를 종합해서 4가지로 분류.
 | primary 개수      | ✅/❌ | N건           |
 | 컴포넌트 재사용률 | ✅/❌ | N% (기준 90%) |
 | 토큰 계층         | ✅/❌ | N건           |
+| 레이아웃 거동     | ✅/❌ | N건           |
 
-> 8행 전부 적는다. `audit-structural.json` 의 `results` 키 8개와 1:1이다.
+> 9행 전부 적는다. `audit-structural.json` 의 `results` 키 9개와 1:1이다.
 > 한 행이라도 빠지면 스크립트가 잡은 위반이 리포트에서 사라진다.
 
 **상세:** design/04-screens/audit-structural.json

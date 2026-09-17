@@ -166,6 +166,27 @@ function loadRules() {
   // 스크롤 화면(844보다 긴 프레임)에서 전 노드가 위반으로 잡히는 문제 때문.
   const deviceHeightFallback = 844;
 
+  // 의도적 고정 높이 컴포넌트 (레이아웃 검사의 예외 SSOT).
+  // 컴포넌트 규칙의 `### 이름` 아래 `- Height: fixed(...)` 로 선언된 것만 면제된다.
+  // 선언이 없으면 HUG 가 기본이다 — 예외는 반드시 규칙 파일에 적어야 한다.
+  const fixedHeightComponents = [];
+  {
+    let current = [];
+    for (const line of content.split("\n")) {
+      const heading = line.match(/^###\s+(.+?)\s*(?:\(|$)/);
+      if (heading) {
+        current = heading[1]
+          .split("/")
+          .map((t) => t.trim())
+          .filter(Boolean);
+        continue;
+      }
+      if (current.length && /^[-*]\s*Height\s*:\s*fixed/i.test(line)) {
+        fixedHeightComponents.push(...current);
+      }
+    }
+  }
+
   return {
     validColorTokens,
     validTextStyles,
@@ -174,6 +195,7 @@ function loadRules() {
     tapMin,
     deviceWidth,
     deviceHeightFallback,
+    fixed_height_components: [...new Set(fixedHeightComponents)],
   };
 }
 
@@ -520,6 +542,114 @@ function checkTokenLayering(snapshot) {
   };
 }
 
+// 9. 레이아웃 거동 — 컨테이너가 내용을 감싸는가
+//
+// 화면에서도 같은 사고가 난다. 컴포넌트 단계(check-layout.mjs)에서 막지 못한 것,
+// 그리고 화면에서 인스턴스 높이를 덮어써 깨진 것을 게이트 4 에서 한 번 더 잡는다.
+//
+// 판정 근거는 스냅샷 schema_version 3 의 node.layout / node.parentId 다.
+// v2 스냅샷에는 둘 다 없어서 아무것도 판정할 수 없다 — "위반 0건"이 아니라 "검사 불가"이므로
+// 조용히 PASS 시키지 않고 FAIL 로 돌려 재추출을 요구한다.
+const LAYOUT_EXEMPT_RE =
+  /^(DeviceFrame|Status ?Bar|Home ?Indicator|Safe ?Area|Divider|Spacer|Track|Img\/|Icon\/)/i;
+const LAYOUT_CONTAINER_TYPES = new Set(["FRAME", "COMPONENT", "COMPONENT_SET"]);
+const LAYOUT_TOLERANCE = 1;
+
+function checkLayoutHug(snapshot, rules) {
+  const violations = [];
+  const screensPage = getScreensPage(snapshot);
+  if (!screensPage) return { status: "FAIL", violations: [], count: 0 };
+
+  // design-rules 가 fixed 로 선언한 컴포넌트는 면제한다 (예외의 SSOT 는 규칙 파일)
+  const fixedByRule = new Set((rules && rules.fixed_height_components) || []);
+  const canCheck = (snapshot.schema_version ?? 0) >= 3;
+  if (!canCheck) {
+    return {
+      status: "FAIL",
+      violations: [
+        {
+          screen: "(전체)",
+          node: "-",
+          issue: `스냅샷 schema_version ${snapshot.schema_version ?? "없음"} — layout / parentId 필드가 없어 레이아웃을 판정할 수 없다`,
+          expected:
+            "scripts/figma-snapshot.js (v3) 로 03 Screens 를 다시 추출할 것",
+        },
+      ],
+      count: 1,
+      sizing_checked: false,
+    };
+  }
+
+  const exempt = (node) => {
+    if (LAYOUT_EXEMPT_RE.test(String(node.name || ""))) return true;
+    const base = String(node.mainComponent || node.name || "")
+      .split(/[/·,]/)[0]
+      .trim();
+    return fixedByRule.has(base);
+  };
+
+  screensPage.frames.forEach((frame) => {
+    const nodes = getAllNodes(frame);
+    const byId = new Map(nodes.map((n) => [n.id, n]));
+
+    nodes.forEach((node) => {
+      // 고정 높이 컨테이너
+      if (
+        LAYOUT_CONTAINER_TYPES.has(node.type) &&
+        node.layout &&
+        node.layout.layoutMode &&
+        node.layout.layoutMode !== "NONE" &&
+        node.layout.vSizing === "FIXED" &&
+        !exempt(node)
+      ) {
+        violations.push({
+          screen: frame.name,
+          node: `${node.name} (${node.id})`,
+          issue: `오토레이아웃 컨테이너가 세로 FIXED (높이 ${node.size?.height})`,
+          expected:
+            'layoutSizingVertical = "HUG" · 의도적 고정이면 design-rules 에 Height: fixed 선언',
+        });
+      }
+
+      // 콘텐츠 넘침
+      if (!node.parentId || !node.position || !node.size) return;
+      const parent = byId.get(node.parentId);
+      if (!parent || !parent.position || !parent.size) return;
+
+      const pad = parent.padding || { bottom: 0, right: 0 };
+      const overBottom = Math.round(
+        node.position.y +
+          node.size.height -
+          (parent.position.y + parent.size.height - (pad.bottom || 0)),
+      );
+      const overRight = Math.round(
+        node.position.x +
+          node.size.width -
+          (parent.position.x + parent.size.width - (pad.right || 0)),
+      );
+
+      if (overBottom > LAYOUT_TOLERANCE || overRight > LAYOUT_TOLERANCE) {
+        const parts = [];
+        if (overBottom > LAYOUT_TOLERANCE) parts.push(`아래 ${overBottom}px`);
+        if (overRight > LAYOUT_TOLERANCE) parts.push(`오른쪽 ${overRight}px`);
+        violations.push({
+          screen: frame.name,
+          node: `${node.name} (${node.id})`,
+          issue: `"${parent.name}" 밖으로 ${parts.join(" / ")} 넘침`,
+          expected: "부모가 내용을 감싸도록 HUG 로 바꿀 것",
+        });
+      }
+    });
+  });
+
+  return {
+    status: violations.length === 0 ? "PASS" : "FAIL",
+    violations,
+    count: violations.length,
+    sizing_checked: true,
+  };
+}
+
 // ==================== 실행 ====================
 
 function runAudit() {
@@ -535,6 +665,7 @@ function runAudit() {
     primary_count: checkPrimaryCount(snapshot),
     component_reuse: checkComponentReuseRate(snapshot),
     token_layering: checkTokenLayering(snapshot),
+    layout_hug: checkLayoutHug(snapshot, rules),
   };
 
   const overallPassed = Object.values(results).every(
@@ -547,7 +678,7 @@ function runAudit() {
     passed: overallPassed,
     results,
     summary: {
-      total_checks: 8,
+      total_checks: Object.keys(results).length,
       passed_checks: Object.values(results).filter((r) => r.status === "PASS")
         .length,
       total_violations: Object.values(results).reduce(
@@ -577,6 +708,7 @@ function printReport(audit) {
     primary_count: "primary 개수",
     component_reuse: "컴포넌트 재사용률",
     token_layering: "토큰 계층 (semantic 전용)",
+    layout_hug: "레이아웃 거동 (컨테이너 HUG · 넘침)",
   };
 
   Object.entries(audit.results).forEach(([key, result]) => {

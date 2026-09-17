@@ -125,6 +125,7 @@ design/
 - **Figma 파일은 사용자가 만든 것만 사용한다** (에이전트가 새 파일 생성 금지)
 - **snapshot 은 scripts/figma-snapshot.js 로만 추출한다** (추출 코드 즉흥 작성 금지)
 - **토큰 문서 프레임은 scripts/figma-token-docs.js 로만 그린다** (규격은 docs/token-docs-spec.md · 즉흥 작성 금지)
+- **컨테이너는 내용을 감싼다 (세로 HUG).** 고정 높이는 design-rules.md 에 `Height: fixed` 로 선언된 것만 허용 (check-layout.mjs 가 검사)
 - **화면 이미지는 assets-manifest.json 에 있는 것만 쓴다** (즉석 생성·외부 이미지 금지)
 - **이미지 슬롯을 빈 채로 두고 Phase 4 를 끝내지 않는다** (게이트 4에서 FAIL)
 - **각 에이전트는 자기 담당 폴더 외 편집 금지**
@@ -158,6 +159,13 @@ node scripts/check-phase.mjs
 - `npm run check:assets` 로 매니페스트부터 확인
 - 슬롯 레이어 이름이 `Img/{key}` 인지 확인 (이름이 곧 주입 주소)
 - `/create-figma STAGE=assets` 로 이미지를 먼저 확보한 뒤 화면을 다시 만든다
+
+**"컨테이너가 내부 콘텐츠를 감싸지 못함 / 텍스트가 카드 밖으로 넘침"**
+
+- `npm run check:layout` 으로 어느 노드인지 먼저 확인
+- 원인 대부분은 오토레이아웃 프레임에 `resize(w, h)` 를 불러 sizing 이 FIXED 로 풀린 것
+- 의도적 고정이면 design-rules.md 컴포넌트 항목에 `- Height: fixed(토큰)` 을 선언한다
+- `schema_version 2` 경고가 뜨면 고정 높이 검사가 건너뛰어진 것 — 스냅샷을 v3 로 재추출
 
 **"figma-builder가 시작 안 됨"**
 

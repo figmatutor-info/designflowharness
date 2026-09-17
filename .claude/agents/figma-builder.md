@@ -282,6 +282,7 @@ STAGE 종료 시 아래 5단계를 그대로 실행:
    node scripts/check-snapshot.mjs --stage tokens       # tokens STAGE
    node scripts/check-token-docs.mjs                    # tokens STAGE 는 이것도 필수
    node scripts/check-snapshot.mjs --stage components   # components STAGE
+   node scripts/check-layout.mjs --page "02 Components"  # components STAGE 는 이것도 필수
    node scripts/check-snapshot.mjs                      # screens STAGE
 ```
 
@@ -326,7 +327,7 @@ Figma 쪽 명명 규칙이 어긋난 것이다 (예: primary 버튼 이름에 "P
 
 **핵심 원칙:**
 
-- 모든 컴포넌트 오토레이아웃
+- 모든 컴포넌트 오토레이아웃 + **세로는 HUG** (아래 "⭐ 높이 거동" 필독)
 - 색·크기는 변수 바인딩만 (하드코딩 금지)
 - **바인딩 대상은 `semantic` 컬렉션 변수뿐이다.**
   `primitives` 컬렉션 변수를 노드에 직접 바인딩하면 게이트 4에서 FAIL 한다.
@@ -388,6 +389,31 @@ Figma 쪽 명명 규칙이 어긋난 것이다 (예: primary 버튼 이름에 "P
 - setBoundVariable 에 넘기는 변수는 **반드시 `semantic` 컬렉션에서** 찾는다
   (`primitives` 에서 찾아 바인딩하면 토큰 계층 검사에서 걸린다)
 
+### ⭐ 높이 거동 — 컨테이너는 내용을 감싼다
+
+**컨테이너 높이를 숫자로 정하지 않는다.** 내용이 높이를 정한다.
+실제로 이 하네스에서 카드 컨테이너가 고정 높이로 만들어져 제목 아래 텍스트가
+카드 밖으로 삐져나온 사고가 있었다.
+
+```js
+// ❌ 오토레이아웃 프레임에 resize 를 부르면 sizing 이 FIXED 로 풀린다.
+//    HUG 로 세팅해 뒀어도 이 한 줄에 조용히 무효가 된다. 이게 그 사고의 원인이다.
+card.layoutMode = "VERTICAL";
+card.resize(170, 240);
+
+// ✅ 세로는 HUG, 가로만 정한다
+card.layoutMode = "VERTICAL";
+card.primaryAxisSizingMode = "AUTO"; // 세로 = 내용을 감쌈
+card.counterAxisSizingMode = "FIXED"; // 가로 = 지정
+card.layoutSizingHorizontal = "FIXED"; // (부모가 오토레이아웃이면 "FILL")
+card.layoutSizingVertical = "HUG";
+```
+
+- 텍스트는 `textAutoResize = "HEIGHT"` (줄 수가 늘면 카드도 같이 늘어야 한다)
+- 폭만 맞추고 싶으면 `resize` 대신 `layoutSizingHorizontal` 을 쓴다
+- 고정 높이가 정말 필요하면 **design-rules.md 컴포넌트 항목에 `- Height: fixed(토큰)` 을 먼저 선언**한다.
+  선언 없는 고정 높이는 게이트에서 전부 위반이다 (기본 면제: DeviceFrame · 상태바 · 홈 인디케이터 · `Img/` · `Icon/`)
+
 ### ⭐ 이미지 슬롯을 가진 컴포넌트의 명명 규칙
 
 Card, DestinationCard, Avatar 처럼 이미지를 품는 컴포넌트는
@@ -416,7 +442,25 @@ STAGE 종료 시 figma-snapshot.json 재저장.
 `__PAGE_NAME__` 을 `02 Components` 로 치환한다.
 pages 배열에서 `02 Components` 항목만 교체하고 `01 Tokens` 는 그대로 둔다.
 
-검증: `node scripts/check-snapshot.mjs --stage components`
+검증 (둘 다 통과해야 한다):
+
+```bash
+node scripts/check-snapshot.mjs --stage components
+node scripts/check-layout.mjs --page "02 Components"   # = npm run check:layout
+```
+
+`check-layout` 은 "컨테이너가 내용을 감싸는가"를 본다. 잡는 것 3가지:
+
+| 위반                       | 뜻                                      |
+| -------------------------- | --------------------------------------- |
+| 고정 높이 컨테이너         | 오토레이아웃인데 세로가 FIXED           |
+| 오토레이아웃 없는 컨테이너 | 자식이 있는데 레이아웃이 없음           |
+| 콘텐츠 넘침                | 자식이 부모 밖으로 삐져나감 (사고 증거) |
+
+**FAIL 이면 STAGE=assets 로 넘어가지 않는다.** 스냅샷을 손으로 고치지 말고
+지목된 노드를 Figma 에서 HUG 로 바꾼 뒤 스냅샷을 재추출한다.
+`schema_version 2` 로 FAIL 나면 검사가 아예 못 돈 것이다 (layout / parentId 필드 없음).
+`figma-snapshot.js`(v3)로 해당 페이지를 다시 뽑으면 된다.
 
 ### build-log 갱신
 
