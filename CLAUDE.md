@@ -93,9 +93,12 @@ design/
 │   └── preview.html
 │
 └── 04-screens/            ← Phase 4
-    ├── figma-file-key.txt
+    ├── figma-file-key.txt      (사용자가 만든 Figma 파일 키)
+    ├── figma-snapshot.json     (audit 입력 · figma-snapshot.js 로만 추출)
     ├── build-log.md
     ├── audit-report.md
+    ├── audit-structural.json   (figma-audit.mjs 출력)
+    ├── fix-list.md             (audit FAIL 시만 생성)
     └── screenshots/
 ```
 

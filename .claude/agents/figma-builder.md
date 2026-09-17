@@ -438,11 +438,37 @@ figma-audit.mjs 가 이 데이터로 검증하며, 아래가 실제 출력 스�
 
 **Snapshot 스키마:**
 
+⚠️ `figma-snapshot.js` 는 **`page` (단수) 하나**를 반환한다. 그것을 그대로 저장하지 말고,
+`figma-snapshot.json` 의 **`pages` 배열**에 같은 name 이 있으면 교체 / 없으면 추가한다.
+(`check-snapshot.mjs` 는 `pages` 배열과 `schema_version` 을 요구한다)
+
+**figma-snapshot.js 의 반환값 (한 페이지분):**
+
 ```json
 {
+  "schema_version": 1,
   "file_key": "abc123",
-  "snapshot_date": "2025-01-15T14:30:00Z",
-  "stage_completed": "screens",
+  "snapshot_date": "2025-01-15T14:30:00.000Z",
+  "frame_range": { "from": 0, "to": 5, "total_frames": 5 },
+  "page": { "name": "03 Screens", "frames": [] },
+  "variables": { "color": ["color-primary"], "space": ["space-4"] },
+  "textStyles": ["Text/h1"],
+  "effectStyles": ["Shadow/sm"],
+  "paintStyles": []
+}
+```
+
+**figma-snapshot.json 의 최종 형태 (병합 후):**
+
+```json
+{
+  "schema_version": 1,
+  "file_key": "abc123",
+  "snapshot_date": "2025-01-15T14:30:00.000Z",
+  "variables": { "color": ["color-primary"] },
+  "textStyles": ["Text/h1"],
+  "effectStyles": ["Shadow/sm"],
+  "paintStyles": [],
   "pages": [
     {
       "name": "03 Screens",

@@ -87,7 +87,7 @@ design-flow-harness/
 │   │   ├── figma-builder.md
 │   │   └── design-auditor.md
 │   │
-│   └── commands/              ← 슬래시 명령 6개
+│   └── skills/                ← 슬래시 명령 6개
 │       ├── collect-references/SKILL.md
 │       ├── analyze-references/SKILL.md
 │       ├── build-structure/SKILL.md
@@ -100,6 +100,7 @@ design-flow-harness/
 │   ├── check-phase.mjs        (통합 게이트 체커)
 │   ├── verify-design-rules.mjs (규칙 세부 검증)
 │   ├── figma-snapshot.js      (Figma 추출기 · use_figma 주입용, Node 실행 X)
+│   ├── merge-snapshot.mjs     (배치 추출 결과 병합)
 │   ├── check-snapshot.mjs     (snapshot 스키마 검증)
 │   └── figma-audit.mjs        (Figma 파일 검증)
 │
@@ -190,6 +191,9 @@ npm run check:references
 npm run check:structure
 npm run check:rules
 npm run check:screens
+
+# snapshot 배치 병합 (응답이 잘려 나눠 뽑았을 때만)
+npm run merge:snapshot -- batch-1.json batch-2.json batch-3.json
 
 # snapshot 스키마 검증 (audit 전 필수)
 npm run check:snapshot
