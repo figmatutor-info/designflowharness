@@ -13,6 +13,7 @@
     "check:assets": "node scripts/check-assets.mjs",
     "check:snapshot": "node scripts/check-snapshot.mjs",
     "check:snapshot:tokens": "node scripts/check-snapshot.mjs --stage tokens",
+    "check:token-docs": "node scripts/check-token-docs.mjs",
     "merge:snapshot": "node scripts/merge-snapshot.mjs",
     "verify": "node scripts/verify-design-rules.mjs",
     "verify:strict": "node scripts/verify-design-rules.mjs --strict",

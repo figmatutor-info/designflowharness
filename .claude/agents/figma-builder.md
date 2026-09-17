@@ -204,9 +204,41 @@ semantic    ← 전부 primitives 를 가리키는 alias. 자체 값을 갖지 �
 
 1. use_figma 스크립트 작성 (한 번에 큰 프레임 만들지 않는다)
 2. **primitives 전부 → semantic 전부(alias) → 텍스트 스타일 → 이펙트 스타일** 순
-3. `01 Tokens` 페이지에 스와치 프레임 하나 그림 (내부 검증용).
-   primitive 행과 semantic 행을 나눠 그려 참조 관계가 보이게 한다
-4. `get_screenshot`으로 스와치 프레임 확인 (내부용, 사용자에게 안 보냄)
+3. **토큰 문서 프레임 생성** — 아래 "⭐ 토큰 문서" 절차를 그대로 실행
+4. `get_screenshot`으로 문서 프레임 확인 (내부용, 사용자에게 안 보냄)
+
+### ⭐ 토큰 문서 (필수)
+
+**문서 그리는 코드를 직접 작성하지 않는다.** `scripts/figma-token-docs.js` 를 그대로 쓴다.
+레이아웃 계약의 SSOT 는 `docs/token-docs-spec.md` 다.
+
+> 즉흥 작성하면 매번 다른 것이 나온다. 실제로 2016×146 짜리 한 줄 띠에
+> 라벨이 칩 위에 겹쳐 잘린 산출물이 나온 적이 있다. snapshot 과 같은 처방이다.
+
+```
+1) Read scripts/figma-token-docs.js
+
+2) CONFIG 4값 치환
+   __PAGE_NAME__      → "01 Tokens"
+   __PROJECT_LABEL__  → 프로젝트 라벨 (대문자 영문. 없으면 "DESIGN SYSTEM")
+   __DOC_DATE__       → 오늘 날짜 ("SEP 17, 2026" 형식)
+   __ONLY__           → 치환하지 않는다. 응답이 잘릴 때만
+                        "color" | "scale" | "type" | "shadow" 로 쪼개 여러 번 실행
+
+3) use_figma 로 실행 (skillNames 에 figma-use 포함)
+   스크립트가 기존 `Token Documentation — *` 와 레거시 `Token Swatch` 를
+   먼저 지우고 새로 그린다 (멱등). 여러 번 돌려도 안전하다.
+
+4) 스냅샷 재추출 후 게이트 검증
+   node scripts/check-token-docs.mjs      # = npm run check:token-docs
+```
+
+**FAIL 이면 STAGE=components 로 넘어가지 않는다.**
+스냅샷이나 문서를 손으로 고치지 말고, 원인(변수 누락·이름 어긋남)을 고친 뒤 3)부터 다시 돌린다.
+
+만드는 문서 6개 (모두 1280 폭 · 5열 그리드 · 카드 214×136):
+`Color Primitives` / `Color Semantic` / `Scale Primitives` / `Scale Semantic` /
+`Typography` / `Shadow`
 
 ### ⭐ Snapshot 저장 (필수)
 
@@ -248,6 +280,7 @@ STAGE 종료 시 아래 5단계를 그대로 실행:
 
 5) Bash 로 스키마 검증 (실패하면 다음 STAGE 로 넘어가지 않는다)
    node scripts/check-snapshot.mjs --stage tokens       # tokens STAGE
+   node scripts/check-token-docs.mjs                    # tokens STAGE 는 이것도 필수
    node scripts/check-snapshot.mjs --stage components   # components STAGE
    node scripts/check-snapshot.mjs                      # screens STAGE
 ```
@@ -274,6 +307,8 @@ Figma 쪽 명명 규칙이 어긋난 것이다 (예: primary 버튼 이름에 "P
   스타일 생성:
 - text: 8개
 - shadow: 3개
+  토큰 문서: figma-token-docs.js 로 6개 프레임 생성 (Color Primitives / Color Semantic /
+  Scale Primitives / Scale Semantic / Typography / Shadow) · check-token-docs PASS
   figma_read_calls: 3
   snapshot: figma-snapshot.json 갱신 완료
   next: STAGE=components

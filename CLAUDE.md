@@ -124,6 +124,7 @@ design/
 - **design/03-design-rules/design-rules.md 는 유일한 규칙 SSOT**
 - **Figma 파일은 사용자가 만든 것만 사용한다** (에이전트가 새 파일 생성 금지)
 - **snapshot 은 scripts/figma-snapshot.js 로만 추출한다** (추출 코드 즉흥 작성 금지)
+- **토큰 문서 프레임은 scripts/figma-token-docs.js 로만 그린다** (규격은 docs/token-docs-spec.md · 즉흥 작성 금지)
 - **화면 이미지는 assets-manifest.json 에 있는 것만 쓴다** (즉석 생성·외부 이미지 금지)
 - **이미지 슬롯을 빈 채로 두고 Phase 4 를 끝내지 않는다** (게이트 4에서 FAIL)
 - **각 에이전트는 자기 담당 폴더 외 편집 금지**
@@ -173,6 +174,7 @@ node scripts/check-phase.mjs
 ## 상세 문서
 
 - 하네스 설계 원칙: docs/harness-principles.md (별도)
+- 토큰 문서 규격: docs/token-docs-spec.md
 - 각 에이전트 상세: .claude/agents/*.md
 - 검증 스크립트: scripts/*.mjs
 - 기본 토큰: scripts/default-tokens.md
