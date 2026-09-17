@@ -105,7 +105,24 @@ node scripts/check-snapshot.mjs
 > "figma-snapshot.json 이 audit 입력 계약을 만족하지 않습니다.
 > /create-figma STAGE=screens 로 스냅샷을 다시 추출해주세요."
 
-통과했을 때만 구조 검증 실행:
+**그다음 이미지 산출물을 확인한다.**
+
+```bash
+node scripts/check-assets.mjs
+```
+
+`figma-audit.mjs` 는 이미지를 보지 않는다. 팔레트 검사는 SOLID fill 만 보므로
+**슬롯이 회색 빈 박스로 남아 있어도 audit 은 전부 PASS 로 나온다.**
+이걸 여기서 안 잡으면 "auditor 는 PASS 라는데 `npm run check` 는 FAIL" 이라는
+판정 분열이 생긴다. 게이트 4 안에서 판정은 하나여야 한다.
+
+- FAIL → **최종 판정을 PASS 로 쓰지 않는다.** fix-list 에 `대상: assets` 로 적는다
+- `image-slots: none` 프로젝트면 이 스크립트가 "해당 없음" 으로 통과시킨다
+
+> ⚠️ `npm run check:screens` 를 부르지 않는다. 그 안에는 "audit 통과" 항목이 있어
+> 아직 쓰지 않은 자기 리포트를 기다리게 된다. 개별 스크립트만 직접 부른다.
+
+둘 다 통과했을 때만 구조 검증 실행:
 
 ```bash
 node scripts/figma-audit.mjs \
@@ -116,7 +133,7 @@ node scripts/figma-audit.mjs \
 
 > file_key 는 snapshot 안에서 읽는다. `--file-key` 옵션은 없다.
 
-**스크립트가 검사하는 8항목:**
+**스크립트가 검사하는 9항목:**
 
 > ⚠️ 아래 표는 `figma-audit.mjs` 의 `runAudit()` 결과 키와 **1:1로 대응해야 한다.**
 > 표에 없는 항목이 스크립트에 추가되면, 스크립트는 FAIL 을 내는데 리포트에는
@@ -314,6 +331,16 @@ A + C 결과를 종합해서 4가지로 분류.
 ---
 
 ## 최종 판정: PASS ✅ | FAIL ❌
+
+## A단계 · 사전 검사 (입력이 쓸 만한가)
+
+| 스크립트           | 결과  | 비고                              |
+| ------------------ | ----- | --------------------------------- |
+| check-snapshot.mjs | ✅/❌ | 스냅샷이 audit 입력 계약을 만족하나 |
+| check-assets.mjs   | ✅/❌ | 이미지 슬롯이 실제로 채워졌나 / 해당 없음 |
+
+> 이 두 줄은 `figma-audit.mjs` 밖의 스크립트다. 아래 9항목 표와 섞지 않는다.
+> **둘 중 하나라도 ❌ 면 최종 판정은 FAIL 이다.**
 
 ## A단계 · 구조 검증 (스크립트)
 

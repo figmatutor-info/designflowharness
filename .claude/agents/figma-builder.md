@@ -928,28 +928,44 @@ figma-audit.mjs 가 이 데이터로 검증하며, 아래가 실제 출력 스�
 
 **figma-snapshot.js 의 반환값 (한 페이지분):**
 
+> ⚠️ `schema_version` 은 **스크립트가 찍어서 돌려준다. 손으로 쓰지 않는다.**
+> `check-snapshot.mjs` 는 2~3 만 받는다. 아래 예시를 베껴 옛 버전을 적으면 즉시 FAIL 이다.
+
 ```json
 {
-  "schema_version": 1,
+  "schema_version": 3,
   "file_key": "abc123",
   "snapshot_date": "2025-01-15T14:30:00.000Z",
   "frame_range": { "from": 0, "to": 5, "total_frames": 5 },
   "page": { "name": "03 Screens", "frames": [] },
-  "variables": { "color": ["color-primary"], "space": ["space-4"] },
+  "variables": {
+    "primitives": [{ "name": "brand-500", "type": "COLOR", "aliasOf": null }],
+    "semantic": [
+      { "name": "color-primary", "type": "COLOR", "aliasOf": "brand-500" }
+    ]
+  },
   "textStyles": ["Text/h1"],
   "effectStyles": ["Shadow/sm"],
   "paintStyles": []
 }
 ```
 
+`variables` 는 **컬렉션별 객체 배열**이다 (v2 부터). `aliasOf` 가 2계층 판정의 근거다.
+primitive 는 `aliasOf: null`, semantic 은 전부 primitive 이름을 가리켜야 한다.
+
 **figma-snapshot.json 의 최종 형태 (병합 후):**
 
 ```json
 {
-  "schema_version": 1,
+  "schema_version": 3,
   "file_key": "abc123",
   "snapshot_date": "2025-01-15T14:30:00.000Z",
-  "variables": { "color": ["color-primary"] },
+  "variables": {
+    "primitives": [{ "name": "brand-500", "type": "COLOR", "aliasOf": null }],
+    "semantic": [
+      { "name": "color-primary", "type": "COLOR", "aliasOf": "brand-500" }
+    ]
+  },
   "textStyles": ["Text/h1"],
   "effectStyles": ["Shadow/sm"],
   "paintStyles": [],
@@ -964,13 +980,15 @@ figma-audit.mjs 가 이 데이터로 검증하며, 아래가 실제 출력 스�
           "nodes": [
             {
               "id": "1:23",
+              "parentId": null,
               "name": "SearchBar",
               "type": "INSTANCE",
               "fills": [
                 {
                   "type": "SOLID",
                   "color": "#FFFFFF",
-                  "boundVariable": "color-bg"
+                  "boundVariable": "color-bg",
+                  "boundVariableCollection": "semantic"
                 }
               ],
               "textStyle": null,
@@ -978,6 +996,15 @@ figma-audit.mjs 가 이 데이터로 검증하며, 아래가 실제 출력 스�
               "itemSpacing": 8,
               "size": { "width": 358, "height": 44 },
               "position": { "x": 16, "y": 100 },
+              "layout": {
+                "layoutMode": "HORIZONTAL",
+                "layoutSizingHorizontal": "FILL",
+                "layoutSizingVertical": "HUG",
+                "primaryAxisSizingMode": "FIXED",
+                "counterAxisSizingMode": "AUTO",
+                "vSizing": "HUG"
+              },
+              "textAutoResize": null,
               "isTapTarget": true,
               "isPrimary": false,
               "isInstance": true
@@ -993,6 +1020,8 @@ figma-audit.mjs 가 이 데이터로 검증하며, 아래가 실제 출력 스�
 **필수 필드:**
 
 - `fills[].boundVariable`: 변수 바인딩 이름 (없으면 null → 미바인딩)
+- `fills[].boundVariableCollection`: 그 변수가 속한 컬렉션 (`semantic` 아니면 계층 위반)
+- `parentId`, `layout.vSizing`, `textAutoResize`: 레이아웃 거동 검사용 (v3)
 - `textStyle`: 적용된 텍스트 스타일 이름 (없으면 null)
 - `padding`, `itemSpacing`: 4배수 검증용
 - `size.width/height`: tap-min 검증용
