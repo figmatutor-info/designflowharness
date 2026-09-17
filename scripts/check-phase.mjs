@@ -281,6 +281,18 @@ function checkRules() {
       pass: /color-primary/.test(content),
       detail: /color-primary/.test(content) ? "정의됨" : "누락",
     });
+
+    // 7. 컴포넌트 카탈로그 완결성
+    //
+    // 왜 있나: default-tokens.md 는 규칙의 상위 소스다. 그런데 Phase 2 의 컴포넌트
+    // 목록은 "화면 기능에서 역산"하는 방식이라, Icon·Divider 처럼 다른 컴포넌트
+    // 안에 들어가는 원자 요소를 구조적으로 놓친다. 그 누락이 Phase 3 로 그대로
+    // 상속되면 figma-builder 는 "규칙에 없는 값은 만들지 않는다"는 원칙에 따라
+    // 플레이스홀더로 대체하고 넘어간다 (실제로 Icon 이 회색 원으로 나온 사례).
+    //
+    // 그래서 여기서 default 대비 차집합을 기계로 막는다. 버리는 건 자유지만,
+    // 버렸다고 말은 해야 한다.
+    results.push(checkComponentCatalog(content, componentsPath));
   }
 
   return {
@@ -288,6 +300,80 @@ function checkRules() {
     gate: 3,
     checks: results,
     passed: results.every((r) => r.pass),
+  };
+}
+
+// default-tokens.md 의 "## 컴포넌트 기본값" 아래 ### 항목들을 뽑는다.
+function defaultComponentNames() {
+  const src = readFile("scripts/default-tokens.md");
+  if (!src) return [];
+  const section =
+    src.match(/^## 컴포넌트 기본값[\s\S]*?(?=^## |(?![\s\S]))/m)?.[0] || "";
+  return [...section.matchAll(/^### +(.+?)\s*$/gm)].map((m) => m[1].trim());
+}
+
+// 이름 비교용 정규화: 공백·하이픈·슬래시 제거 + 소문자.
+// "Tab Bar" 와 "BottomTabBar" 가 같은 것을 가리키도록 부분일치를 허용한다.
+function normalizeName(name) {
+  return String(name || "")
+    .toLowerCase()
+    .replace(/[\s\-_/()]+/g, "")
+    .replace(/[^a-z0-9가-힣]/g, "");
+}
+
+// design-rules.md 의 "의도적 제외" 표에서 첫 칸(항목명)을 뽑는다.
+// | 항목 | 사유 | 형태의 표를 기대한다.
+function declaredExclusions(rulesContent) {
+  const section =
+    rulesContent.match(/의도적 제외[\s\S]*?(?=^## |(?![\s\S]))/m)?.[0] || "";
+  return [...section.matchAll(/^\|\s*([^|\r\n]+?)\s*\|/gm)]
+    .map((m) => m[1].trim())
+    .filter((v) => v && !/^-+$/.test(v) && !/^항목$/.test(v));
+}
+
+function checkComponentCatalog(rulesContent, componentsPath) {
+  const defaults = defaultComponentNames();
+
+  if (defaults.length === 0) {
+    return {
+      name: "컴포넌트 카탈로그 완결성",
+      pass: true,
+      detail: "default-tokens.md 에 컴포넌트 기본값 섹션 없음 — 검사 생략",
+    };
+  }
+  if (!fileExists(componentsPath)) {
+    return {
+      name: "컴포넌트 카탈로그 완결성",
+      pass: false,
+      detail: `${componentsPath} 없음 — 대조 불가`,
+    };
+  }
+
+  // 본문이 아니라 "헤딩"만 본다.
+  // 본문에는 "- Icon: icon-md" 같은 속성 줄이 흔해서, 본문까지 보면
+  // 컴포넌트 정의가 없어도 통과해버린다 (이번 Icon 사고가 정확히 그 형태였다).
+  const componentsSrc = readFile(componentsPath);
+  const headings = [...componentsSrc.matchAll(/^#{2,3} +(.+?)\s*$/gm)].map(
+    (m) => normalizeName(m[1]),
+  );
+  const exclusions = declaredExclusions(rulesContent).map(normalizeName);
+
+  const missing = defaults.filter((name) => {
+    const key = normalizeName(name);
+    if (!key) return false;
+    const covered = headings.some((h) => h.includes(key) || key.includes(h));
+    const excluded = exclusions.some((e) => e.includes(key) || key.includes(e));
+    return !covered && !excluded;
+  });
+
+  return {
+    name: "컴포넌트 카탈로그 완결성",
+    pass: missing.length === 0,
+    detail:
+      missing.length === 0
+        ? `default 컴포넌트 ${defaults.length}개 모두 반영 또는 제외 선언됨`
+        : `default-tokens.md 의 [${missing.join(", ")}] 가 components.md 에 없습니다.\n` +
+          `    → 포함하거나, design-rules.md 의 "의도적 제외" 표에 '| 항목 | 사유 |' 로 선언하세요.`,
   };
 }
 
