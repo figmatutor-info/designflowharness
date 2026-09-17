@@ -68,15 +68,15 @@ Phase 4 · Figma 생성   → 게이트 4 → 🎉 완료
 
 ## 에이전트 라우팅
 
-| 요청 유형     | 자연어 예시                      | 에이전트               | 슬래시 명령         |
-| ------------- | -------------------------------- | ---------------------- | ------------------- |
-| 레퍼런스 수집 | "레퍼런스 뽑아줘", "경쟁사 분석" | reference-collector    | /collect-references |
-| 레퍼런스 분석 | "분석해줘", "패턴 뽑아줘"        | reference-analyzer     | /analyze-references |
-| 화면 구조     | "화면 구조 짜줘", "화면 목록"    | structure-builder      | /build-structure    |
-| 디자인 규칙   | "규칙 만들어줘", "디자인 시스템" | design-rules-generator | /generate-rules     |
-| Figma 생성    | "Figma 화면 만들어줘"            | figma-builder          | /create-figma       |
+| 요청 유형     | 자연어 예시                        | 에이전트               | 슬래시 명령                |
+| ------------- | ---------------------------------- | ---------------------- | -------------------------- |
+| 레퍼런스 수집 | "레퍼런스 뽑아줘", "경쟁사 분석"   | reference-collector    | /collect-references        |
+| 레퍼런스 분석 | "분석해줘", "패턴 뽑아줘"          | reference-analyzer     | /analyze-references        |
+| 화면 구조     | "화면 구조 짜줘", "화면 목록"      | structure-builder      | /build-structure           |
+| 디자인 규칙   | "규칙 만들어줘", "디자인 시스템"   | design-rules-generator | /generate-rules            |
+| Figma 생성    | "Figma 화면 만들어줘"              | figma-builder          | /create-figma              |
 | 화면 이미지   | "이미지 채워줘", "이미지 만들어줘" | figma-builder (assets) | /create-figma STAGE=assets |
-| 최종 검증     | "검증해줘", "audit"              | design-auditor         | /audit-design       |
+| 최종 검증     | "검증해줘", "audit"                | design-auditor         | /audit-design              |
 
 ---
 

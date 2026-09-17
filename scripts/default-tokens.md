@@ -255,6 +255,13 @@ figma-builder 의 STAGE=assets 가 이 값으로 이미지를 생성한다.
 이미지는 "무엇을 어떤 톤으로 그릴지"에 대한 **규칙**이며,
 슬롯을 감싸는 프레임의 radius·padding 만 semantic 토큰(`radius-card` 등)을 쓴다.
 
+### 사용 여부
+
+design-rules.md §I 첫 줄에 `image-slots: used` 또는 `image-slots: none` 을 적는다.
+**기본값은 `used`** 다. 이미지를 쓰지 않는 앱(가계부·설정·계산기 등)이면 `none`
+으로 선언한다. `none` 이면 STAGE=assets 가 통째로 생략되고, 게이트 4의 이미지
+검사도 "해당 없음"으로 통과한다.
+
 ### 생성 기본값
 
 | 항목       | 기본값          | 비고                                  |

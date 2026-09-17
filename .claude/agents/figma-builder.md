@@ -319,7 +319,7 @@ Figma 쪽 명명 규칙이 어긋난 것이다 (예: primary 버튼 이름에 "P
 
 4. **Card**
    - 제목 2줄 말줄임 (고정 높이 2줄)
-   - 이미지 슬롯 (선택)
+   - 이미지 슬롯 (선택) — **레이어 이름을 `Img/slot` 으로 한다** (아래 규칙 참조)
    - padding: space-card-padding, radius: radius-card, shadow: shadow-sm
 
 5. **Input, Select**
@@ -352,6 +352,22 @@ Figma 쪽 명명 규칙이 어긋난 것이다 (예: primary 버튼 이름에 "P
 - 색·간격·radius·텍스트: setBoundVariable / setTextStyleIdAsync로만
 - setBoundVariable 에 넘기는 변수는 **반드시 `semantic` 컬렉션에서** 찾는다
   (`primitives` 에서 찾아 바인딩하면 토큰 계층 검사에서 걸린다)
+
+### ⭐ 이미지 슬롯을 가진 컴포넌트의 명명 규칙
+
+Card, DestinationCard, Avatar 처럼 이미지를 품는 컴포넌트는
+**마스터 안의 이미지 레이어 이름을 `Img/` 로 시작하게 짓는다** (`Img/slot`, `Img/avatar`).
+
+왜 중요한가:
+
+- Figma 는 인스턴스 자식 레이어의 이름을 마스터 기본값으로 고정한다.
+  화면에서 인스턴스마다 다른 이름을 붙일 수 없다
+- 게이트(`check-phase.mjs` 의 "이미지 슬롯 채움")는 `Img/` 로 시작하는 노드를 찾아
+  전부 IMAGE fill 인지 본다. 마스터 이름이 `Image` 나 `Thumbnail` 이면
+  **빈 슬롯이 있어도 게이트가 못 잡는다**
+- 주입 자체는 이름이 아니라 node_id 로 하므로, 이름이 겹치는 것은 문제되지 않는다
+
+슬롯 노드는 RECTANGLE 로 둔다 (FRAME 은 재사용률 분모에 들어간다).
 
 ### 자리표시 원칙
 
@@ -420,6 +436,28 @@ components STAGE 완료.
   - 슬롯 역할별 비율표
   - **화면별 슬롯 계획 표** ← 만들 슬롯의 전체 목록
 - `design/02-structure/screens.md` — 각 슬롯에 담길 실제 내용
+
+### ⭐ 가장 먼저 — 이미지를 쓰는 프로젝트인가
+
+design-rules.md §I 첫 줄의 선언을 읽는다.
+
+```
+image-slots: none  →  이 STAGE 를 통째로 건너뛴다
+image-slots: used  →  아래 절차대로 진행
+```
+
+`none` 이면 이미지를 하나도 만들지 않고, 매니페스트도 만들지 않는다.
+build-log 에 아래 한 줄만 남기고 바로 STAGE=screens 로 넘어간다.
+(게이트 4의 이미지 검사도 "해당 없음"으로 통과한다)
+
+```markdown
+## STAGE=assets ✅ (건너뜀)
+
+design-rules §I image-slots: none — 이미지를 쓰지 않는 프로젝트
+next: STAGE=screens
+```
+
+screens STAGE 에서도 `Img/*` 슬롯을 만들지 않는다.
 
 §I 가 없으면 즉시 종료한다:
 
@@ -538,7 +576,6 @@ curl -sSL -o design/04-screens/assets/img/{key}.png "{결과 URL}"
   "slots": [
     {
       "key": "01-home-hero",
-      "layer": "Img/01-home-hero",
       "screen": "01-home",
       "role": "hero",
       "aspect_ratio": "16:9",
@@ -546,11 +583,12 @@ curl -sSL -o design/04-screens/assets/img/{key}.png "{결과 URL}"
       "file": "img/01-home-hero.png",
       "job_id": "{higgsfield job id}",
       "status": "done",
-      "reuse_of": null
+      "reuse_of": null,
+      "in_instance": false,
+      "placements": []
     },
     {
       "key": "02-search-results-card-1",
-      "layer": "Img/02-search-results-card-1",
       "screen": "02-search-results",
       "role": "card",
       "aspect_ratio": "4:3",
@@ -558,7 +596,9 @@ curl -sSL -o design/04-screens/assets/img/{key}.png "{결과 URL}"
       "file": null,
       "job_id": null,
       "status": "reuse",
-      "reuse_of": "01-home-hero"
+      "reuse_of": "01-home-hero",
+      "in_instance": true,
+      "placements": []
     }
   ]
 }
@@ -566,16 +606,47 @@ curl -sSL -o design/04-screens/assets/img/{key}.png "{결과 URL}"
 
 **필드 계약 (check-assets.mjs 가 읽는다):**
 
-| 필드           | 규칙                                                       |
-| -------------- | ---------------------------------------------------------- |
-| `key`          | 슬롯 고유 ID. 중복 금지                                    |
-| `layer`        | **반드시 `Img/{key}`** — screens STAGE 의 주입 주소         |
-| `screen`       | 화면 ID. 화면당 4개 상한 계산용                            |
-| `aspect_ratio` | `1:1` `4:3` `3:4` `16:9` `9:16` `3:2` `2:3` 중 하나        |
-| `prompt`       | 실제 보낸 프롬프트 전문. 20자 이상                         |
+| 필드           | 규칙                                                        |
+| -------------- | ----------------------------------------------------------- |
+| `key`          | 슬롯 고유 ID. 중복 금지                                     |
+| `screen`       | 화면 ID. 화면당 4개 상한 계산용                             |
+| `aspect_ratio` | `1:1` `4:3` `3:4` `16:9` `9:16` `3:2` `2:3` 중 하나         |
+| `prompt`       | 실제 보낸 프롬프트 전문. 20자 이상                          |
 | `status`       | `done` (파일 있음) 또는 `reuse` (다른 슬롯 재사용)          |
-| `file`         | manifest 기준 상대 경로. `status: done` 이면 필수          |
+| `file`         | manifest 기준 상대 경로. `status: done` 이면 필수           |
 | `reuse_of`     | `status: reuse` 이면 필수. `done` 슬롯의 key 를 가리켜야 함 |
+| `in_instance`  | 이 슬롯이 컴포넌트 인스턴스 **안**에 있는지. 기본 false     |
+| `placements`   | screens STAGE 가 채운다. assets STAGE 에서는 `[]`           |
+
+### ⭐ 슬롯을 이름으로 찾지 않는다 (node_id 가 주소다)
+
+**`layer` 필드는 없다.** 이름으로 주입 대상을 찾는 방식은 카드 썸네일에서 깨진다:
+
+- Card 컴포넌트는 이미지 슬롯을 자기 안에 갖는다
+- **Figma 는 인스턴스 자식 레이어의 이름을 마스터 기본값으로 고정한다.**
+  인스턴스마다 `Img/02-search-results-card-1` 처럼 다르게 이름 붙일 수 없다
+- 그래서 "이름 = 슬롯 key" 라는 1:1 계약은 성립할 수 없다
+
+대신 `upload_assets` 가 원래 받는 **`nodeIds`** 를 쓴다.
+screens STAGE 가 노드를 만들거나 인스턴스를 배치하는 **그 자리에서**
+어떤 슬롯인지 알고 있으므로, 그때 `{key, node_id}` 매핑을 확정해
+매니페스트의 `placements` 에 적는다.
+
+```json
+"placements": [
+  { "frame": "01 Home", "node_id": "12:345" }
+]
+```
+
+이름 규약은 **검사용으로만** 남는다:
+
+| 슬롯 위치     | 레이어 이름              | 누가 정하나                |
+| ------------- | ------------------------ | -------------------------- |
+| 화면 직속     | `Img/{key}`              | screens STAGE 가 직접 명명 |
+| 인스턴스 내부 | `Img/slot` (마스터 이름) | components STAGE 의 마스터 |
+
+둘 다 `Img/` 로 시작하므로 게이트(`check-phase.mjs` 의 "이미지 슬롯 채움")가
+빈 슬롯을 찾아낼 수 있다. **주입은 이름이 아니라 언제나 node_id 로 한다.**
 
 **⚠️ 매니페스트를 손으로 통과시키지 않는다.** 검증이 실패하면 값을 고치지 말고
 실패한 슬롯을 다시 생성한다.
@@ -632,6 +703,8 @@ node scripts/check-assets.mjs
 ```
 
 FAIL 이면 screens 를 시작하지 않는다. STAGE=assets 로 돌아간다.
+(`image-slots: none` 프로젝트면 이 스크립트가 "해당 없음"으로 통과시킨다.
+그 경우 아래 이미지 관련 절차는 전부 건너뛴다)
 assets-manifest.json 을 Read 해서 슬롯 목록(key / layer / file / status / reuse_of)을 손에 쥐고 시작한다.
 
 ### 절차
@@ -645,14 +718,27 @@ screens.md의 화면 목록 순서대로 순차 생성.
 3. screens.md의 "필요 컴포넌트" 목록대로 컴포넌트 인스턴스 배치
 4. 실제 콘텐츠 채움 (더미 금지):
    - 텍스트: "제주 오션뷰 숙소" 같은 실제 문구
-   - 이미지: **이미지 슬롯 노드를 만들고 이름을 `Img/{key}` 로 둔다**
-     (이 화면에 해당하는 매니페스트 슬롯만. 매니페스트에 없는 슬롯은 만들지 않는다)
-     · 슬롯 노드는 RECTANGLE 또는 FRAME
+   - 이미지: 이 화면의 매니페스트 슬롯만 자리를 잡는다
+     (매니페스트에 없는 슬롯은 만들지 않는다)
+
+     **A. 화면 직속 슬롯** (`in_instance: false` — 히어로, 전면 이미지)
+     · **RECTANGLE 로 만든다. FRAME 으로 만들지 않는다.**
+     FRAME 은 컴포넌트 재사용률(≥90%)의 분모에 들어가 audit 을 FAIL 시킨다
+     (`figma-audit.mjs` 는 FRAME·INSTANCE 만 센다. RECTANGLE 은 세지 않는다)
+     · 이름은 `Img/{key}`
      · 크기는 매니페스트의 `aspect_ratio` 비율에 맞춘다
      · radius 는 semantic 토큰 바인딩 (`radius-card` 등)
-     · **이 시점엔 아직 빈 노드다. 회색 채움을 넣지 않는다**
-     · use_figma 의 return 으로 **슬롯 노드 ID 를 반드시 돌려받는다**
-       (예: `return slots.map(n => ({ layer: n.name, id: n.id }))`)
+     · **이 시점엔 빈 노드다. 회색 채움을 넣지 않는다**
+
+     **B. 인스턴스 내부 슬롯** (`in_instance: true` — 카드 썸네일, 아바타)
+     · 새로 만들지 않는다. 배치한 인스턴스가 이미 슬롯을 갖고 있다
+     · 마스터에서 `Img/` 로 시작하는 이름의 자식 노드를 찾는다
+     · **이름을 바꾸려 하지 않는다.** Figma 가 인스턴스 자식 이름 변경을 막는다
+
+     **C. 두 경우 모두 — node_id 를 확정해 돌려받는다**
+     `return placements` → `[{ key: "01-home-hero", node_id: "12:345" }, ...]`
+     어떤 노드가 어떤 슬롯인지는 **배치하는 그 순간의 코드가 알고 있다.**
+     나중에 이름으로 되찾으려 하지 말고 이때 매핑을 확정한다.
 5. **이미지 주입** (아래 "이미지 주입" 절차)
 6. `get_screenshot` 1회 (화면 단위) — 이미지 주입 **후**에 찍는다
 7. **즉시 사용자에게 스크린샷 전달** (하나씩)
@@ -666,15 +752,17 @@ screens.md의 화면 목록 순서대로 순차 생성.
 ```
 1) 이 화면의 슬롯들을 매니페스트에서 고른다 (screen 필드로 필터)
    status: "reuse" 슬롯은 reuse_of 가 가리키는 슬롯의 file 을 쓴다
+   각 슬롯의 node_id 는 4단계 C 에서 돌려받은 placements 에서 가져온다
 
 2) mcp__figma__upload_assets({
      fileKey: "{figma-file-key.txt 의 키}",
      count: {이 화면 슬롯 수},
-     nodeIds: ["{슬롯1 노드 ID}", "{슬롯2 노드 ID}", ...],   // 4단계에서 받은 ID
+     nodeIds: ["{슬롯1 node_id}", "{슬롯2 node_id}", ...],   // placements 순서 그대로
      scaleMode: "FILL"
    })
    ⚠️ nodeIds 배열 길이 = count. 순서가 곧 업로드 URL 순서다.
       슬롯 순서와 nodeIds 순서가 어긋나면 엉뚱한 자리에 이미지가 들어간다.
+   ⚠️ 인스턴스 내부 노드에도 그대로 쓴다. fill 은 오버라이드로 들어간다.
 
 3) 반환된 업로드 URL 각각에 파일 바이트를 POST (Bash)
    curl -sS -X POST --data-binary @design/04-screens/assets/img/{key}.png \
@@ -684,6 +772,11 @@ screens.md의 화면 목록 순서대로 순차 생성.
 
 4) get_screenshot 으로 실제로 채워졌는지 눈으로 확인한다
    회색으로 남아 있으면 그 슬롯만 2) 부터 다시 한다
+
+5) 매니페스트의 해당 슬롯에 placements 를 적는다 (STAGE=fix 재주입용)
+   "placements": [{ "frame": "01 Home", "node_id": "12:345" }]
+   ⚠️ 안 적으면 나중에 재주입할 때 노드를 다시 찾지 못한다.
+      특히 인스턴스 내부 슬롯은 이름이 전부 같아 이름으로 못 찾는다
 ```
 
 **한 번에 60개까지** 업로드 URL 을 받을 수 있다. 화면당 최대 4개이므로
@@ -725,11 +818,11 @@ screens.md의 "필요 상태" 항목:
 - primary 버튼 정확히 1개
 - 모든 fill/stroke 가 **semantic 컬렉션** 변수에 바인딩 (primitive 직접 바인딩 0개)
   · 단, `Img/*` 슬롯의 IMAGE fill 은 예외다. 이미지에는 색 변수를 바인딩하지 않는다
-    (figma-audit.mjs 의 팔레트 검사도 `type === "SOLID"` 만 본다)
+  (figma-audit.mjs 의 팔레트 검사도 `type === "SOLID"` 만 본다)
 - 모든 텍스트가 Text/* 스타일
 - **`Img/*` 슬롯이 전부 IMAGE fill 로 채워짐** (빈 슬롯 0개)
   · 스냅샷에서 `fills[].type === "IMAGE"` 가 없는 `Img/*` 노드가 하나라도 있으면
-    주입이 실패한 것이다. 화면을 넘기지 말고 그 자리에서 다시 주입한다
+  주입이 실패한 것이다. 화면을 넘기지 말고 그 자리에서 다시 주입한다
 
 위반 발견 시:
 
@@ -864,16 +957,57 @@ snapshot: 화면 노드 정보 추가됨
 - fix-list.md에 있는 결함만 수정
 - 목록에 없는 것은 절대 건드리지 않음
 
+### ⭐ 먼저 `대상` 열로 갈래를 나눈다
+
+fix-list.md 의 각 행에는 `대상` 열이 있다. **이 열을 먼저 읽는다.**
+
+| 대상     | 성격               | 처리                       |
+| -------- | ------------------ | -------------------------- |
+| `figma`  | 노드를 고치면 해결 | 아래 "A. figma 결함 처리"  |
+| `assets` | 이미지 자체가 문제 | 아래 "B. assets 결함 처리" |
+
+`대상` 열이 없는 옛 형식의 fix-list 는 전부 `figma` 로 본다.
+
+**assets 행을 Figma 노드 수정으로 처리하려 들지 않는다.** 고쳐지지 않는다.
+
+### A. figma 결함 처리
+
+1. 대상 노드 찾기 (`figma.root.findOne`)
+2. 수정 (변수 재바인딩, 크기 조정 등)
+3. 수정 완료 표시
+
+### B. assets 결함 처리
+
+**두 경우를 구분한다. 진단이 먼저다.**
+
+```
+해당 슬롯의 매니페스트 엔트리를 본다 (design/04-screens/assets/assets-manifest.json)
+
+① 파일은 정상인데 화면이 비어 있다  → "주입 실패"
+   원인: upload_assets 가 실패했거나 nodeIds 순서가 어긋났다
+   처리: 재생성하지 않는다. placements 의 node_id 로 다시 주입만 한다
+         (STAGE=screens 의 "이미지 주입" 2~4 단계)
+   ⚠️ 크레딧을 쓰지 않는다. 여기서 재생성하면 돈만 나간다
+
+② 이미지 내용 자체가 잘못됐다  → "재생성"
+   (글자가 박혀 있음 / 톤이 어긋남 / 피사체가 틀림)
+   처리: assets-plan.md 의 그 슬롯 프롬프트를 고친 뒤
+         **그 슬롯 하나만** generate_image_batch 로 다시 생성
+         → 파일 교체 → node scripts/check-assets.mjs
+         → placements 의 node_id 로 재주입
+   ⚠️ 전체 슬롯을 다시 돌리지 않는다
+```
+
+어느 쪽인지 판단이 안 서면 재생성하지 말고 build-log 에 질문으로 남기고 멈춘다.
+
 ### 절차
 
-1. fix-list.md 읽기
-2. 각 결함마다:
-   - 대상 노드 찾기 (`figma.root.findOne`)
-   - 수정 (변수 재바인딩, 크기 조정 등)
-   - 수정 완료 표시
+1. fix-list.md 읽기 → `대상` 열로 분류
+2. `figma` 행 처리 (A) · `assets` 행 처리 (B)
 3. 전체 완료 후 figma-snapshot.json 재추출 (scripts/figma-snapshot.js, `03 Screens`)
 4. `node scripts/check-snapshot.mjs` 통과 확인
-5. build-log 갱신
+5. assets 행을 건드렸으면 `node scripts/check-assets.mjs` 도 통과 확인
+6. build-log 갱신
 
 ### build-log 갱신
 
@@ -883,8 +1017,10 @@ snapshot: 화면 노드 정보 추가됨
 완료: {HH:MM}
 수정 사항 (fix-list 기준):
 
-- screen 03-detail: primary button 색상 변수 미바인딩 → 수정
-- screen 05-mypage: safe-area-bottom 침범 → 수정
+- [figma] screen 03-detail: primary button 색상 변수 미바인딩 → 수정
+- [figma] screen 05-mypage: safe-area-bottom 침범 → 수정
+- [assets] screen 01-home / Img/01-home-hero: 주입 실패 → 재주입 (재생성 없음)
+- [assets] screen 02-search-results / card-1: 이미지에 글자 → 프롬프트 수정 후 1장 재생성
   figma_read_calls: 4
   snapshot: 갱신 완료
   next: design-auditor 재실행
@@ -1013,6 +1149,8 @@ design/04-screens/assets/img/ (원본 이미지)
 - ❌ **생성 실패를 매니페스트 손질로 통과시키기** (실패 슬롯만 재생성할 것)
 - ❌ **사용자 확인 없이 assets STAGE 시작** (크레딧이 소모된다)
 - ❌ **타임아웃 났다고 generate_image_batch 전체 재제출** (중복 과금 — job_id 로 확인 먼저)
+- ❌ **주입 실패를 재생성으로 해결** (파일이 멀쩡하면 다시 주입만 — 크레딧 낭비)
+- ❌ **fix-list 의 `대상: assets` 행을 Figma 노드 수정으로 처리**
 
 ---
 

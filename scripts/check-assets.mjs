@@ -10,7 +10,7 @@
  *   upload_assets 로 Figma 노드 fill 에 밀어넣는다. 이때
  *     · 파일이 없으면        → 업로드가 조용히 스킵되고 회색 박스가 남는다
  *     · 10MB 를 넘으면       → upload_assets 가 거부한다 (도구 제한)
- *     · layer 이름이 어긋나면 → 어느 노드에 넣을지 모른다
+ *     · 비율·프롬프트가 비면    → 엉뚱한 그림이 화면에 박힌다
  *   전부 "화면은 만들어졌는데 이미지만 빈" 상태로 끝나고, audit 의 팔레트 검사는
  *   IMAGE fill 을 보지 않으므로 이 실패를 잡아주지 못한다.
  *   그래서 screens 진입 전에 여기서 막는다.
@@ -21,6 +21,8 @@
  *
  * 옵션:
  *   --manifest <path>   기본: design/04-screens/assets/assets-manifest.json
+ *   --rules <path>      기본: design/03-design-rules/design-rules.md
+ *                       (§I 의 `image-slots: none` 선언을 읽어 해당 없음 처리)
  *   --max-slots <n>     생성 슬롯 전체 상한 (기본: 12 = generate_image_batch 1회분)
  *   --max-per-screen <n> 화면당 슬롯 상한 (기본: 4)
  *   --json              JSON 출력
@@ -61,6 +63,7 @@ const manifestPath = getArg(
   "--manifest",
   "design/04-screens/assets/assets-manifest.json",
 );
+const rulesPath = getArg("--rules", "design/03-design-rules/design-rules.md");
 const maxSlots = parseInt(getArg("--max-slots", "12"), 10);
 const maxPerScreen = parseInt(getArg("--max-per-screen", "4"), 10);
 
@@ -75,6 +78,9 @@ const ALLOWED_EXT = [".png", ".jpg", ".jpeg", ".webp"];
 const ALLOWED_RATIOS = ["1:1", "4:3", "3:4", "16:9", "9:16", "3:2", "2:3"];
 
 const VALID_STATUS = ["done", "reuse"];
+
+// Figma 노드 ID 형식 ("12:345"). upload_assets 의 nodeIds 가 받는 형태와 같다.
+const NODE_ID_RE = /^\d+[:-]\d+$/;
 
 // 프롬프트가 채워지지 않은 채 넘어오는 흔한 형태.
 // ⚠️ 부분 매칭을 쓰지 말 것. "음식 사진 클로즈업", "이미지 상단 여백" 같은 정상 프롬프트가
@@ -103,8 +109,32 @@ function fail(msg) {
 
 // ==================== 로드 ====================
 
+// design-rules.md §I 의 `image-slots:` 선언.
+// none 이면 이미지를 쓰지 않겠다고 규칙에서 선언한 것이므로,
+// 매니페스트가 없는 게 정상이다. 이 스크립트는 통과시키고 끝낸다.
+function readImagePolicy() {
+  if (!existsSync(rulesPath)) return "used";
+  try {
+    const m = readFileSync(rulesPath, "utf-8").match(
+      /^\s*image-slots:\s*(used|none)\s*$/m,
+    );
+    return m ? m[1] : "used";
+  } catch {
+    return "used";
+  }
+}
+
 function loadManifest() {
   if (!existsSync(manifestPath)) {
+    if (readImagePolicy() === "none") {
+      add(
+        "이미지 미사용 선언",
+        true,
+        "design-rules §I image-slots: none — assets STAGE 해당 없음",
+      );
+      report();
+      process.exit(0);
+    }
     fail(
       `파일 없음: ${manifestPath} (figma-builder 가 STAGE=assets 완료 시 Write 해야 함)`,
     );
@@ -196,7 +226,7 @@ function checkSlots(slots) {
 
   const bad = {
     field: [],
-    layer: [],
+    placement: [],
     ratio: [],
     prompt: [],
     status: [],
@@ -215,9 +245,31 @@ function checkSlots(slots) {
       bad.field.push(`${label}: screen 없음`);
     }
 
-    // layer 는 Figma 레이어 이름과 1:1 이어야 주입 대상을 찾는다
-    if (s.layer !== `Img/${s.key}`) {
-      bad.layer.push(`${label}: layer="${s.layer}" (기대 "Img/${s.key}")`);
+    // 주입은 이름이 아니라 node_id 로 한다.
+    //   인스턴스 자식 레이어는 이름이 마스터 기본값으로 고정되므로
+    //   "레이어 이름 = 슬롯 key" 라는 1:1 계약은 카드 썸네일에서 성립할 수 없다.
+    // 여기서는 placements 의 "형태"만 본다. 실제 값은 screens STAGE 가 채운다.
+    if (s.layer !== undefined) {
+      bad.placement.push(
+        `${label}: layer 필드는 폐기됐다 (node_id 기반 placements 사용)`,
+      );
+    }
+    if (s.placements !== undefined) {
+      if (!Array.isArray(s.placements)) {
+        bad.placement.push(`${label}: placements 가 배열이 아니다`);
+      } else {
+        s.placements.forEach((pl, j) => {
+          if (
+            !pl ||
+            typeof pl.node_id !== "string" ||
+            !NODE_ID_RE.test(pl.node_id)
+          ) {
+            bad.placement.push(
+              `${label}[${j}]: node_id 형식 오류 (${pl?.node_id ?? "없음"})`,
+            );
+          }
+        });
+      }
     }
 
     if (!ALLOWED_RATIOS.includes(s.aspect_ratio)) {
@@ -278,7 +330,7 @@ function checkSlots(slots) {
     );
 
   report("필수 필드 (key, screen)", bad.field, "전부 존재");
-  report("layer 네이밍 (Img/{key})", bad.layer, "전부 일치");
+  report("placements 형식 (node_id)", bad.placement, "형식 이상 없음");
   report("aspect_ratio 허용값", bad.ratio, "전부 허용값");
   report("prompt 실질 내용", bad.prompt, "전부 작성됨");
   report("status 값 (done | reuse)", bad.status, "전부 유효");

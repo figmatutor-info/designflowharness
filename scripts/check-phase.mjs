@@ -291,6 +291,17 @@ function checkRules() {
   };
 }
 
+// design-rules.md §I 의 `image-slots:` 선언을 읽는다.
+// "none" 이면 이 프로젝트는 이미지를 쓰지 않는다고 선언한 것이므로
+// assets STAGE 와 이미지 슬롯 검사를 "해당 없음"으로 통과시킨다.
+// (가계부·설정·계산기처럼 사진이 정당하게 없는 앱을 게이트가 막지 않게 한다)
+function readImagePolicy() {
+  const content = readFile("design/03-design-rules/design-rules.md");
+  if (!content) return "used";
+  const m = content.match(/^\s*image-slots:\s*(used|none)\s*$/m);
+  return m ? m[1] : "used";
+}
+
 // ==================== 게이트 4: Figma 화면 ====================
 
 function checkScreens() {
@@ -301,6 +312,8 @@ function checkScreens() {
   const auditReportPath = "design/04-screens/audit-report.md";
   const snapshotPath = "design/04-screens/figma-snapshot.json";
   const manifestPath = "design/04-screens/assets/assets-manifest.json";
+  const imagePolicy = readImagePolicy();
+  const usesImages = imagePolicy !== "none";
 
   // 1. figma-file-key.txt 존재 (사용자가 만든 Figma 파일의 키)
   const fileKey = readFile(fileKeyPath)?.trim();
@@ -337,10 +350,15 @@ function checkScreens() {
     });
 
     // 4-2. assets STAGE 완료 (이미지 생성)
+    //      image-slots: none 이면 이 STAGE 자체가 없는 게 정상이다.
     results.push({
       name: "STAGE=assets 완료",
-      pass: /## STAGE=assets.*✅/.test(content),
-      detail: /## STAGE=assets.*✅/.test(content) ? "완료" : "미완료",
+      pass: usesImages ? /## STAGE=assets.*✅/.test(content) : true,
+      detail: !usesImages
+        ? "해당 없음 (design-rules §I image-slots: none)"
+        : /## STAGE=assets.*✅/.test(content)
+          ? "완료"
+          : "미완료",
     });
 
     // 5. screens STAGE 완료 (모든 화면)
@@ -395,7 +413,13 @@ function checkScreens() {
   }
 
   // 8. assets-manifest.json 존재 (상세 검증은 npm run check:assets)
-  if (!fileExists(manifestPath)) {
+  if (!usesImages) {
+    results.push({
+      name: "assets-manifest.json 존재",
+      pass: true,
+      detail: "해당 없음 (image-slots: none)",
+    });
+  } else if (!fileExists(manifestPath)) {
     results.push({
       name: "assets-manifest.json 존재",
       pass: false,
@@ -420,7 +444,13 @@ function checkScreens() {
   // 9. 이미지 슬롯이 실제로 채워졌는지 (회색 플레이스홀더로 끝나지 않았는지)
   //    figma-audit.mjs 의 팔레트 검사는 SOLID fill 만 보므로 이 실패를 잡지 못한다.
   //    "화면은 다 만들어졌는데 이미지만 비었다"를 여기서 잡는다.
-  if (fileExists(snapshotPath)) {
+  if (!usesImages) {
+    results.push({
+      name: "이미지 슬롯 채움 (빈 슬롯 0개)",
+      pass: true,
+      detail: "해당 없음 (image-slots: none)",
+    });
+  } else if (fileExists(snapshotPath)) {
     try {
       const snap = JSON.parse(readFile(snapshotPath));
       const screensPage = snap.pages?.find((p) => p.name === "03 Screens");
