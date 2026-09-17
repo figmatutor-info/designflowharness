@@ -150,7 +150,7 @@ design-flow-harness/
 ```
 /generate-rules
 → default-tokens.md + 브랜드 컬러
-→ design-rules.md (SSOT) 생성
+→ design-rules.md (SSOT) 생성 · primitive → semantic 2계층
 → HTML 프리뷰 확인
 ```
 
@@ -159,6 +159,7 @@ design-flow-harness/
 - design-rules.md `status: confirmed`
 - 4배수 규칙, semantic 이름
 - 필수 섹션 (A-H) 완성
+- **토큰 2계층** — A/B/D/G 각 섹션에 `### Primitive`(값) + `### Semantic`(`{primitive}` 참조)
 - 사용자 승인 후 마킹
 
 ### Phase 4 · Figma 화면 생성 + 검증
@@ -178,7 +179,8 @@ design-flow-harness/
 
 - 5개 화면 완성
 - 미바인딩 0개, 4배수 위반 0개
-- audit PASS + 사용자 완료 승인
+- **primitive 직접 바인딩 0개** (화면은 semantic 변수만 사용)
+- audit PASS (8개 항목) + 사용자 완료 승인
 
 ## 🛠️ 검증 명령어
 
@@ -268,6 +270,7 @@ npm run check:snapshot   # 어떤 항목이 깨졌는지 확인
 
 1. **레퍼런스 없이 시작하지 않는다** — Phase 1 필수
 2. **규칙이 확정되지 않으면 Figma에 손대지 않는다** — status: confirmed 강제
+   (규칙 안의 토큰은 primitive → semantic 2계층)
 3. **각 단계 게이트를 통과해야 다음으로** — 4개 게이트
 4. **기본값이 항상 있다** — default-tokens.md
 5. **산출물이 곧 상태다** — design/ 폴더가 진행 상태

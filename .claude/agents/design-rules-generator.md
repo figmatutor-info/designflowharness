@@ -108,14 +108,30 @@ design-rules.md (SSOT) 를 생성합니다.
    - hex 직접 입력 → 유효성 검증 후 적용
    - "모르겠어요" → default 적용 + 가정 로그
 
-5. 자동 파생:
+5. **primitive ramp 파생 (3단계만)**
+
+   사용자가 준 hex 는 **primitive `brand-500`** 이 된다.
+   semantic 은 직접 계산하지 않는다 — primitive 를 참조할 뿐이다.
+
    ```
-   color-primary: {사용자 선택}
-   color-primary-pressed: {12% 어둡게}
-   color-primary-soft: {10% 불투명}
+   [primitive]  ← 여기서만 값을 계산한다
+   brand-500 = {사용자 선택 hex}
+   brand-600 = {brand-500 을 12% 어둡게}
+   brand-50  = {brand-500 을 10% 불투명}
+
+   [semantic]   ← 참조만 한다. 값을 쓰지 않는다
+   color-primary         → {brand-500}
+   color-primary-pressed → {brand-600}
+   color-primary-soft    → {brand-50}
    ```
 
-**통과 조건:** brand color 결정 + 파생 컬러 자동 계산.
+   **ramp 는 3단계만 만든다.** 50~900 풀 ramp 를 만들지 않는다.
+   semantic 이 참조하지 않는 primitive 는 미사용 변수가 되어 Figma 를 오염시킨다.
+
+   나머지 primitive(`neutral-*`, `red-600`, `green-600`, `amber-500`,
+   `overlay-black-50`)는 default-tokens.md 값을 그대로 쓴다.
+
+**통과 조건:** `brand-500` 확정 + `brand-600`/`brand-50` 파생 + semantic 3개가 참조 형태.
 
 ---
 
@@ -150,66 +166,160 @@ based_on:
 
 ## A. 색상
 
-### Brand (사용자 결정)
+> **2계층 필수.** Primitive 에만 값을 쓰고, Semantic 은 `{primitive-name}` 참조만 쓴다.
 
-| 토큰                  | 값                       | 출처        |
-| --------------------- | ------------------------ | ----------- |
-| color-primary         | {사용자 선택 or #2563EB} | 사용자 결정 |
-| color-primary-pressed | {자동 계산}              | 자동 파생   |
-| color-primary-soft    | {자동 계산}              | 자동 파생   |
+### Primitive
 
-### Base (default)
+| 토큰             | 값                 | 출처        |
+| ---------------- | ------------------ | ----------- |
+| brand-500        | {사용자 선택}      | 사용자 결정 |
+| brand-600        | {12% 어둡게}       | 자동 파생   |
+| brand-50         | {10% 불투명}       | 자동 파생   |
+| neutral-0        | #FFFFFF            | default     |
+| neutral-50       | #F5F5F7            | default     |
+| neutral-100      | #E9E9EE            | default     |
+| neutral-200      | #E5E7EB            | default     |
+| neutral-400      | #9CA3AF            | default     |
+| neutral-500      | #6B7280            | default     |
+| neutral-900      | #111827            | default     |
+| red-600          | #DC2626            | default     |
+| green-600        | #16A34A            | default     |
+| amber-500        | #F59E0B            | default     |
+| overlay-black-50 | rgba(0,0,0,.5)     | default     |
 
-| 토큰            | 값      | 출처    |
-| --------------- | ------- | ------- |
-| color-bg        | #FFFFFF | default |
-| color-surface-1 | #F5F5F7 | default |
-| color-surface-2 | #E9E9EE | default |
-| color-border    | #E5E7EB | default |
+### Semantic
 
-### Text (default)
-
-| 토큰                | 값      | 출처    |
-| ------------------- | ------- | ------- |
-| color-text          | #111827 | default |
-| color-text-muted    | #6B7280 | default |
-| color-text-disabled | #9CA3AF | default |
-| color-text-inverse  | #FFFFFF | default |
-
-### System (default)
-
-| 토큰          | 값             | 출처    |
-| ------------- | -------------- | ------- |
-| color-danger  | #DC2626        | default |
-| color-success | #16A34A        | default |
-| color-warning | #F59E0B        | default |
-| color-overlay | rgba(0,0,0,.5) | default |
+| 토큰                  | 참조               | 용도                  |
+| --------------------- | ------------------ | --------------------- |
+| color-bg              | {neutral-0}        | 기본 배경             |
+| color-surface-1       | {neutral-50}       | 카드/시트 배경        |
+| color-surface-2       | {neutral-100}      | 강조 카드 배경        |
+| color-border          | {neutral-200}      | 구분선, 테두리        |
+| color-text            | {neutral-900}      | 본문                  |
+| color-text-muted      | {neutral-500}      | 보조 텍스트           |
+| color-text-disabled   | {neutral-400}      | 비활성 텍스트         |
+| color-text-inverse    | {neutral-0}        | 어두운 배경 위 텍스트 |
+| color-primary         | {brand-500}        | 주요 CTA, 강조        |
+| color-primary-pressed | {brand-600}        | CTA pressed           |
+| color-primary-soft    | {brand-50}         | CTA soft 배경         |
+| color-danger          | {red-600}          | 위험, 에러            |
+| color-success         | {green-600}        | 성공, 완료            |
+| color-warning         | {amber-500}        | 경고, 주의            |
+| color-overlay         | {overlay-black-50} | 모달, 시트 딤         |
 
 ## B. 간격
 
-(default에서 그대로)
+### Primitive
 
-| 토큰    | 값  |
-| ------- | --- |
-| space-1 | 4px |
-| space-2 | 8px |
-| ...     |
+| 토큰     | 값   |
+| -------- | ---- |
+| space-1  | 4px  |
+| space-2  | 8px  |
+| space-3  | 12px |
+| space-4  | 16px |
+| space-5  | 20px |
+| space-6  | 24px |
+| space-8  | 32px |
+| space-12 | 48px |
+
+### Semantic
+
+| 토큰                 | 참조      | 용도              |
+| -------------------- | --------- | ----------------- |
+| space-screen-padding | {space-4} | 화면 좌우 padding |
+| space-section        | {space-6} | 섹션 간 간격      |
+| space-card-padding   | {space-4} | 카드 내부 padding |
+| space-list-gap       | {space-3} | 리스트 아이템 간  |
+| space-inline         | {space-1} | 아이콘-텍스트 간  |
+| space-tap-gap-min    | {space-2} | 인접 탭 타겟 최소 |
 
 ## C. 타이포
+
+**2계층 대상 아님.** role 기반 텍스트 스타일로 관리.
 
 | 역할    | 크기/굵기 | 출처    |
 | ------- | --------- | ------- |
 | display | 28/700    | default |
 | h1      | 24/600    | default |
-| ...     |
+| h2      | 20/600    | default |
+| h3      | 17/600    | default |
+| body    | 15/400    | default |
+| body-sm | 14/400    | default |
+| caption | 12/400    | default |
+| label   | 13/500    | default |
 
-## D. Radius (default)
+## D. Radius
+
+### Primitive
+
+| 토큰        | 값     |
+| ----------- | ------ |
+| radius-4    | 4px    |
+| radius-8    | 8px    |
+| radius-12   | 12px   |
+| radius-16   | 16px   |
+| radius-full | 9999px |
+
+### Semantic
+
+| 토큰          | 참조          | 용도             |
+| ------------- | ------------- | ---------------- |
+| radius-tag    | {radius-4}    | 태그, 뱃지       |
+| radius-button | {radius-8}    | 버튼, 인풋       |
+| radius-card   | {radius-12}   | 카드             |
+| radius-sheet  | {radius-16}   | 시트, 다이얼로그 |
+| radius-pill   | {radius-full} | 원형, FAB        |
 
 ## E. Shadow (default)
 
+| 토큰      | 값                         |
+| --------- | -------------------------- |
+| shadow-sm | 0 1px 2px rgba(0,0,0,.06)  |
+| shadow-md | 0 4px 12px rgba(0,0,0,.08) |
+| shadow-lg | 0 8px 24px rgba(0,0,0,.12) |
+
 ## F. Motion (default)
 
-## G. 모바일 특화 (default)
+| 토큰        | 값             |
+| ----------- | -------------- |
+| motion-fast | 150ms ease-out |
+| motion-base | 200ms ease-out |
+| motion-slow | 250ms ease-out |
+
+## G. 모바일 특화
+
+### Primitive
+
+| 토큰    | 값 |
+| ------- | -- |
+| size-34 | 34 |
+| size-36 | 36 |
+| size-44 | 44 |
+| size-47 | 47 |
+| size-49 | 49 |
+| size-52 | 52 |
+| size-56 | 56 |
+| icon-16 | 16 |
+| icon-20 | 20 |
+| icon-24 | 24 |
+
+### Semantic
+
+| 토큰                | 참조      | 용도                        |
+| ------------------- | --------- | --------------------------- |
+| device-frame        | 390×844   | 기본 화면 크기              |
+| safe-area-top       | {size-44} | 상태바 영역                 |
+| safe-area-top-notch | {size-47} | 노치 기기 상태바            |
+| safe-area-bottom    | {size-34} | 홈 인디케이터 영역          |
+| size-tap-min        | {size-44} | 최소 터치 타겟 (44×44)      |
+| size-button-sm      | {size-36} | 버튼 sm 높이                |
+| size-button-md      | {size-44} | 버튼 md 높이                |
+| size-button-lg      | {size-52} | 버튼 lg 높이                |
+| app-bar-height      | {size-56} | 상단 앱바                   |
+| tab-bar-height      | {size-49} | 하단 탭바                   |
+| icon-sm             | {icon-16} | 작은 아이콘                 |
+| icon-md             | {icon-20} | 기본 아이콘                 |
+| icon-lg             | {icon-24} | 큰 아이콘                   |
 
 ## H. Z-Index (default)
 
@@ -219,12 +329,15 @@ based_on:
 
 **필요 컴포넌트 (screens.md 기반):**
 
+> 모든 값은 **semantic 토큰 이름**으로 적는다. primitive 이름이나 생값 금지.
+
 ### Button
 
 - Variants: primary / secondary / ghost / danger
-- Sizes: sm(36) / md(44) / lg(52)
+- Sizes: size-button-sm / size-button-md / size-button-lg
 - States: default / pressed / disabled / loading
-- Radius: radius-md (8px)
+- Radius: radius-button
+- Padding: 좌우 space-screen-padding
 
 ### Card
 
@@ -240,12 +353,13 @@ based_on:
 
 ## 화면 규칙
 
-- Frame: 390 × 844 (iPhone 기준)
-- Safe area: 상단 44 / 하단 34
-- Tap target: 최소 44 × 44
+- Frame: device-frame (390 × 844)
+- Safe area: safe-area-top / safe-area-bottom
+- Tap target: 최소 size-tap-min
 - Primary CTA: 화면당 1개
-- Bottom Sheet radius: radius-xl 상단만
+- Bottom Sheet radius: radius-sheet 상단만
 - Modal overlay: color-overlay
+- **모든 바인딩은 semantic 토큰만** (primitive 직접 사용 금지)
 
 ---
 
@@ -284,25 +398,51 @@ based_on:
 
 design-rules.md의 A~H 섹션 상세 정보.
 
+## 토큰 계층
+
+이 프로젝트의 토큰은 2계층이다.
+
+```
+Primitive (값)            Semantic (의도)          컴포넌트·화면
+brand-500 = #2563EB  ←──  color-primary      ←──  Button.fill
+```
+
+- Primitive 이름: 색조 + 단계 (`brand-500`, `neutral-900`)
+- Semantic 이름: 역할 (`color-primary`, `radius-card`)
+- **컴포넌트·화면은 semantic 만 바인딩한다.**
+
 ## 색상 팔레트
 
-### Primitives (raw)
+### Primitive (값을 가진 유일한 계층)
 
-- purple-500: #2563EB
-- purple-600: #1D4ED8
-- ...
+| 토큰             | 값                 | 출처        |
+| ---------------- | ------------------ | ----------- |
+| brand-500        | {사용자 선택}      | 사용자 결정 |
+| brand-600        | {12% 어둡게}       | 자동 파생   |
+| brand-50         | {10% 불투명}       | 자동 파생   |
+| neutral-0 ~ 900  | (default-tokens.md) | default    |
+| red-600          | #DC2626            | default     |
+| green-600        | #16A34A            | default     |
+| amber-500        | #F59E0B            | default     |
+| overlay-black-50 | rgba(0,0,0,.5)     | default     |
 
-### Semantic 매핑
+### Semantic 매핑 (전부 참조)
 
-- color-primary → purple-500 (사용자 결정)
-- color-primary-pressed → purple-600 (자동 파생)
-- ...
+| Semantic              | → Primitive        | 사용 가이드              |
+| --------------------- | ------------------ | ------------------------ |
+| color-primary         | {brand-500}        | 화면당 1곳 CTA 에만      |
+| color-primary-pressed | {brand-600}        | pressed 상태             |
+| color-primary-soft    | {brand-50}         | soft 배경                |
+| color-text            | {neutral-900}      | 본문                     |
+| color-text-muted      | {neutral-500}      | 부가 정보에만            |
+| color-bg              | {neutral-0}        | 기본 배경                |
+| ...                   | ...                | (design-rules.md §A 전체) |
 
-### 사용 가이드
+### 왜 2계층인가
 
-- primary는 화면당 1곳에만
-- text-muted는 부가 정보에만
-- ...
+- 리브랜딩 시 `brand-500` 하나만 바꾸면 semantic 3개가 자동으로 따라온다
+- 다크모드 추가 시 primitive 컬렉션에 모드만 추가하면 된다
+- semantic 이름이 의도를 말하므로 화면을 읽을 때 "왜 이 색인지"가 드러난다
 
 ## 간격 스케일 상세
 
@@ -405,16 +545,35 @@ design-rules.md의 컴포넌트 섹션 상세.
 
 **필수 포함:**
 
-1. **색상 스와치 그리드**
-   - 모든 색 토큰을 큰 블록으로
-   - hex 값과 토큰 이름 표시
+1. **색상 스와치 — 2계층으로 분리해서 렌더** ⭐
+
+   프리뷰의 목적은 "참조 관계가 보이는 것"이다. 한 줄로 나열하지 않는다.
+
+   - **상단: Primitive 행** — 스와치 + 이름 + **실제 hex 값**
+     (`brand-500` / `#2563EB`)
+   - **하단: Semantic 행** — 스와치 + 이름 + **참조 대상**
+     (`color-primary` / `→ brand-500`)
+   - semantic 스와치에는 hex 를 쓰지 않는다. 참조 대상만 적는다.
+
+   ```html
+   <!-- Primitive -->
+   <div class="swatch" style="background:#2563EB"></div>
+   <div class="name">brand-500</div><div class="value">#2563EB</div>
+
+   <!-- Semantic -->
+   <div class="swatch" style="background:#2563EB"></div>
+   <div class="name">color-primary</div><div class="ref">→ brand-500</div>
+   ```
 
 2. **타이포 스케일 예시**
    - 각 role의 실제 크기로 텍스트 표시
    - "가나다 Aa 123" 샘플
+   - 2계층 대상이 아니므로 참조 표기 없음
 
-3. **간격 시각화**
-   - space-1 ~ space-12까지 실제 픽셀 크기 막대
+3. **간격 · Radius 시각화 (2계층)**
+   - Primitive: `space-1`~`space-12` 실제 픽셀 막대 + 값
+   - Semantic: `space-card-padding` 등 + `→ space-4` 참조 표기
+   - Radius 도 동일하게 primitive 5개 / semantic 5개 분리
 
 4. **주요 컴포넌트 실제 렌더**
    - Button (모든 variant × size × state)
@@ -579,7 +738,11 @@ Phase 4 진입 가능 상태.
 - ❌ default-tokens.md 값 임의 변경
 - ❌ Phase 1, 2 산출물 무시
 - ❌ 4의 배수 아닌 spacing 값 허용
-- ❌ 팔레트 색 이름 사용 (color-purple-500 X → color-primary O)
+- ❌ 팔레트 색 이름을 semantic 에 사용 (color-purple-500 X → color-primary O)
+- ❌ **semantic 토큰에 값 직결** (color-primary = #2563EB X → color-primary = {brand-500} O)
+- ❌ **primitive 없이 semantic 만 생성** (참조할 원본이 없는 1계층 구조)
+- ❌ **브랜드 ramp 를 50~900 풀 세트로 생성** (semantic 이 참조하는 3단계만)
+- ❌ 컴포넌트·화면 규칙에 primitive 이름이나 생값 기재 (semantic 이름만)
 - ❌ 사용자 확인 없이 figma-builder 자동 호출
 - ❌ design/03-design-rules/ 외 폴더 편집
 

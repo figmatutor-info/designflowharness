@@ -140,24 +140,52 @@ ReadMcpResourceTool(
 
 **대상 페이지:** `01 Tokens`
 
+### ⭐ 변수 컬렉션은 정확히 2개다 (토큰 2계층)
+
+```
+primitives  ← 값을 가진 유일한 컬렉션
+semantic    ← 전부 primitives 를 가리키는 alias. 자체 값을 갖지 않는다
+```
+
+컬렉션을 `color` / `space` / `radius` / `size` 로 쪼개지 않는다.
+계층으로 나누고, 카테고리는 변수 **이름**으로 구분한다.
+
 ### 생성할 것
 
-1. **색 변수 컬렉션 `color`**
-   - design-rules.md §A의 모든 color-* 토큰
-   - 라이트 모드만 (다크 모드는 향후 추가)
+1. **`primitives` 컬렉션** — design-rules.md 각 섹션의 `### Primitive` 표
 
-2. **숫자 변수 컬렉션들**
-   - `space`: space-1 ~ space-12 (4의 배수)
-   - `radius`: radius-sm/md/lg/xl/full
-   - `size`:
-     - button-sm(36) / button-md(44) / button-lg(52)
-     - icon-16 / icon-20 / icon-24
-     - tap-min(44)
-     - safe-area-top(44) / safe-area-top-notch(47) / safe-area-bottom(34)
-     - app-bar(56)
-     - tab-bar(49)
+   | 그룹   | 변수                                                                     |
+   | ------ | ------------------------------------------------------------------------ |
+   | COLOR  | brand-50/500/600, neutral-0/50/100/200/400/500/900, red-600, green-600, amber-500, overlay-black-50 |
+   | FLOAT  | space-1~space-12 · radius-4/8/12/16/full · size-34/36/44/47/49/52/56 · icon-16/20/24 |
 
-3. **텍스트 스타일**
+2. **`semantic` 컬렉션** — design-rules.md 각 섹션의 `### Semantic` 표
+
+   **반드시 alias 로 만든다.** 값을 직접 넣지 않는다.
+
+   ```js
+   // ❌ 이렇게 하면 2계층이 아니다 (게이트 4에서 FAIL)
+   semanticVar.setValueForMode(modeId, { r: 0.14, g: 0.39, b: 0.92 });
+
+   // ✅ primitive 를 가리키는 alias
+   const prim = primitiveByName.get("brand-500");
+   semanticVar.setValueForMode(modeId, figma.variables.createVariableAlias(prim));
+   ```
+
+   | 그룹   | 변수                                                                              |
+   | ------ | --------------------------------------------------------------------------------- |
+   | COLOR  | color-bg, color-surface-1/2, color-border, color-text(-muted/-disabled/-inverse), color-primary(-pressed/-soft), color-danger, color-success, color-warning, color-overlay (15개) |
+   | FLOAT  | space-screen-padding, space-section, space-card-padding, space-list-gap, space-inline, space-tap-gap-min |
+   | FLOAT  | radius-tag, radius-button, radius-card, radius-sheet, radius-pill                  |
+   | FLOAT  | safe-area-top(-notch), safe-area-bottom, size-tap-min, size-button-sm/md/lg, app-bar-height, tab-bar-height, icon-sm/md/lg |
+
+   **생성 순서 고정:** primitives 를 **전부** 만들고 이름→변수 맵을 확보한 뒤
+   semantic 을 만든다. 순서가 뒤집히면 alias 대상이 없어 실패한다.
+
+   참조 대상이 design-rules.md 의 `{...}` 값과 다르면 만들지 말고 멈춘다.
+   (build-log.md 에 질문으로 남긴다)
+
+3. **텍스트 스타일** (2계층 대상 아님)
    - design-rules.md §C의 type.roles 8개
    - 이름 형식: `Text/display`, `Text/h1`, `Text/body` 등
    - font-family: Pretendard, -apple-system, "Roboto", sans-serif
@@ -169,8 +197,9 @@ ReadMcpResourceTool(
 ### 절차
 
 1. use_figma 스크립트 작성 (한 번에 큰 프레임 만들지 않는다)
-2. 색 변수 → 숫자 변수 → 텍스트 스타일 → 이펙트 스타일 순
-3. `01 Tokens` 페이지에 스와치 프레임 하나 그림 (내부 검증용)
+2. **primitives 전부 → semantic 전부(alias) → 텍스트 스타일 → 이펙트 스타일** 순
+3. `01 Tokens` 페이지에 스와치 프레임 하나 그림 (내부 검증용).
+   primitive 행과 semantic 행을 나눠 그려 참조 관계가 보이게 한다
 4. `get_screenshot`으로 스와치 프레임 확인 (내부용, 사용자에게 안 보냄)
 
 ### ⭐ Snapshot 저장 (필수)
@@ -233,10 +262,9 @@ Figma 쪽 명명 규칙이 어긋난 것이다 (예: primary 버튼 이름에 "P
 완료: {YYYY-MM-DD HH:MM}
 변수 생성:
 
-- color: 15개 (color-primary, color-bg, ...)
-- space: 8개 (space-1 ~ space-12)
-- radius: 5개
-- size: 12개
+- primitives: 14 COLOR + 25 FLOAT (brand-*, neutral-*, space-*, radius-*, size-*, icon-*)
+- semantic: 15 COLOR + 24 FLOAT (전부 alias)
+- alias 미연결: 0개
   스타일 생성:
 - text: 8개
 - shadow: 3개
@@ -259,6 +287,9 @@ Figma 쪽 명명 규칙이 어긋난 것이다 (예: primary 버튼 이름에 "P
 
 - 모든 컴포넌트 오토레이아웃
 - 색·크기는 변수 바인딩만 (하드코딩 금지)
+- **바인딩 대상은 `semantic` 컬렉션 변수뿐이다.**
+  `primitives` 컬렉션 변수를 노드에 직접 바인딩하면 게이트 4에서 FAIL 한다.
+  (`brand-500` ❌ → `color-primary` ✅ / `radius-12` ❌ → `radius-card` ✅)
 - 텍스트는 텍스트 스타일 적용만
 
 ### 생성 순서 (앞이 뒤의 부품)
@@ -283,7 +314,7 @@ Figma 쪽 명명 규칙이 어긋난 것이다 (예: primary 버튼 이름에 "P
 4. **Card**
    - 제목 2줄 말줄임 (고정 높이 2줄)
    - 이미지 슬롯 (선택)
-   - padding: space-4, radius: radius-lg, shadow: shadow-sm
+   - padding: space-card-padding, radius: radius-card, shadow: shadow-sm
 
 5. **Input, Select**
    - states: default / focus / error / disabled
@@ -294,10 +325,10 @@ Figma 쪽 명명 규칙이 어긋난 것이다 (예: primary 버튼 이름에 "P
 
 7. **레이아웃 컴포넌트**
    - AppBar (뒤로 boolean, 제목, 우측 액션 0~2)
-   - TabBar (탭 3/4/5, safe-area-bottom 포함)
+   - TabBar (탭 3/4/5, tab-bar-height + safe-area-bottom)
    - BottomSheet (half/full, 그랩바, 헤더56, 본문 fill, 푸터 CTA + safe-area)
    - Dialog (폭 화면-48, 버튼 2개)
-   - BottomCTA (높이 56 + safe-area-bottom 34)
+   - BottomCTA (app-bar-height + safe-area-bottom)
 
 8. **상태 컴포넌트**
    - EmptyState, Skeleton, ErrorState
@@ -313,6 +344,8 @@ Figma 쪽 명명 규칙이 어긋난 것이다 (예: primary 버튼 이름에 "P
 - 전부 만든 뒤 한 프레임에 모아 get_screenshot 1회 (내부용)
 - 레이어 이름: `Component/Variant=...` semantic 네이밍
 - 색·간격·radius·텍스트: setBoundVariable / setTextStyleIdAsync로만
+- setBoundVariable 에 넘기는 변수는 **반드시 `semantic` 컬렉션에서** 찾는다
+  (`primitives` 에서 찾아 바인딩하면 토큰 계층 검사에서 걸린다)
 
 ### 자리표시 원칙
 
@@ -416,7 +449,7 @@ screens.md의 "필요 상태" 항목:
 - 프레임 크기 정확히 390×844
 - safe-area 침범 없음 (상단 44, 하단 34)
 - primary 버튼 정확히 1개
-- 모든 fill이 color 변수 바인딩
+- 모든 fill/stroke 가 **semantic 컬렉션** 변수에 바인딩 (primitive 직접 바인딩 0개)
 - 모든 텍스트가 Text/* 스타일
 
 위반 발견 시:
@@ -680,6 +713,10 @@ design/04-screens/figma-snapshot.json (audit 준비 완료)
 - ❌ **check-snapshot.mjs 실패 상태로 다음 STAGE 진입**
 - ❌ **스냅샷 JSON 을 손으로 수정해 검증 통과시키기** (Figma 쪽을 고치고 재추출할 것)
 - ❌ **사용자가 준 키 외의 Figma 파일에 작업하거나 새 파일 생성**
+- ❌ **변수 컬렉션을 color/space/radius/size 로 쪼개기** (primitives / semantic 2개뿐)
+- ❌ **semantic 변수에 값 직접 입력** (반드시 `createVariableAlias` 로 primitive 참조)
+- ❌ **컴포넌트·화면 노드에 primitive 변수 직접 바인딩** (semantic 만)
+- ❌ **design-rules.md 에 없는 primitive 를 임의 추가** (ramp 확장 금지)
 
 ---
 

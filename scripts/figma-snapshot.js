@@ -41,6 +41,15 @@
  *   page.frames[].nodes 는 서브트리를 평탄화한 1차원 배열이다.
  *   (figma-audit.mjs 의 getAllNodes() 가 frame.nodes 를 재귀 없이 그대로 쓴다)
  *   position 은 화면 프레임 기준 좌표다. (safe-area 검사가 844 와 직접 비교)
+ *
+ * ── schema_version 2 (토큰 2계층) ──────────────────────────────────────
+ *   v1 대비 바뀐 것:
+ *   1) variables 가 {컬렉션: [이름]} → {컬렉션: [{name, type, aliasOf}]}
+ *      aliasOf 는 "이 변수가 가리키는 다른 변수의 이름". primitive 는 null.
+ *      semantic 이 전부 alias 인지를 check-snapshot.mjs 가 이걸로 판정한다.
+ *   2) fills[]/strokes[] 에 boundVariableCollection 추가.
+ *      바인딩된 변수가 속한 컬렉션 이름("primitives" | "semantic").
+ *      화면이 primitive 를 직접 바인딩했는지를 figma-audit.mjs 가 이걸로 판정한다.
  */
 
 // ==================== CONFIG (figma-builder가 치환) ====================
@@ -55,7 +64,7 @@ const PAGE_NAME = "__PAGE_NAME__";
 const FRAME_FROM = Number("__FRAME_FROM__") || 0;
 const FRAME_TO = Number("__FRAME_TO__") || 0; // 0 = 끝까지
 
-const SCHEMA_VERSION = 1;
+const SCHEMA_VERSION = 2;
 const MAX_NODES_PER_FRAME = 2000; // 폭주 방지
 
 // ==================== 유틸 ====================
@@ -69,22 +78,64 @@ function toHex(color) {
   return `#${ch(color.r)}${ch(color.g)}${ch(color.b)}`;
 }
 
-// 변수/스타일 이름 캐시 (같은 id 재조회 방지)
-const varNameCache = new Map();
+// 변수/스타일 캐시 (같은 id 재조회 방지)
+const varInfoCache = new Map();
+const collectionNameCache = new Map();
 const styleNameCache = new Map();
 
-async function variableName(id) {
-  if (!id) return null;
-  if (varNameCache.has(id)) return varNameCache.get(id);
+async function collectionNameOf(collectionId) {
+  if (!collectionId) return null;
+  if (collectionNameCache.has(collectionId))
+    return collectionNameCache.get(collectionId);
   let name = null;
   try {
-    const v = await figma.variables.getVariableByIdAsync(id);
-    name = v ? v.name : null;
+    const c =
+      await figma.variables.getVariableCollectionByIdAsync(collectionId);
+    name = c ? c.name : null;
   } catch (e) {
     name = null;
   }
-  varNameCache.set(id, name);
+  collectionNameCache.set(collectionId, name);
   return name;
+}
+
+// 이 변수가 다른 변수를 가리키면 그 대상 이름을 돌려준다.
+// 2계층(semantic → primitive) 판정의 유일한 근거다.
+// 값을 직접 가진 변수(= primitive)는 null.
+async function aliasTargetName(variable) {
+  try {
+    const byMode = variable.valuesByMode || {};
+    for (const modeId of Object.keys(byMode)) {
+      const v = byMode[modeId];
+      if (v && v.type === "VARIABLE_ALIAS" && v.id) {
+        const target = await figma.variables.getVariableByIdAsync(v.id);
+        if (target) return target.name;
+      }
+    }
+  } catch (e) {
+    return null;
+  }
+  return null;
+}
+
+async function variableInfo(id) {
+  if (!id) return null;
+  if (varInfoCache.has(id)) return varInfoCache.get(id);
+  let info = null;
+  try {
+    const v = await figma.variables.getVariableByIdAsync(id);
+    if (v) {
+      info = {
+        name: v.name,
+        collection: await collectionNameOf(v.variableCollectionId),
+        aliasOf: await aliasTargetName(v),
+      };
+    }
+  } catch (e) {
+    info = null;
+  }
+  varInfoCache.set(id, info);
+  return info;
 }
 
 async function styleName(id) {
@@ -101,16 +152,21 @@ async function styleName(id) {
   return name;
 }
 
-// paint[] → audit 이 읽는 형태로. boundVariable 은 "바인딩된 변수 이름 or null".
+// paint[] → audit 이 읽는 형태로.
+//   boundVariable           = 바인딩된 변수 이름 or null
+//   boundVariableCollection = 그 변수가 속한 컬렉션 이름 or null
+//                             ("semantic" 이 아니면 토큰 계층 위반)
 async function paints(list) {
   if (!list || list === figma.mixed || !Array.isArray(list)) return [];
   const out = [];
   for (const p of list) {
     if (!p || p.visible === false) continue;
+    const info = await variableInfo(p.boundVariables?.color?.id);
     out.push({
       type: p.type,
       color: p.type === "SOLID" ? toHex(p.color) : null,
-      boundVariable: await variableName(p.boundVariables?.color?.id),
+      boundVariable: info ? info.name : null,
+      boundVariableCollection: info ? info.collection : null,
     });
   }
   return out;
@@ -282,17 +338,24 @@ async function extractFrame(frame) {
 
 // ==================== 변수 / 스타일 ====================
 
+// {컬렉션 이름: [{name, type, aliasOf}]}
+// aliasOf 가 있으면 그 변수는 다른 변수를 참조하는 semantic 토큰이다.
 async function extractVariables() {
   const result = {};
   const collections = await figma.variables.getLocalVariableCollectionsAsync();
 
   for (const col of collections) {
-    const names = [];
+    const entries = [];
     for (const id of col.variableIds) {
       const v = await figma.variables.getVariableByIdAsync(id);
-      if (v) names.push(v.name);
+      if (!v) continue;
+      entries.push({
+        name: v.name,
+        type: v.resolvedType || null,
+        aliasOf: await aliasTargetName(v),
+      });
     }
-    result[col.name] = names;
+    result[col.name] = entries;
   }
   return result;
 }

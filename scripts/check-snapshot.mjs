@@ -64,7 +64,7 @@ const fileKeyPath = getArg(
 const stage = getArg("--stage", "screens");
 const minFrames = parseInt(getArg("--min-frames", "5"), 10);
 
-const SCHEMA_VERSION = 1;
+const SCHEMA_VERSION = 2;
 
 // figma-audit.mjs 가 각 노드에서 읽는 필드
 const REQUIRED_NODE_FIELDS = [
@@ -335,8 +335,30 @@ function checkAuditSignals(frames) {
       ? `${instanceCount}개`
       : "0개 — 컴포넌트 재사용률 0% FAIL 확정",
   );
+
+  // boundVariableCollection 이 수집되지 않으면 figma-audit 의 토큰 계층 검사가
+  // 전부 "미바인딩"으로 떨어진다. 스냅샷 단계에서 먼저 잡는다.
+  const paintsAll = frames.flatMap((f) =>
+    (f?.nodes || []).flatMap((n) => [...(n.fills || []), ...(n.strokes || [])]),
+  );
+  const bound = paintsAll.filter((p) => p && p.boundVariable);
+  const missingCollection = bound.filter(
+    (p) => p.boundVariableCollection === undefined,
+  );
+  add(
+    "boundVariableCollection 수집",
+    bound.length === 0 || missingCollection.length === 0,
+    bound.length === 0
+      ? "바인딩된 paint 없음"
+      : missingCollection.length === 0
+        ? `${bound.length}개 paint 에 컬렉션 기록됨`
+        : `${missingCollection.length}/${bound.length}개 누락 — 구버전 figma-snapshot.js 로 뽑았다`,
+  );
 }
 
+// 토큰 2계층 검증.
+// variables 는 {컬렉션: [{name, type, aliasOf}]} 형태여야 한다 (schema_version 2).
+// primitives = 값을 가진 계층(aliasOf 없음), semantic = 전부 alias.
 function checkTokens(snap) {
   const vars =
     snap.variables && typeof snap.variables === "object" ? snap.variables : {};
@@ -348,15 +370,76 @@ function checkTokens(snap) {
     collections.length > 0 ? collections.join(", ") : "없음",
   );
 
-  if (stage === "tokens") {
-    const required = ["color", "space", "radius", "size"];
-    const lack = required.filter((c) => !collections.includes(c));
-    add(
-      "필수 컬렉션 4개 (color/space/radius/size)",
-      lack.length === 0,
-      lack.length === 0 ? "모두 존재" : `누락: ${lack.join(", ")}`,
-    );
+  // v1 형태({컬렉션: [문자열]})로 뽑힌 스냅샷을 조기에 잡는다.
+  // 이 상태면 aliasOf 를 읽을 수 없어 2계층 검사가 통째로 무의미해진다.
+  const legacyShape = collections.filter(
+    (c) => Array.isArray(vars[c]) && vars[c].some((v) => typeof v === "string"),
+  );
+  add(
+    "변수 항목 형태 (v2 객체)",
+    legacyShape.length === 0,
+    legacyShape.length === 0
+      ? "정상"
+      : `문자열 배열로 수집됨: ${legacyShape.join(", ")} — 구버전 figma-snapshot.js. 다시 추출할 것`,
+  );
 
+  const required = ["primitives", "semantic"];
+  const lack = required.filter((c) => !collections.includes(c));
+  add(
+    "토큰 컬렉션 2개 (primitives/semantic)",
+    lack.length === 0,
+    lack.length === 0
+      ? "모두 존재"
+      : `누락: ${lack.join(", ")} — 컬렉션을 계층으로 나눠야 한다 (color/space/radius/size 로 쪼개지 말 것)`,
+  );
+
+  const primitives = Array.isArray(vars.primitives) ? vars.primitives : [];
+  const semantic = Array.isArray(vars.semantic) ? vars.semantic : [];
+
+  add(
+    "primitives 비어있지 않음",
+    primitives.length > 0,
+    primitives.length > 0
+      ? `${primitives.length}개`
+      : "0개 — semantic 이 참조할 원본이 없다",
+  );
+
+  // semantic 은 자체 값을 갖지 않는다. 하나라도 값 직결이면 1계층이다.
+  const notAliased = semantic.filter((v) => v && !v.aliasOf).map((v) => v.name);
+  add(
+    "semantic 전부 primitive 참조",
+    semantic.length > 0 && notAliased.length === 0,
+    semantic.length === 0
+      ? "semantic 컬렉션 비어있음"
+      : notAliased.length === 0
+        ? `${semantic.length}개 전부 alias`
+        : `값 직결 ${notAliased.length}개: ${notAliased.slice(0, 5).join(", ")}${notAliased.length > 5 ? " …" : ""}`,
+  );
+
+  // alias 대상이 실제로 primitives 안에 있는지 (semantic → semantic 참조 방지)
+  const primNames = new Set(primitives.map((v) => v && v.name));
+  const danglingRefs = semantic
+    .filter((v) => v && v.aliasOf && !primNames.has(v.aliasOf))
+    .map((v) => `${v.name}→${v.aliasOf}`);
+  add(
+    "alias 대상이 primitives 안에 존재",
+    danglingRefs.length === 0,
+    danglingRefs.length === 0
+      ? "모두 정상"
+      : `primitives 밖을 참조: ${danglingRefs.slice(0, 5).join(", ")}`,
+  );
+
+  // primitive 가 또 다른 변수를 가리키면 계층이 3단이 된다
+  const chained = primitives.filter((v) => v && v.aliasOf).map((v) => v.name);
+  add(
+    "primitives 는 값 직결 (중첩 alias 없음)",
+    chained.length === 0,
+    chained.length === 0
+      ? "정상"
+      : `alias 로 만들어진 primitive: ${chained.slice(0, 5).join(", ")}`,
+  );
+
+  if (stage === "tokens") {
     add(
       "텍스트 스타일 존재",
       Array.isArray(snap.textStyles) && snap.textStyles.length > 0,

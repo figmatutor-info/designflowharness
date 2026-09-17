@@ -5,6 +5,11 @@
  * design-rules.md의 세부 검증 (게이트 3 전용).
  * status: confirmed 여부와 규칙 준수 여부를 엄격히 검증.
  *
+ * 토큰 2계층 검증 포함:
+ *   A(색상) / B(간격) / D(Radius) / G(모바일 size) 각 섹션이
+ *   "### Primitive"(값) 와 "### Semantic"({primitive} 참조) 를 모두 갖는지,
+ *   semantic 에 hex/px 가 직결돼 있지 않은지 본다.
+ *
  * 사용법:
  *   node scripts/verify-design-rules.mjs
  *
@@ -326,6 +331,139 @@ function checkMobileSpecific(content) {
   return results;
 }
 
+// ==================== 토큰 계층 (2계층 강제) ====================
+
+// 한 섹션 안에서 "### Primitive" / "### Semantic" 블록을 잘라낸다.
+// 끝 조건에 /m 의 `$` 를 쓰지 않는 이유는 extractSection() 주석과 같다.
+function extractSubsection(section, title) {
+  if (!section) return null;
+  const re = new RegExp(
+    `^### ${title}[\\s\\S]*?(?=^### |^## |(?![\\s\\S]))`,
+    "m",
+  );
+  const m = section.match(re);
+  return m ? m[0] : null;
+}
+
+// 표의 데이터 행에서 두 번째 칸(값/참조)만 뽑는다.
+// 헤더(| 토큰 | 값 |)와 구분선(| --- | --- |)은 제외.
+function tableValueCells(block) {
+  if (!block) return [];
+  return block
+    .split("\n")
+    .filter((line) => line.trim().startsWith("|"))
+    .map((line) => line.split("|").map((c) => c.trim()))
+    .filter((cells) => cells.length >= 4)
+    .filter((cells) => !/^-{2,}$/.test(cells[2].replace(/\s/g, "")))
+    .filter((cells) => cells[1] && !/^(토큰|Semantic|이름)$/i.test(cells[1]))
+    .map((cells) => ({ token: cells[1], value: cells[2] }));
+}
+
+const LAYERED_SECTIONS = [
+  { title: "A\\. 색상", label: "색상" },
+  { title: "B\\. 간격", label: "간격" },
+  { title: "D\\. Radius", label: "Radius" },
+  { title: "G\\. 모바일 특화", label: "모바일(size)" },
+];
+
+function checkTokenLayering(content) {
+  const results = [];
+
+  LAYERED_SECTIONS.forEach(({ title, label }) => {
+    const section = extractSection(content, title);
+    if (!section) {
+      results.push({
+        name: `${label} 섹션 파싱`,
+        pass: false,
+        severity: "critical",
+        detail: "섹션 없음",
+      });
+      return;
+    }
+
+    const primitive = extractSubsection(section, "Primitive");
+    const semantic = extractSubsection(section, "Semantic");
+
+    results.push({
+      name: `${label} · ### Primitive 존재`,
+      pass: Boolean(primitive),
+      severity: "critical",
+      detail: primitive ? "존재" : "누락 — 참조할 원본 계층이 없다",
+    });
+
+    results.push({
+      name: `${label} · ### Semantic 존재`,
+      pass: Boolean(semantic),
+      severity: "critical",
+      detail: semantic ? "존재" : "누락",
+    });
+
+    if (!semantic) return;
+
+    const rows = tableValueCells(semantic);
+
+    // semantic 값 칸은 {primitive-name} 참조여야 한다.
+    // device-frame(390×844)처럼 참조 대상이 없는 상수는 예외로 둔다.
+    const CONSTANT_TOKENS = ["device-frame"];
+    const target = rows.filter((r) => !CONSTANT_TOKENS.includes(r.token));
+
+    const notRef = target.filter((r) => !/^\{[\w-]+\}$/.test(r.value));
+    results.push({
+      name: `${label} · Semantic 이 primitive 참조`,
+      pass: target.length > 0 && notRef.length === 0,
+      severity: "critical",
+      detail:
+        target.length === 0
+          ? "Semantic 표에 행이 없다"
+          : notRef.length === 0
+            ? `${target.length}개 전부 {primitive} 참조`
+            : `값 직결 ${notRef.length}개: ${notRef
+                .slice(0, 4)
+                .map((r) => `${r.token}=${r.value}`)
+                .join(", ")}`,
+    });
+
+    // 값 직결의 대표 징후를 따로 집어준다 (수정 지점이 바로 보이게)
+    const hardcoded = target.filter((r) =>
+      /#[0-9a-fA-F]{3,8}\b|\brgba?\(|\b\d+px\b/.test(r.value),
+    );
+    results.push({
+      name: `${label} · Semantic 에 생값 없음`,
+      pass: hardcoded.length === 0,
+      severity: "critical",
+      detail:
+        hardcoded.length === 0
+          ? "없음"
+          : `hex/px 직결: ${hardcoded
+              .slice(0, 4)
+              .map((r) => `${r.token}=${r.value}`)
+              .join(", ")}`,
+    });
+
+    // primitive 는 값을 가져야 한다 (참조로 적혀 있으면 계층이 뒤집힌 것)
+    if (primitive) {
+      const primRows = tableValueCells(primitive);
+      const primAsRef = primRows.filter((r) => /^\{[\w-]+\}$/.test(r.value));
+      results.push({
+        name: `${label} · Primitive 는 값 보유`,
+        pass: primRows.length > 0 && primAsRef.length === 0,
+        severity: "critical",
+        detail:
+          primRows.length === 0
+            ? "Primitive 표에 행이 없다"
+            : primAsRef.length === 0
+              ? `${primRows.length}개 전부 값`
+              : `참조로 적힌 primitive: ${primAsRef
+                  .map((r) => r.token)
+                  .slice(0, 4)
+                  .join(", ")}`,
+      });
+    }
+  });
+
+  return results;
+}
+
 // ==================== 출력 ====================
 
 function printResults(allResults) {
@@ -413,6 +551,7 @@ function main() {
     { name: "간격 토큰", checks: checkSpacingTokens(content) },
     { name: "타이포", checks: checkTypography(content) },
     { name: "모바일 특화", checks: checkMobileSpecific(content) },
+    { name: "토큰 계층", checks: checkTokenLayering(content) },
   ];
 
   // 출력

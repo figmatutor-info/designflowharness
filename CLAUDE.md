@@ -20,6 +20,9 @@ Phase 1의 analysis.md 없이는 Phase 2로 갈 수 없다.
 design/03-design-rules/design-rules.md 상단 `status: confirmed` 없이는
 figma-builder가 절대 실행되지 않는다. 이 파일이 규칙 SSOT다.
 
+규칙 안의 토큰은 primitive(값) → semantic(의도) 2계층으로 적는다.
+색상·간격·radius·size 가 대상이며, 타이포는 role 기반 텍스트 스타일을 쓴다.
+
 ### 3. 각 단계 게이트를 통과해야 다음으로
 
 4개 Phase 사이에 게이트 4개. 각 게이트는 3중 확인:
@@ -107,6 +110,8 @@ design/
 ## 절대 원칙
 
 - **design-rules.md `status: confirmed` 없이 figma-builder 실행 금지**
+- **토큰은 primitive → semantic 2계층. semantic 에 값 직결 금지**
+- **컴포넌트·화면은 semantic 토큰만 바인딩** (primitive 직접 사용 금지)
 - **Phase 순서 건너뛰기 금지** (1 → 2 → 3 → 4 순차)
 - **게이트 실패 시 다음 Phase 진입 금지**
 - **design/03-design-rules/design-rules.md 는 유일한 규칙 SSOT**

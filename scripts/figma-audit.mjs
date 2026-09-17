@@ -42,7 +42,9 @@
  *               "id": "1:23",
  *               "name": "Card",
  *               "type": "FRAME",
- *               "fills": [{"type": "SOLID", "color": "#FFFFFF", "boundVariable": null}],
+ *               "fills": [{"type": "SOLID", "color": "#FFFFFF",
+ *                          "boundVariable": "color-bg",
+ *                          "boundVariableCollection": "semantic"}],
  *               "textStyle": null,
  *               "padding": {"top": 16, "right": 16, "bottom": 16, "left": 16},
  *               "size": {"width": 358, "height": 200},
@@ -459,6 +461,65 @@ function checkComponentReuseRate(snapshot) {
   };
 }
 
+// 8. 토큰 계층 (semantic 만 바인딩)
+//
+// 2계층 구조에서 화면·컴포넌트가 바인딩해도 되는 것은 semantic 컬렉션 변수뿐이다.
+// primitive 를 직접 바인딩하면 이름이 의도를 말하지 않고(brand-500 이 왜 여기 있나),
+// 리브랜딩 시 semantic 만 바꿔서는 반영되지 않는 노드가 남는다.
+//
+// boundVariable 이 없는 경우는 여기서 세지 않는다. 그건 팔레트 일관성 검사의 몫이라
+// 같은 위반을 두 번 보고하게 된다.
+function checkTokenLayering(snapshot) {
+  const violations = [];
+  const screensPage = getScreensPage(snapshot);
+  if (!screensPage) return { status: "FAIL", violations: [], count: 0 };
+
+  let checked = 0;
+
+  screensPage.frames.forEach((frame) => {
+    getAllNodes(frame).forEach((node) => {
+      [
+        ["fill", node.fills || []],
+        ["stroke", node.strokes || []],
+      ].forEach(([kind, list]) => {
+        list.forEach((paint) => {
+          if (!paint || !paint.boundVariable) return;
+          checked++;
+
+          const collection = paint.boundVariableCollection;
+
+          if (collection === undefined) {
+            violations.push({
+              screen: frame.name,
+              node: `${node.name} (${node.id})`,
+              issue: `${kind} 의 boundVariableCollection 누락 (${paint.boundVariable})`,
+              expected:
+                "figma-snapshot.js (schema_version 2) 로 다시 추출할 것",
+            });
+            return;
+          }
+
+          if (collection !== "semantic") {
+            violations.push({
+              screen: frame.name,
+              node: `${node.name} (${node.id})`,
+              issue: `${kind} 이 ${collection || "알 수 없는"} 컬렉션의 ${paint.boundVariable} 을 직접 바인딩`,
+              expected: "semantic 컬렉션 변수로 바인딩 (예: color-primary)",
+            });
+          }
+        });
+      });
+    });
+  });
+
+  return {
+    status: violations.length === 0 ? "PASS" : "FAIL",
+    violations,
+    count: violations.length,
+    checked_bindings: checked,
+  };
+}
+
 // ==================== 실행 ====================
 
 function runAudit() {
@@ -473,6 +534,7 @@ function runAudit() {
     safe_area: checkSafeArea(snapshot, rules),
     primary_count: checkPrimaryCount(snapshot),
     component_reuse: checkComponentReuseRate(snapshot),
+    token_layering: checkTokenLayering(snapshot),
   };
 
   const overallPassed = Object.values(results).every(
@@ -485,7 +547,7 @@ function runAudit() {
     passed: overallPassed,
     results,
     summary: {
-      total_checks: 7,
+      total_checks: 8,
       passed_checks: Object.values(results).filter((r) => r.status === "PASS")
         .length,
       total_violations: Object.values(results).reduce(
@@ -514,6 +576,7 @@ function printReport(audit) {
     safe_area: "세이프 에어리어",
     primary_count: "primary 개수",
     component_reuse: "컴포넌트 재사용률",
+    token_layering: "토큰 계층 (semantic 전용)",
   };
 
   Object.entries(audit.results).forEach(([key, result]) => {
