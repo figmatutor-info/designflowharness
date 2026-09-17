@@ -12,8 +12,16 @@
  *   node scripts/check-phase.mjs --phase all
  *
  * 옵션:
- *   --json    JSON 형식으로 출력
- *   --quiet   PASS/FAIL만 출력
+ *   --json     JSON 형식으로 출력
+ *   --quiet    PASS/FAIL만 출력
+ *   --shallow  하위 검증기를 실행하지 않고 파일 존재만 확인 (디버깅용)
+ *
+ * ⚠️ 이 스크립트는 하위 검증기를 직접 실행한다.
+ *    verify-design-rules / check-snapshot / check-token-docs / check-layout /
+ *    check-assets 의 exit code 가 게이트 판정에 그대로 들어간다.
+ *    즉 `npm run check` 통과 = 게이트 통과 다.
+ *    figma-audit.mjs 만 예외로 실행하지 않는다 (결과 파일을 Write 하므로).
+ *    대신 그 산출물 audit-structural.json 의 passed 를 읽어 판정한다.
  *
  * exit code:
  *   0: PASS
@@ -22,6 +30,7 @@
 
 import { readFileSync, existsSync, readdirSync, statSync } from "node:fs";
 import { join } from "node:path";
+import { execFileSync } from "node:child_process";
 
 // ==================== 유틸 ====================
 
@@ -37,6 +46,9 @@ const COLORS = {
 const args = process.argv.slice(2);
 const isJson = args.includes("--json");
 const isQuiet = args.includes("--quiet");
+// 하위 검증기를 실제로 실행하지 않고, 파일 존재 확인만 한다 (디버깅용).
+// 기본값은 실행한다 — "게이트 통과 = npm run check" 가 사실이어야 하기 때문.
+const isShallow = args.includes("--shallow");
 // --name 의 값을 읽는다.
 // ⚠️ `args[args.indexOf(name) + 1] || fallback` 패턴을 쓰지 말 것.
 //    플래그가 없으면 indexOf 가 -1 이고 -1+1=0 이라 args[0] 이 값으로 잡힌다.
@@ -76,6 +88,91 @@ function countFiles(dir, ext) {
   } catch {
     return 0;
   }
+}
+
+// ==================== 하위 검증기 실행 ====================
+//
+// 이 파일은 오랫동안 "파일이 있는가"만 봤다. 진짜 판정은 verify-design-rules /
+// check-snapshot / check-layout 같은 별도 스크립트가 했는데, 그것들을 부르는 코드가
+// 없어서 `npm run check` 통과와 게이트 통과가 서로 다른 뜻이었다.
+// (1계층 토큰으로 만들어도 게이트 3 은 통과했다)
+//
+// 여기서 직접 실행해 exit code 를 게이트 판정에 넣는다.
+//
+// ⚠️ 여기서 부르는 스크립트는 전부 파일을 쓰지 않는 순수 판정기여야 한다.
+//    figma-audit.mjs 는 audit-structural.json 을 Write 하므로 부르지 않는다.
+//    (대신 그 결과 JSON 을 읽는다 — checkScreens 참고)
+
+function runScript(file, scriptArgs = []) {
+  try {
+    execFileSync("node", [join("scripts", file), ...scriptArgs], {
+      stdio: ["ignore", "pipe", "pipe"],
+      encoding: "utf-8",
+    });
+    return { ok: true, output: "" };
+  } catch (err) {
+    // 스크립트가 exit 1 로 죽으면 stdout 에 실패 사유가 들어 있다.
+    // node 자체를 못 찾는 등의 경우엔 status 가 null 이다.
+    const out = `${err.stdout || ""}${err.stderr || ""}`;
+    return { ok: false, output: out, spawnFailed: err.status == null };
+  }
+}
+
+// 실패 출력에서 사람이 읽을 첫 줄들만 뽑는다 (ANSI 제거, 최대 3줄).
+//
+// ⚠️ 키워드로 거르지 말 것. "없음"/"누락" 같은 말은 통과 줄에도 나온다.
+//    (예: "✓ 색상 · Semantic 에 생값 없음" 은 PASS 인데 '없음' 에 걸린다)
+//    실패 마커로 시작하는 줄만 고른다.
+function summarizeFailure(output) {
+  const lines = String(output)
+    .replace(/\x1b\[[0-9;]*m/g, "")
+    .split("\n")
+    .map((l) => l.trim())
+    .filter(Boolean);
+
+  const failed = lines.filter((l) => /^[✗❌]/.test(l));
+  if (failed.length > 0) return failed.slice(0, 3).join(" / ");
+
+  // 마커 없이 죽은 경우 (스크립트가 조기 종료하며 메시지만 남긴 경우)
+  const alt = lines.filter(
+    (l) => !/^[✓🎉]/.test(l) && /실패|없음|누락|불일치|FAIL/.test(l),
+  );
+  if (alt.length > 0) return alt.slice(0, 2).join(" / ");
+  return "상세는 개별 명령으로 확인";
+}
+
+// 하위 검증기 실행 결과를 게이트 검사 항목 하나로 만든다.
+//   label       : 검사 항목 이름
+//   file        : scripts/ 아래 파일명
+//   scriptArgs  : 넘길 인자
+//   command     : 사용자가 직접 돌려볼 명령 (실패 시 안내)
+//   precondition: 이 값이 false 면 실행하지 않고 건너뛴다 (선행 산출물이 아직 없을 때)
+function subCheck({ label, file, scriptArgs = [], command, precondition }) {
+  if (precondition === false) {
+    return {
+      name: label,
+      pass: false,
+      detail: `선행 산출물이 없어 실행 못 함 — ${command}`,
+    };
+  }
+  if (isShallow) {
+    return { name: label, pass: true, detail: "--shallow: 실행 건너뜀" };
+  }
+
+  const res = runScript(file, scriptArgs);
+  if (res.ok) return { name: label, pass: true, detail: "PASS" };
+  if (res.spawnFailed) {
+    return {
+      name: label,
+      pass: false,
+      detail: `실행 실패 (스크립트 없음/오류) — ${command}`,
+    };
+  }
+  return {
+    name: label,
+    pass: false,
+    detail: `FAIL — ${summarizeFailure(res.output)} · 상세: ${command}`,
+  };
 }
 
 // ==================== 게이트 1: 레퍼런스 ====================
@@ -295,6 +392,19 @@ function checkRules() {
     results.push(checkComponentCatalog(content, componentsPath));
   }
 
+  // 세부 판정은 verify-design-rules.mjs 가 한다 (토큰 2계층, 4배수, semantic 이름,
+  // 타이포 최소 크기, 모바일 상수 등). 위의 검사들은 "파일이 있는가" 수준이라
+  // 이걸 부르지 않으면 1계층 토큰으로도 게이트 3 이 통과해 버린다.
+  results.push(
+    subCheck({
+      label: "규칙 세부 검증 (verify-design-rules)",
+      file: "verify-design-rules.mjs",
+      scriptArgs: ["--path", rulesPath],
+      command: "npm run verify",
+      precondition: fileExists(rulesPath),
+    }),
+  );
+
   return {
     phase: "rules",
     gate: 3,
@@ -396,6 +506,7 @@ function checkScreens() {
   const buildLogPath = "design/04-screens/build-log.md";
   const screenshotDir = "design/04-screens/screenshots";
   const auditReportPath = "design/04-screens/audit-report.md";
+  const auditStructuralPath = "design/04-screens/audit-structural.json";
   const snapshotPath = "design/04-screens/figma-snapshot.json";
   const manifestPath = "design/04-screens/assets/assets-manifest.json";
   const imagePolicy = readImagePolicy();
@@ -571,22 +682,102 @@ function checkScreens() {
     }
   }
 
-  // 10. audit-report.md PASS
-  if (fileExists(auditReportPath)) {
-    const content = readFile(auditReportPath);
-    const isPass = /최종 판정.*PASS/i.test(content);
+  // 10. 하위 검증기 실행 (스냅샷·토큰문서·레이아웃·에셋)
+  //
+  // figma-audit.mjs 는 여기서 부르지 않는다. 그것만 audit-structural.json 을
+  // Write 하기 때문이다 (check-phase 는 판정만 하는 읽기 전용이어야 한다).
+  // 대신 11번에서 그 결과 JSON 을 읽는다.
+  const hasSnapshot = fileExists(snapshotPath);
+
+  results.push(
+    subCheck({
+      label: "snapshot 스키마 (check-snapshot)",
+      file: "check-snapshot.mjs",
+      command: "npm run check:snapshot",
+      precondition: hasSnapshot,
+    }),
+    subCheck({
+      label: "토큰 문서 규격 (check-token-docs)",
+      file: "check-token-docs.mjs",
+      command: "npm run check:token-docs",
+      precondition: hasSnapshot,
+    }),
+    subCheck({
+      label: "레이아웃 거동 (check-layout)",
+      file: "check-layout.mjs",
+      command: "npm run check:layout",
+      precondition: hasSnapshot,
+    }),
+    subCheck({
+      label: "이미지 에셋 (check-assets)",
+      file: "check-assets.mjs",
+      command: "npm run check:assets",
+      // design-rules §I 에 image-slots: none 이면 스스로 통과 처리한다.
+      // 그래서 매니페스트 존재 여부를 선행조건으로 걸지 않는다.
+      precondition: fileExists("design/03-design-rules/design-rules.md"),
+    }),
+  );
+
+  // 11. audit 최종 판정 — 기계가 찍은 결과로만 판정한다
+  //
+  // 예전에는 audit-report.md(에이전트가 쓴 마크다운)의 "최종 판정: PASS" 문자열을
+  // regex 로 읽었다. 그러면 figma-audit.mjs 가 passed:false 를 내도, 에이전트가
+  // 리포트에 PASS 라고 적기만 하면 게이트가 열렸다. audit 을 아예 안 돌려도 통과했다.
+  // harness-principles.md 의 "LLM 자기 보고 안 믿음" 과 정면으로 어긋나는 지점이라
+  // 판정 근거를 figma-audit.mjs 가 쓴 JSON 으로 옮겼다.
+  if (!fileExists(auditStructuralPath)) {
     results.push({
-      name: "audit 통과",
-      pass: isPass,
-      detail: isPass ? "PASS" : "FAIL 또는 미완료",
+      name: "audit 통과 (구조 검증 결과)",
+      pass: false,
+      detail: `${auditStructuralPath} 없음 — npm run audit 실행 필요`,
     });
   } else {
-    results.push({
-      name: "audit 통과",
-      pass: false,
-      detail: "audit-report.md 없음 (design-auditor 실행 필요)",
-    });
+    let pass = false;
+    let detail = "";
+    try {
+      const audit = JSON.parse(readFile(auditStructuralPath));
+      const passedChecks = audit.summary?.passed_checks;
+      const totalChecks = audit.summary?.total_checks;
+      const violations = audit.summary?.total_violations ?? 0;
+
+      if (audit.passed !== true) {
+        detail = `FAIL — ${passedChecks ?? "?"}/${totalChecks ?? "?"} 항목 통과, 위반 ${violations}건`;
+      } else {
+        // 신선도: 화면을 고치고 스냅샷만 다시 뽑은 뒤 예전 audit 결과로 통과하는
+        // 경로를 막는다. audit 은 스냅샷을 입력으로 받으므로 항상 더 나중이어야 한다.
+        const snapDate = Date.parse(
+          (() => {
+            try {
+              return JSON.parse(readFile(snapshotPath))?.snapshot_date;
+            } catch {
+              return null;
+            }
+          })(),
+        );
+        const auditDate = Date.parse(audit.audit_date);
+
+        if (!isNaN(snapDate) && !isNaN(auditDate) && auditDate < snapDate) {
+          pass = false;
+          detail = `audit 결과가 스냅샷보다 오래됨 (audit ${audit.audit_date} < snapshot) — npm run audit 재실행 필요`;
+        } else {
+          pass = true;
+          detail = `PASS (${passedChecks}/${totalChecks} 항목, 위반 0건)`;
+        }
+      }
+    } catch (err) {
+      detail = `JSON 파싱 실패: ${err.message}`;
+    }
+    results.push({ name: "audit 통과 (구조 검증 결과)", pass, detail });
   }
+
+  // 12. audit-report.md 존재 — 사람이 읽는 요약. 판정 근거가 아니라 산출물 확인이다.
+  results.push({
+    name: "audit-report.md 작성됨 (사람용 요약)",
+    pass: fileExists(auditReportPath),
+    detail: fileExists(auditReportPath)
+      ? auditReportPath
+      : "없음 (design-auditor 실행 필요)",
+  });
 
   return {
     phase: "screens",
