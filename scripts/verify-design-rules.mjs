@@ -142,6 +142,7 @@ function checkSections(content) {
     { title: "F. Motion", key: "motion" },
     { title: "G. 모바일 특화", key: "mobile" },
     { title: "H. Z-Index", key: "zindex" },
+    { title: "I. 이미지", key: "image" },
   ];
 
   return requiredSections.map((section) => ({

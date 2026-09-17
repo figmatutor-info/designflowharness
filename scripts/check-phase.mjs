@@ -251,7 +251,7 @@ function checkRules() {
       detail: `현재 status: ${status}`,
     });
 
-    // 5. 필수 섹션 (A ~ H)
+    // 5. 필수 섹션 (A ~ I)
     const requiredSections = [
       "## A. 색상",
       "## B. 간격",
@@ -261,12 +261,13 @@ function checkRules() {
       "## F. Motion",
       "## G. 모바일 특화",
       "## H. Z-Index",
+      "## I. 이미지",
     ];
     const missingSections = requiredSections.filter(
       (s) => !content.includes(s),
     );
     results.push({
-      name: "필수 섹션 8개 (A-H)",
+      name: "필수 섹션 9개 (A-I)",
       pass: missingSections.length === 0,
       detail:
         missingSections.length === 0
@@ -299,6 +300,7 @@ function checkScreens() {
   const screenshotDir = "design/04-screens/screenshots";
   const auditReportPath = "design/04-screens/audit-report.md";
   const snapshotPath = "design/04-screens/figma-snapshot.json";
+  const manifestPath = "design/04-screens/assets/assets-manifest.json";
 
   // 1. figma-file-key.txt 존재 (사용자가 만든 Figma 파일의 키)
   const fileKey = readFile(fileKeyPath)?.trim();
@@ -332,6 +334,13 @@ function checkScreens() {
       name: "STAGE=components 완료",
       pass: /## STAGE=components.*✅/.test(content),
       detail: /## STAGE=components.*✅/.test(content) ? "완료" : "미완료",
+    });
+
+    // 4-2. assets STAGE 완료 (이미지 생성)
+    results.push({
+      name: "STAGE=assets 완료",
+      pass: /## STAGE=assets.*✅/.test(content),
+      detail: /## STAGE=assets.*✅/.test(content) ? "완료" : "미완료",
     });
 
     // 5. screens STAGE 완료 (모든 화면)
@@ -385,7 +394,68 @@ function checkScreens() {
     results.push({ name: "figma-snapshot.json 유효", pass, detail });
   }
 
-  // 8. audit-report.md PASS
+  // 8. assets-manifest.json 존재 (상세 검증은 npm run check:assets)
+  if (!fileExists(manifestPath)) {
+    results.push({
+      name: "assets-manifest.json 존재",
+      pass: false,
+      detail: `${manifestPath} 없음 — STAGE=assets 미실행`,
+    });
+  } else {
+    let pass = false;
+    let detail = "";
+    try {
+      const m = JSON.parse(readFile(manifestPath));
+      const slots = Array.isArray(m.slots) ? m.slots : [];
+      pass = slots.length > 0;
+      detail = pass
+        ? `슬롯 ${slots.length}개 (상세: npm run check:assets)`
+        : "slots 비어있음";
+    } catch (err) {
+      detail = `JSON 파싱 실패: ${err.message}`;
+    }
+    results.push({ name: "assets-manifest.json 존재", pass, detail });
+  }
+
+  // 9. 이미지 슬롯이 실제로 채워졌는지 (회색 플레이스홀더로 끝나지 않았는지)
+  //    figma-audit.mjs 의 팔레트 검사는 SOLID fill 만 보므로 이 실패를 잡지 못한다.
+  //    "화면은 다 만들어졌는데 이미지만 비었다"를 여기서 잡는다.
+  if (fileExists(snapshotPath)) {
+    try {
+      const snap = JSON.parse(readFile(snapshotPath));
+      const screensPage = snap.pages?.find((p) => p.name === "03 Screens");
+      const slotNodes = [];
+      (screensPage?.frames || []).forEach((frame) => {
+        (frame.nodes || []).forEach((node) => {
+          if (typeof node.name === "string" && node.name.startsWith("Img/")) {
+            slotNodes.push({ frame: frame.name, node });
+          }
+        });
+      });
+
+      const empty = slotNodes.filter(
+        ({ node }) => !(node.fills || []).some((f) => f.type === "IMAGE"),
+      );
+
+      results.push({
+        name: "이미지 슬롯 채움 (빈 슬롯 0개)",
+        pass: slotNodes.length > 0 && empty.length === 0,
+        detail:
+          slotNodes.length === 0
+            ? "Img/* 슬롯이 하나도 없음 — 이미지 없는 시안"
+            : empty.length === 0
+              ? `슬롯 ${slotNodes.length}개 전부 IMAGE fill`
+              : `미충전 ${empty.length}개: ${empty
+                  .slice(0, 5)
+                  .map(({ frame, node }) => `${frame}/${node.name}`)
+                  .join(", ")}`,
+      });
+    } catch {
+      // 스냅샷 파싱 실패는 위 7번에서 이미 잡힌다
+    }
+  }
+
+  // 10. audit-report.md PASS
   if (fileExists(auditReportPath)) {
     const content = readFile(auditReportPath);
     const isPass = /최종 판정.*PASS/i.test(content);

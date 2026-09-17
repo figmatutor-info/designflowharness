@@ -10,6 +10,7 @@
     "check:structure": "node scripts/check-phase.mjs --phase structure",
     "check:rules": "node scripts/check-phase.mjs --phase rules",
     "check:screens": "node scripts/check-phase.mjs --phase screens",
+    "check:assets": "node scripts/check-assets.mjs",
     "check:snapshot": "node scripts/check-snapshot.mjs",
     "check:snapshot:tokens": "node scripts/check-snapshot.mjs --stage tokens",
     "merge:snapshot": "node scripts/merge-snapshot.mjs",

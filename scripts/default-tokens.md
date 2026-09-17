@@ -19,9 +19,9 @@ neutral-900 = #111827 ← color-text         ←──  Text.fill
 space-4 = 16          ← space-card-padding ←──  Card.padding
 ```
 
-| 계층          | 이름 규약                            | 값                         | 누가 쓰나                  |
-| ------------- | ------------------------------------ | -------------------------- | -------------------------- |
-| **Primitive** | 색조+단계 (`brand-500`, `neutral-0`) | 실제 값 (#2563EB, 16)      | semantic 토큰만 참조       |
+| 계층          | 이름 규약                             | 값                          | 누가 쓰나                   |
+| ------------- | ------------------------------------- | --------------------------- | --------------------------- |
+| **Primitive** | 색조+단계 (`brand-500`, `neutral-0`)  | 실제 값 (#2563EB, 16)       | semantic 토큰만 참조        |
 | **Semantic**  | 역할 (`color-primary`, `radius-card`) | `{primitive-name}` **참조** | 컴포넌트·화면이 이것만 사용 |
 
 **금지:**
@@ -42,44 +42,44 @@ space-4 = 16          ← space-card-padding ←──  Card.padding
 
 원본 팔레트. 이 값들은 semantic 토큰만 참조한다.
 
-| 토큰             | 값                 | 계열      |
-| ---------------- | ------------------ | --------- |
-| brand-50         | rgba(37,99,235,.1) | 브랜드    |
-| brand-500        | #2563EB            | 브랜드    |
-| brand-600        | #1D4ED8            | 브랜드    |
-| neutral-0        | #FFFFFF            | 중립      |
-| neutral-50       | #F5F5F7            | 중립      |
-| neutral-100      | #E9E9EE            | 중립      |
-| neutral-200      | #E5E7EB            | 중립      |
-| neutral-400      | #9CA3AF            | 중립      |
-| neutral-500      | #6B7280            | 중립      |
-| neutral-900      | #111827            | 중립      |
-| red-600          | #DC2626            | 시스템    |
-| green-600        | #16A34A            | 시스템    |
-| amber-500        | #F59E0B            | 시스템    |
-| overlay-black-50 | rgba(0,0,0,.5)     | 오버레이  |
+| 토큰             | 값                 | 계열     |
+| ---------------- | ------------------ | -------- |
+| brand-50         | rgba(37,99,235,.1) | 브랜드   |
+| brand-500        | #2563EB            | 브랜드   |
+| brand-600        | #1D4ED8            | 브랜드   |
+| neutral-0        | #FFFFFF            | 중립     |
+| neutral-50       | #F5F5F7            | 중립     |
+| neutral-100      | #E9E9EE            | 중립     |
+| neutral-200      | #E5E7EB            | 중립     |
+| neutral-400      | #9CA3AF            | 중립     |
+| neutral-500      | #6B7280            | 중립     |
+| neutral-900      | #111827            | 중립     |
+| red-600          | #DC2626            | 시스템   |
+| green-600        | #16A34A            | 시스템   |
+| amber-500        | #F59E0B            | 시스템   |
+| overlay-black-50 | rgba(0,0,0,.5)     | 오버레이 |
 
 ### Semantic
 
 **모든 값은 primitive 참조.** 컴포넌트·화면은 이 토큰만 사용한다.
 
-| 토큰                  | 참조                 | 용도                          |
-| --------------------- | -------------------- | ----------------------------- |
-| color-bg              | {neutral-0}          | 기본 배경                     |
-| color-surface-1       | {neutral-50}         | 카드/시트 배경 (1층)          |
-| color-surface-2       | {neutral-100}        | 강조 카드 배경 (2층)          |
-| color-border          | {neutral-200}        | 구분선, 테두리                |
-| color-text            | {neutral-900}        | 본문                          |
-| color-text-muted      | {neutral-500}        | 보조 텍스트                   |
-| color-text-disabled   | {neutral-400}        | 비활성 텍스트                 |
-| color-text-inverse    | {neutral-0}          | 어두운 배경 위 텍스트         |
-| color-primary         | {brand-500}          | 주요 CTA, 강조                |
-| color-primary-pressed | {brand-600}          | CTA pressed 상태              |
-| color-primary-soft    | {brand-50}           | CTA soft 배경                 |
-| color-danger          | {red-600}            | 위험, 에러, 삭제              |
-| color-success         | {green-600}          | 성공, 완료                    |
-| color-warning         | {amber-500}          | 경고, 주의                    |
-| color-overlay         | {overlay-black-50}   | 모달, 시트, 로딩              |
+| 토큰                  | 참조               | 용도                  |
+| --------------------- | ------------------ | --------------------- |
+| color-bg              | {neutral-0}        | 기본 배경             |
+| color-surface-1       | {neutral-50}       | 카드/시트 배경 (1층)  |
+| color-surface-2       | {neutral-100}      | 강조 카드 배경 (2층)  |
+| color-border          | {neutral-200}      | 구분선, 테두리        |
+| color-text            | {neutral-900}      | 본문                  |
+| color-text-muted      | {neutral-500}      | 보조 텍스트           |
+| color-text-disabled   | {neutral-400}      | 비활성 텍스트         |
+| color-text-inverse    | {neutral-0}        | 어두운 배경 위 텍스트 |
+| color-primary         | {brand-500}        | 주요 CTA, 강조        |
+| color-primary-pressed | {brand-600}        | CTA pressed 상태      |
+| color-primary-soft    | {brand-50}         | CTA soft 배경         |
+| color-danger          | {red-600}          | 위험, 에러, 삭제      |
+| color-success         | {green-600}        | 성공, 완료            |
+| color-warning         | {amber-500}        | 경고, 주의            |
+| color-overlay         | {overlay-black-50} | 모달, 시트, 로딩      |
 
 **브랜드 컬러 override 시:** `brand-500` 하나만 바꾸면
 `brand-600`(12% 어둡게) / `brand-50`(10% 불투명)이 자동 파생되고,
@@ -93,27 +93,27 @@ semantic 3개는 참조라서 자동으로 따라온다.
 
 ### Primitive
 
-| 토큰     | 값   | 비고                     |
-| -------- | ---- | ------------------------ |
-| space-1  | 4px  | 최소 단위                |
-| space-2  | 8px  |                          |
-| space-3  | 12px |                          |
-| space-4  | 16px | 가장 많이 쓰이는 단위    |
-| space-5  | 20px |                          |
-| space-6  | 24px |                          |
-| space-8  | 32px |                          |
-| space-12 | 48px | 최대 단위                |
+| 토큰     | 값   | 비고                  |
+| -------- | ---- | --------------------- |
+| space-1  | 4px  | 최소 단위             |
+| space-2  | 8px  |                       |
+| space-3  | 12px |                       |
+| space-4  | 16px | 가장 많이 쓰이는 단위 |
+| space-5  | 20px |                       |
+| space-6  | 24px |                       |
+| space-8  | 32px |                       |
+| space-12 | 48px | 최대 단위             |
 
 ### Semantic
 
-| 토큰                 | 참조       | 용도              |
-| -------------------- | ---------- | ----------------- |
-| space-screen-padding | {space-4}  | 화면 좌우 padding |
-| space-section        | {space-6}  | 섹션 간 간격      |
-| space-card-padding   | {space-4}  | 카드 내부 padding |
-| space-list-gap       | {space-3}  | 리스트 아이템 간  |
-| space-inline         | {space-1}  | 아이콘-텍스트 간  |
-| space-tap-gap-min    | {space-2}  | 인접 탭 타겟 최소 |
+| 토큰                 | 참조      | 용도              |
+| -------------------- | --------- | ----------------- |
+| space-screen-padding | {space-4} | 화면 좌우 padding |
+| space-section        | {space-6} | 섹션 간 간격      |
+| space-card-padding   | {space-4} | 카드 내부 padding |
+| space-list-gap       | {space-3} | 리스트 아이템 간  |
+| space-inline         | {space-1} | 아이콘-텍스트 간  |
+| space-tap-gap-min    | {space-2} | 인접 탭 타겟 최소 |
 
 ---
 
@@ -196,36 +196,36 @@ semantic 3개는 참조라서 자동으로 따라온다.
 
 ### Primitive
 
-| 토큰    | 값 |
-| ------- | -- |
-| size-34 | 34 |
-| size-36 | 36 |
-| size-44 | 44 |
-| size-47 | 47 |
-| size-49 | 49 |
-| size-52 | 52 |
-| size-56 | 56 |
-| icon-16 | 16 |
-| icon-20 | 20 |
-| icon-24 | 24 |
+| 토큰    | 값  |
+| ------- | --- |
+| size-34 | 34  |
+| size-36 | 36  |
+| size-44 | 44  |
+| size-47 | 47  |
+| size-49 | 49  |
+| size-52 | 52  |
+| size-56 | 56  |
+| icon-16 | 16  |
+| icon-20 | 20  |
+| icon-24 | 24  |
 
 ### Semantic
 
-| 토큰                | 참조        | 용도                         |
-| ------------------- | ----------- | ---------------------------- |
-| device-frame        | 390×844     | 기본 화면 크기 (iPhone 기준) |
-| safe-area-top       | {size-44}   | 상태바 영역                  |
-| safe-area-top-notch | {size-47}   | 노치 기기 상태바             |
-| safe-area-bottom    | {size-34}   | 홈 인디케이터 영역           |
-| size-tap-min        | {size-44}   | 최소 터치 타겟 크기 (44×44)  |
-| size-button-sm      | {size-36}   | 버튼 sm 높이                 |
-| size-button-md      | {size-44}   | 버튼 md 높이                 |
-| size-button-lg      | {size-52}   | 버튼 lg 높이                 |
-| app-bar-height      | {size-56}   | 상단 앱바 높이               |
-| tab-bar-height      | {size-49}   | 하단 탭바 높이               |
-| icon-sm             | {icon-16}   | 작은 아이콘                  |
-| icon-md             | {icon-20}   | 기본 아이콘                  |
-| icon-lg             | {icon-24}   | 큰 아이콘                    |
+| 토큰                | 참조      | 용도                         |
+| ------------------- | --------- | ---------------------------- |
+| device-frame        | 390×844   | 기본 화면 크기 (iPhone 기준) |
+| safe-area-top       | {size-44} | 상태바 영역                  |
+| safe-area-top-notch | {size-47} | 노치 기기 상태바             |
+| safe-area-bottom    | {size-34} | 홈 인디케이터 영역           |
+| size-tap-min        | {size-44} | 최소 터치 타겟 크기 (44×44)  |
+| size-button-sm      | {size-36} | 버튼 sm 높이                 |
+| size-button-md      | {size-44} | 버튼 md 높이                 |
+| size-button-lg      | {size-52} | 버튼 lg 높이                 |
+| app-bar-height      | {size-56} | 상단 앱바 높이               |
+| tab-bar-height      | {size-49} | 하단 탭바 높이               |
+| icon-sm             | {icon-16} | 작은 아이콘                  |
+| icon-md             | {icon-20} | 기본 아이콘                  |
+| icon-lg             | {icon-24} | 큰 아이콘                    |
 
 **tap-gap-min:** `space-tap-gap-min` ({space-2} = 8px) — 인접 터치 타겟 최소 간격
 
@@ -246,28 +246,99 @@ semantic 3개는 참조라서 자동으로 따라온다.
 
 ---
 
+## I. 이미지 (default)
+
+화면의 이미지 슬롯을 실제 이미지로 채우기 위한 기본값.
+figma-builder 의 STAGE=assets 가 이 값으로 이미지를 생성한다.
+
+**토큰이 아니다.** 색·간격처럼 2계층으로 나누지 않는다.
+이미지는 "무엇을 어떤 톤으로 그릴지"에 대한 **규칙**이며,
+슬롯을 감싸는 프레임의 radius·padding 만 semantic 토큰(`radius-card` 등)을 쓴다.
+
+### 생성 기본값
+
+| 항목       | 기본값          | 비고                                  |
+| ---------- | --------------- | ------------------------------------- |
+| model      | `gpt_image_2_5` | higgsfield MCP 모델 ID                |
+| quality    | `medium`        | 모바일 슬롯 크기엔 충분 (크레딧 절약) |
+| resolution | `1k`            | 390 폭 화면 기준. 2k 이상은 낭비      |
+| background | (지정 안 함)    | 모델 기본값 유지                      |
+
+### 슬롯 역할별 비율
+
+| role       | aspect_ratio | 쓰이는 곳                        |
+| ---------- | ------------ | -------------------------------- |
+| hero       | `16:9`       | 홈 상단 배너, 상세 최상단        |
+| card       | `4:3`        | 리스트/그리드 카드 썸네일        |
+| thumb      | `1:1`        | 작은 정사각 썸네일, 카테고리     |
+| avatar     | `1:1`        | 프로필 이미지                    |
+| full-bleed | `3:4`        | 전체 폭 세로 이미지, 상세 갤러리 |
+
+허용 비율은 이 5개뿐이다. 그 외 값은 `check-assets.mjs` 가 막는다.
+
+### 슬롯 수 상한
+
+| 범위          | 상한 | 이유                                          |
+| ------------- | ---- | --------------------------------------------- |
+| 화면당        | 4개  | 한 화면에 이미지가 5개 넘으면 구조를 의심한다 |
+| 프로젝트 전체 | 12개 | `generate_image_batch` 1회분 (병렬 제출 상한) |
+
+상한을 넘기면 새로 만들지 말고 **같은 이미지를 재사용**한다
+(매니페스트에 `status: "reuse"`, `reuse_of: "{원본 key}"` 로 기록).
+
+### 슬롯 네이밍 (절대 규칙)
+
+```
+Figma 레이어 이름 = Img/{key}
+매니페스트 key    = {화면번호}-{화면이름}-{슬롯이름}
+
+예) Img/01-home-hero
+    Img/02-search-results-card-1
+    Img/05-mypage-avatar
+```
+
+이 이름이 곧 주입 대상 주소다. 어긋나면 이미지가 들어갈 노드를 찾지 못한다.
+
+### 아트 디렉션 기본 문구
+
+사용자가 톤을 정하지 않으면 이 문장을 쓰고 가정 로그에 남긴다.
+
+```
+자연광 기반의 담백한 사진. 채도와 대비는 낮게, 화면 UI 위에 올라가도
+텍스트 가독성을 해치지 않게 한다. 인물은 얼굴 클로즈업을 피하고
+정면 응시를 쓰지 않는다. 화면 안에 글자·로고·워터마크가 보이지 않게 한다.
+```
+
+**모든 프롬프트에 공통으로 붙이는 제약:**
+
+- 이미지 안에 텍스트·UI·로고를 그리지 않는다 (Figma 쪽 텍스트와 충돌)
+- 실존 브랜드·상표·유명인을 넣지 않는다
+- 워터마크·프레임·목업 화면을 넣지 않는다
+
+---
+
 ## 컴포넌트 기본값
 
 **모든 값은 semantic 토큰으로 지정한다.** primitive 직접 참조 금지.
 
 ### Button
 
-| 속성     | 값                                             |
-| -------- | ---------------------------------------------- |
-| Variants | primary / secondary / ghost / danger           |
+| 속성     | 값                                               |
+| -------- | ------------------------------------------------ |
+| Variants | primary / secondary / ghost / danger             |
 | Sizes    | size-button-sm / size-button-md / size-button-lg |
-| States   | default / pressed / disabled / loading         |
-| Radius   | radius-button                                  |
-| Padding  | 좌우 space-screen-padding, 상하 자동           |
+| States   | default / pressed / disabled / loading           |
+| Radius   | radius-button                                    |
+| Padding  | 좌우 space-screen-padding, 상하 자동             |
 
 ### Card
 
-| 속성       | 값                                        |
-| ---------- | ----------------------------------------- |
-| Padding    | space-card-padding                        |
-| Radius     | radius-card                               |
-| Shadow     | shadow-sm                                 |
-| Background | color-bg (또는 color-surface-1)           |
+| 속성       | 값                              |
+| ---------- | ------------------------------- |
+| Padding    | space-card-padding              |
+| Radius     | radius-card                     |
+| Shadow     | shadow-sm                       |
+| Background | color-bg (또는 color-surface-1) |
 
 ### Input
 
@@ -289,30 +360,30 @@ semantic 3개는 참조라서 자동으로 따라온다.
 
 ### Tab Bar
 
-| 속성      | 값                                   |
-| --------- | ------------------------------------ |
-| Height    | tab-bar-height + safe-area-bottom    |
-| Tabs      | 3~5개                                |
-| Icon size | icon-lg                              |
-| Label     | label (13/500)                       |
+| 속성      | 값                                |
+| --------- | --------------------------------- |
+| Height    | tab-bar-height + safe-area-bottom |
+| Tabs      | 3~5개                             |
+| Icon size | icon-lg                           |
+| Label     | label (13/500)                    |
 
 ### App Bar
 
-| 속성    | 값                               |
-| ------- | -------------------------------- |
-| Height  | app-bar-height + safe-area-top   |
-| Title   | h2 (20/600) 중앙 정렬            |
-| Actions | 좌 뒤로 / 우 액션 0-2개          |
+| 속성    | 값                             |
+| ------- | ------------------------------ |
+| Height  | app-bar-height + safe-area-top |
+| Title   | h2 (20/600) 중앙 정렬          |
+| Actions | 좌 뒤로 / 우 액션 0-2개        |
 
 ### Bottom Sheet
 
-| 속성           | 값                          |
-| -------------- | --------------------------- |
-| Sizes          | half / full                 |
-| Radius         | radius-sheet 상단만         |
-| Grab bar       | 있음                        |
-| Header         | app-bar-height              |
-| Footer padding | + safe-area-bottom          |
+| 속성           | 값                  |
+| -------------- | ------------------- |
+| Sizes          | half / full         |
+| Radius         | radius-sheet 상단만 |
+| Grab bar       | 있음                |
+| Header         | app-bar-height      |
+| Footer padding | + safe-area-bottom  |
 
 ---
 

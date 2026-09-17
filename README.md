@@ -102,7 +102,8 @@ design-flow-harness/
 │   ├── figma-snapshot.js      (Figma 추출기 · use_figma 주입용, Node 실행 X)
 │   ├── merge-snapshot.mjs     (배치 추출 결과 병합)
 │   ├── check-snapshot.mjs     (snapshot 스키마 검증)
-│   └── figma-audit.mjs        (Figma 파일 검증)
+│   ├── figma-audit.mjs        (Figma 파일 검증)
+│   └── check-assets.mjs       (이미지 매니페스트 검증)
 │
 └── design/                    ← 산출물 (자동 생성)
     ├── 01-references/         (Phase 1)
@@ -158,7 +159,7 @@ design-flow-harness/
 
 - design-rules.md `status: confirmed`
 - 4배수 규칙, semantic 이름
-- 필수 섹션 (A-H) 완성
+- 필수 섹션 (A-I) 완성
 - **토큰 2계층** — A/B/D/G 각 섹션에 `### Primitive`(값) + `### Semantic`(`{primitive}` 참조)
 - 사용자 승인 후 마킹
 
@@ -166,8 +167,9 @@ design-flow-harness/
 
 ```
 /create-figma
-→ STAGE=tokens → components → screens 순차
-→ 각 화면 완성 즉시 스크린샷 전달
+→ STAGE=tokens → components → assets → screens 순차
+→ assets: design-rules §I 기준으로 higgsfield 이미지 일괄 생성 (최대 12장)
+→ 각 화면 완성 즉시 스크린샷 전달 (이미지까지 채워진 완성본)
 
 /audit-design
 → figma-audit.mjs 자동 실행
@@ -180,6 +182,7 @@ design-flow-harness/
 - 5개 화면 완성
 - 미바인딩 0개, 4배수 위반 0개
 - **primitive 직접 바인딩 0개** (화면은 semantic 변수만 사용)
+- **이미지 슬롯 빈 곳 0개** (`Img/*` 노드가 전부 IMAGE fill)
 - audit PASS (8개 항목) + 사용자 완료 승인
 
 ## 🛠️ 검증 명령어
@@ -200,6 +203,9 @@ npm run merge:snapshot -- batch-1.json batch-2.json batch-3.json
 # snapshot 스키마 검증 (audit 전 필수)
 npm run check:snapshot
 npm run check:snapshot:tokens
+
+# 이미지 매니페스트 검증 (screens STAGE 전 필수)
+npm run check:assets
 
 # design-rules 상세 검증
 npm run verify

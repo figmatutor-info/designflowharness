@@ -62,6 +62,8 @@ design-rules.md (SSOT) 를 생성합니다.
 3. `design/02-structure/screens.md` 읽기
    - 필요한 컴포넌트 목록 확인
    - 화면별 상태 확인
+   - **이미지가 필요한 자리 확인** (히어로, 카드 썸네일, 아바타 등)
+     → §I 의 "화면별 슬롯 계획" 표로 옮긴다. 여기 없는 슬롯은 만들어지지 않는다.
 
 4. `design/02-structure/flows.md` 읽기
    - 시나리오별 필요 요소 확인
@@ -170,22 +172,22 @@ based_on:
 
 ### Primitive
 
-| 토큰             | 값                 | 출처        |
-| ---------------- | ------------------ | ----------- |
-| brand-500        | {사용자 선택}      | 사용자 결정 |
-| brand-600        | {12% 어둡게}       | 자동 파생   |
-| brand-50         | {10% 불투명}       | 자동 파생   |
-| neutral-0        | #FFFFFF            | default     |
-| neutral-50       | #F5F5F7            | default     |
-| neutral-100      | #E9E9EE            | default     |
-| neutral-200      | #E5E7EB            | default     |
-| neutral-400      | #9CA3AF            | default     |
-| neutral-500      | #6B7280            | default     |
-| neutral-900      | #111827            | default     |
-| red-600          | #DC2626            | default     |
-| green-600        | #16A34A            | default     |
-| amber-500        | #F59E0B            | default     |
-| overlay-black-50 | rgba(0,0,0,.5)     | default     |
+| 토큰             | 값             | 출처        |
+| ---------------- | -------------- | ----------- |
+| brand-500        | {사용자 선택}  | 사용자 결정 |
+| brand-600        | {12% 어둡게}   | 자동 파생   |
+| brand-50         | {10% 불투명}   | 자동 파생   |
+| neutral-0        | #FFFFFF        | default     |
+| neutral-50       | #F5F5F7        | default     |
+| neutral-100      | #E9E9EE        | default     |
+| neutral-200      | #E5E7EB        | default     |
+| neutral-400      | #9CA3AF        | default     |
+| neutral-500      | #6B7280        | default     |
+| neutral-900      | #111827        | default     |
+| red-600          | #DC2626        | default     |
+| green-600        | #16A34A        | default     |
+| amber-500        | #F59E0B        | default     |
+| overlay-black-50 | rgba(0,0,0,.5) | default     |
 
 ### Semantic
 
@@ -290,38 +292,91 @@ based_on:
 
 ### Primitive
 
-| 토큰    | 값 |
-| ------- | -- |
-| size-34 | 34 |
-| size-36 | 36 |
-| size-44 | 44 |
-| size-47 | 47 |
-| size-49 | 49 |
-| size-52 | 52 |
-| size-56 | 56 |
-| icon-16 | 16 |
-| icon-20 | 20 |
-| icon-24 | 24 |
+| 토큰    | 값  |
+| ------- | --- |
+| size-34 | 34  |
+| size-36 | 36  |
+| size-44 | 44  |
+| size-47 | 47  |
+| size-49 | 49  |
+| size-52 | 52  |
+| size-56 | 56  |
+| icon-16 | 16  |
+| icon-20 | 20  |
+| icon-24 | 24  |
 
 ### Semantic
 
-| 토큰                | 참조      | 용도                        |
-| ------------------- | --------- | --------------------------- |
-| device-frame        | 390×844   | 기본 화면 크기              |
-| safe-area-top       | {size-44} | 상태바 영역                 |
-| safe-area-top-notch | {size-47} | 노치 기기 상태바            |
-| safe-area-bottom    | {size-34} | 홈 인디케이터 영역          |
-| size-tap-min        | {size-44} | 최소 터치 타겟 (44×44)      |
-| size-button-sm      | {size-36} | 버튼 sm 높이                |
-| size-button-md      | {size-44} | 버튼 md 높이                |
-| size-button-lg      | {size-52} | 버튼 lg 높이                |
-| app-bar-height      | {size-56} | 상단 앱바                   |
-| tab-bar-height      | {size-49} | 하단 탭바                   |
-| icon-sm             | {icon-16} | 작은 아이콘                 |
-| icon-md             | {icon-20} | 기본 아이콘                 |
-| icon-lg             | {icon-24} | 큰 아이콘                   |
+| 토큰                | 참조      | 용도                   |
+| ------------------- | --------- | ---------------------- |
+| device-frame        | 390×844   | 기본 화면 크기         |
+| safe-area-top       | {size-44} | 상태바 영역            |
+| safe-area-top-notch | {size-47} | 노치 기기 상태바       |
+| safe-area-bottom    | {size-34} | 홈 인디케이터 영역     |
+| size-tap-min        | {size-44} | 최소 터치 타겟 (44×44) |
+| size-button-sm      | {size-36} | 버튼 sm 높이           |
+| size-button-md      | {size-44} | 버튼 md 높이           |
+| size-button-lg      | {size-52} | 버튼 lg 높이           |
+| app-bar-height      | {size-56} | 상단 앱바              |
+| tab-bar-height      | {size-49} | 하단 탭바              |
+| icon-sm             | {icon-16} | 작은 아이콘            |
+| icon-md             | {icon-20} | 기본 아이콘            |
+| icon-lg             | {icon-24} | 큰 아이콘              |
 
 ## H. Z-Index (default)
+
+---
+
+## I. 이미지
+
+> 토큰이 아니다. 이미지를 "무엇을 어떤 톤으로 그릴지"에 대한 규칙이다.
+> figma-builder 의 STAGE=assets 가 이 섹션만 보고 이미지를 생성한다.
+
+### 아트 디렉션
+
+{한 문단. 사용자가 톤을 정했으면 그 톤으로, 안 정했으면
+scripts/default-tokens.md §I 의 기본 문구를 그대로 쓰고 가정 로그에 남긴다}
+
+**공통 제약 (모든 프롬프트에 붙인다):**
+
+- 이미지 안에 텍스트·UI·로고를 그리지 않는다
+- 실존 브랜드·상표·유명인을 넣지 않는다
+- 워터마크·프레임·목업 화면을 넣지 않는다
+
+### 생성 기본값
+
+| 항목       | 값              |
+| ---------- | --------------- |
+| model      | `gpt_image_2_5` |
+| quality    | `medium`        |
+| resolution | `1k`            |
+
+### 슬롯 역할별 비율
+
+| role       | aspect_ratio | 쓰이는 곳                 |
+| ---------- | ------------ | ------------------------- |
+| hero       | `16:9`       | 홈 상단 배너, 상세 최상단 |
+| card       | `4:3`        | 리스트/그리드 카드 썸네일 |
+| thumb      | `1:1`        | 작은 정사각 썸네일        |
+| avatar     | `1:1`        | 프로필 이미지             |
+| full-bleed | `3:4`        | 전체 폭 세로 이미지       |
+
+### 슬롯 규약
+
+- 레이어 이름: `Img/{화면번호}-{화면이름}-{슬롯이름}` (예: `Img/01-home-hero`)
+- 슬롯 프레임의 radius·padding 은 **semantic 토큰만** (`radius-card` 등)
+- 화면당 최대 4개, 프로젝트 전체 최대 12개
+- 상한 초과 시 새로 만들지 않고 재사용
+
+### 화면별 슬롯 계획
+
+> screens.md 의 화면 목록을 그대로 훑어 이미지가 필요한 자리만 적는다.
+> 여기 없는 슬롯은 figma-builder 가 만들지 않는다.
+
+| 슬롯 key     | 화면    | role | 비율   | 담을 내용         |
+| ------------ | ------- | ---- | ------ | ----------------- |
+| 01-home-hero | 01-home | hero | `16:9` | {무엇을 보여줄지} |
+| ...          | ...     | ...  | ...    | ...               |
 
 ---
 
@@ -396,15 +451,16 @@ based_on:
 ```markdown
 # Design Tokens 상세
 
-design-rules.md의 A~H 섹션 상세 정보.
+design-rules.md의 A~H 섹션 상세 정보. (§I 이미지는 design-rules.md 에만 둔다)
 
 ## 토큰 계층
 
 이 프로젝트의 토큰은 2계층이다.
-
 ```
-Primitive (값)            Semantic (의도)          컴포넌트·화면
-brand-500 = #2563EB  ←──  color-primary      ←──  Button.fill
+
+Primitive (값) Semantic (의도) 컴포넌트·화면
+brand-500 = #2563EB ←── color-primary ←── Button.fill
+
 ```
 
 - Primitive 이름: 색조 + 단계 (`brand-500`, `neutral-900`)
@@ -558,11 +614,13 @@ design-rules.md의 컴포넌트 섹션 상세.
    ```html
    <!-- Primitive -->
    <div class="swatch" style="background:#2563EB"></div>
-   <div class="name">brand-500</div><div class="value">#2563EB</div>
+   <div class="name">brand-500</div>
+   <div class="value">#2563EB</div>
 
    <!-- Semantic -->
    <div class="swatch" style="background:#2563EB"></div>
-   <div class="name">color-primary</div><div class="ref">→ brand-500</div>
+   <div class="name">color-primary</div>
+   <div class="ref">→ brand-500</div>
    ```
 
 2. **타이포 스케일 예시**
