@@ -26,6 +26,14 @@
  *         FRAME_FROM=16 FRAME_TO=0   → batch-3.json (0 = 끝까지)
  *     node scripts/merge-snapshot.mjs batch-1.json batch-2.json batch-3.json
  *   병합 스크립트가 frame_range 로 구멍·중복·누락을 검사한다.
+ *
+ *   ── 프레임 1개조차 잘릴 때 (화면 프레임: 노드 90~130개) ──────────────
+ *   FRAME_FROM/TO 를 그 프레임 하나로 좁히고 __NODE_FROM__ / __NODE_TO__ 로 노드를 나눈다.
+ *     예) FRAME_FROM=0 FRAME_TO=1 NODE_FROM=0  NODE_TO=30 → batch-1a.json
+ *         FRAME_FROM=0 FRAME_TO=1 NODE_FROM=30 NODE_TO=60 → batch-1b.json
+ *         FRAME_FROM=0 FRAME_TO=1 NODE_FROM=60 NODE_TO=0  → batch-1c.json (0 = 끝까지)
+ *   merge-snapshot.mjs 가 frame.node_range 로 검사하며 한 프레임으로 재조합한다.
+ *   ❌ 필드를 줄인 "경량 추출"을 직접 짜지 않는다. 범위만 나눈다.
  *   3. use_figma 로 실행 (skillNames 에 figma-use 포함)
  *   4. 반환된 JSON 의 page 를 기존 figma-snapshot.json 의 pages 배열에
  *      같은 name 이 있으면 교체, 없으면 추가 → Write
@@ -73,6 +81,19 @@ const PAGE_NAME = "__PAGE_NAME__";
 // 치환하지 않으면(= 플레이스홀더 그대로) Number() 가 NaN → 0 이 되어 페이지 전체를 뽑는다.
 const FRAME_FROM = Number("__FRAME_FROM__") || 0;
 const FRAME_TO = Number("__FRAME_TO__") || 0; // 0 = 끝까지
+
+// 노드 범위 (0-based, from 포함 / to 미포함). **프레임 1개가 상한을 넘을 때만** 쓴다.
+// 화면 프레임(노드 90~130개 + fills/layout 필드)은 한 프레임만으로도 응답이 잘린다.
+// 그때는 FRAME_FROM/TO 를 그 프레임 하나로 좁히고(to = from + 1), 이 두 값으로 노드를 나눠 뽑는다.
+//   예) FRAME_FROM=0 FRAME_TO=1 NODE_FROM=0  NODE_TO=30 → batch-1a.json
+//       FRAME_FROM=0 FRAME_TO=1 NODE_FROM=30 NODE_TO=60 → batch-1b.json
+//       FRAME_FROM=0 FRAME_TO=1 NODE_FROM=60 NODE_TO=0  → batch-1c.json (0 = 끝까지)
+// merge-snapshot.mjs 가 frame.node_range 로 구멍·중복을 검사하고 한 프레임으로 재조합한다.
+// 노드 순서는 BFS(너비 우선)로 고정이며, 어느 청크든 프레임 메타(name/size/layout)는 같이 담는다.
+// 치환하지 않으면 NaN → 0 이 되어 프레임의 노드 전체를 뽑는다.
+const NODE_FROM = Number("__NODE_FROM__") || 0;
+const NODE_TO = Number("__NODE_TO__") || 0; // 0 = 끝까지
+const NODE_SLICING = NODE_FROM > 0 || NODE_TO > 0;
 
 const SCHEMA_VERSION = 3;
 const MAX_NODES_PER_FRAME = 2000; // 폭주 방지
@@ -352,37 +373,53 @@ async function extractNode(node, frameOrigin, parentId) {
   return out;
 }
 
-// 프레임 서브트리를 평탄화. 숨김 노드는 제외(오탐 방지).
-async function extractFrame(frame) {
+// 프레임 서브트리를 BFS 로 평탄화한 {node, parentId} 목록. 숨김 노드는 제외(오탐 방지).
+// 순서가 노드 범위(NODE_FROM/TO)의 기준이므로 여기 말고 다른 곳에서 순회하지 않는다.
+function flattenFrame(frame) {
+  const list = [];
+  let truncated = false;
+  const queue = (frame.children || []).map((n) => ({
+    node: n,
+    parentId: null,
+  }));
+  while (queue.length > 0) {
+    const { node, parentId } = queue.shift();
+    if (!node || node.visible === false) continue;
+    if (list.length >= MAX_NODES_PER_FRAME) {
+      truncated = true;
+      break;
+    }
+    list.push({ node, parentId });
+    if (node.children && node.children.length > 0) {
+      queue.push(...node.children.map((c) => ({ node: c, parentId: node.id })));
+    }
+  }
+  return { list, truncated };
+}
+
+// 프레임 하나를 추출한다. nodeFrom/nodeTo 가 있으면 그 범위의 노드만 담고 node_range 를 기록한다.
+async function extractFrame(frame, nodeFrom, nodeTo) {
   const origin = frame.absoluteBoundingBox || {
     x: frame.x ?? 0,
     y: frame.y ?? 0,
   };
-  const nodes = [];
-  let truncated = false;
+  const { list, truncated } = flattenFrame(frame);
+  const total = list.length;
 
-  // { node, parentId } 로 들고 다닌다. parentId 는 프레임 직속이면 null.
-  const stack = (frame.children || []).map((n) => ({
-    node: n,
-    parentId: null,
-  }));
-  while (stack.length > 0) {
-    const { node, parentId } = stack.shift();
-    if (!node || node.visible === false) continue;
-
-    if (nodes.length >= MAX_NODES_PER_FRAME) {
-      truncated = true;
-      break;
-    }
-
-    nodes.push(await extractNode(node, origin, parentId));
-
-    if (node.children && node.children.length > 0) {
-      stack.push(...node.children.map((c) => ({ node: c, parentId: node.id })));
-    }
+  const from = Math.max(0, Math.min(nodeFrom || 0, total));
+  const to = nodeTo > 0 ? Math.min(nodeTo, total) : total;
+  if (NODE_SLICING && from >= to && total > 0) {
+    throw new Error(
+      `빈 노드 범위: NODE_FROM=${from} / NODE_TO=${nodeTo} (프레임 "${frame.name}" 의 노드 ${total}개)`,
+    );
   }
 
-  return {
+  const nodes = [];
+  for (const { node, parentId } of list.slice(from, to)) {
+    nodes.push(await extractNode(node, origin, parentId));
+  }
+
+  const out = {
     name: frame.name,
     width: Math.round(frame.width ?? 0),
     height: Math.round(frame.height ?? 0),
@@ -392,6 +429,10 @@ async function extractFrame(frame) {
     truncated,
     nodes,
   };
+  // 노드 청크임을 표시. merge-snapshot.mjs 가 이걸 보고 같은 프레임의 청크를 재조합한다.
+  // 청크가 아니면(=프레임 전체) 이 필드를 넣지 않는다 — 기존 스키마와 완전히 같다.
+  if (NODE_SLICING) out.node_range = { from, to, total_nodes: total };
+  return out;
 }
 
 // ==================== 변수 / 스타일 ====================
@@ -453,9 +494,17 @@ if (from >= to && targets.length > 0) {
   );
 }
 
+// 노드 범위는 프레임 1개에서만 의미가 있다. 여러 프레임에 같은 노드 범위를 적용하면
+// 청크 재조합이 성립하지 않으므로 여기서 막는다.
+if (NODE_SLICING && to - from !== 1) {
+  throw new Error(
+    `NODE_FROM/NODE_TO 는 프레임 1개에서만 쓴다. FRAME_FROM=${from} FRAME_TO=${to} 를 한 프레임(to = from + 1)으로 좁힐 것`,
+  );
+}
+
 const frames = [];
 for (const child of targets.slice(from, to)) {
-  frames.push(await extractFrame(child));
+  frames.push(await extractFrame(child, NODE_FROM, NODE_TO));
 }
 
 const styles = await extractStyles();

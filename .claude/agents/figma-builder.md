@@ -17,11 +17,58 @@ model: sonnet
 - design-rules.md에 없는 값은 임의 생성 금지.
 - 판단이 필요하면 만들지 말고 build-log.md에 질문으로 남기고 멈춘다.
 - STAGE 하나씩만 실행. 한 번에 여러 STAGE 실행 금지.
+- **검증은 `scripts/figma-lint.js` 로 먼저, 스냅샷은 STAGE 마지막에 1회.**
+  스냅샷을 뽑아서 검증하고 다시 뽑는 루프를 돌지 않는다 (아래 "시간 예산 · 재시도 기준").
 - **각 STAGE 완료 시 figma-snapshot.json 반드시 갱신** (audit 준비).
   (STAGE=assets 는 예외 — Figma 를 안 건드리므로 스냅샷 대신 assets-manifest.json 을 남긴다)
+- **스냅샷·lint 코드를 즉흥 작성하지 않는다.** 응답이 크다고 "필드를 줄인 경량 추출"을
+  직접 짜는 것도 금지다. `figma-snapshot.js` 의 `__FRAME_FROM__/__FRAME_TO__` 로 범위만 나눈다.
 - **이미지는 assets-manifest.json 에 있는 것만 쓴다.** 즉석 생성 금지.
 - **Figma 파일을 직접 만들지 않는다.** 사용자가 만든 파일의 키에만 작업한다.
   (`create_new_file` 도구는 이 에이전트에 주어지지 않는다)
+
+---
+
+## 시간 예산 · 재시도 기준
+
+적힌 규칙은 지켜지지 않고, 기준이 있는 규칙만 지켜진다. 언제 멈추고 무엇을 포기할지를 먼저 정한다.
+
+**왜 있나:** components STAGE 가 46분 걸린 적이 있다. 컴포넌트 생성은 13분이었고 나머지 33분은
+"스냅샷 추출 → 검증 FAIL → Figma 수정 → 해당 배치 재추출" 루프였다. 검증을 스냅샷에 의존하면
+스냅샷 한 번(1분+)이 검사 한 번의 비용이 된다. 그래서 검증은 `figma-lint.js`(수 초, 위반만 반환)로
+먼저 하고, 스냅샷은 마지막에 한 번만 뽑는다.
+
+### 순서 (모든 STAGE 공통)
+
+```
+생성 → figma-lint (반복, 0건까지) → get_screenshot 1회 → figma-snapshot 1회 → check-*.mjs
+```
+
+check-\*.mjs 가 FAIL 이면 lint 가 못 잡은 것이다. Figma 를 고치고 **해당 프레임 배치만** 재추출한다.
+이때도 lint 를 먼저 다시 돌려 0건을 확인한 뒤 뽑는다.
+
+### 재시도 기준
+
+| 대상                      | 기준                                       | 넘으면                                                                                        |
+| ------------------------- | ------------------------------------------ | --------------------------------------------------------------------------------------------- |
+| use_figma 스크립트 오류   | 같은 호출 3회                              | 사용자 에스컬레이션                                                                           |
+| 컴포넌트/화면 1개 생성    | 2회                                        | 건너뛰고 build-log 에 ❌ 기록. STAGE 끝에 일괄 보고 (다음 것으로 넘어간다)                    |
+| figma-lint 수정 루프      | 3회                                        | 남은 위반을 build-log 에 적고 스냅샷으로 넘어간다 (게이트가 잡게 둔다)                        |
+| 스냅샷 배치 추출          | 같은 범위 2회 실패 (잘림·타임아웃)         | 범위를 절반으로 나눠 1회 더. 그래도 실패면 중단·보고. **경량 즉흥 추출 금지**                 |
+| 스냅샷 추출 횟수          | STAGE 당 최초 1회 + 검증 FAIL 후 1회 = 2회 | 2회째도 FAIL 이면 멈추고 남은 결함을 표시한 채 보고                                           |
+| 도구 장애 (MCP 끊김·인증) | —                                          | build-log 의 마지막 ✅ 항목이 체크포인트. "거기서 재개한다"고 알리고 이어간다 (처음부터 금지) |
+
+### STAGE 시간 예산
+
+| STAGE      | 예산 | 넘으면                                                                                     |
+| ---------- | ---- | ------------------------------------------------------------------------------------------ |
+| tokens     | 15분 | 토큰 문서 프레임 정돈(정렬·간격) 중단. 변수·스타일·문서 6프레임 존재만 확보                |
+| components | 20분 | 그리드 정렬·겹침 정돈 등 장식 중단. 바인딩(semantic)·HUG·텍스트 스타일 3가지만 완성        |
+| assets     | 15분 | 실패 슬롯 재제출 중단. `reuse_of` 로 대표 이미지 재사용해 슬롯을 채운다                    |
+| screens    | 30분 | 화면당 6분. 넘는 화면은 필수 컴포넌트 + 이미지 주입까지만. 상태 변형(empty/loading)은 생략 |
+
+예산을 넘긴 사실과 **무엇을 생략했는지**를 build-log 에 적는다. 예산은 품질을 깎는 허가가 아니라
+"어디서 멈출지"를 미리 정한 것이다. 생략한 것은 STAGE=fix 나 다음 라운드에서 채운다.
 
 ---
 
@@ -271,6 +318,21 @@ STAGE 종료 시 아래 5단계를 그대로 실행:
    병합 스크립트가 frame_range 로 구멍·중복·누락을 검사하고, 하나라도 걸리면
    아무것도 쓰지 않는다. 기존 스냅샷의 다른 페이지는 그대로 보존된다.
    ❌ 즉흥 병합 스크립트를 새로 짜지 말 것. ❌ 배치 결과의 값을 손으로 고치지 말 것.
+   ❌ "필드를 줄인 경량 추출" 을 직접 짜지 말 것 — 응답이 잘리면 범위를 절반으로 나눈다.
+      (같은 범위 2회 실패 → 절반 → 그래도 실패면 중단·보고. "시간 예산 · 재시도 기준" 참고)
+
+   ── 프레임 1개조차 잘리면 (화면 프레임은 노드 90~130개라 거의 항상) ───────
+   FRAME_FROM/TO 를 그 프레임 하나로 좁히고(to = from + 1) `__NODE_FROM__` / `__NODE_TO__` 로
+   노드를 나눈다. 화면 프레임은 **처음부터 노드 30개 단위**로 계획해 한 바퀴만 돈다.
+     FRAME_FROM=0 FRAME_TO=1 NODE_FROM=0  NODE_TO=30 → batch-1a.json
+     FRAME_FROM=0 FRAME_TO=1 NODE_FROM=30 NODE_TO=60 → batch-1b.json
+     FRAME_FROM=0 FRAME_TO=1 NODE_FROM=60 NODE_TO=0  → batch-1c.json   (0 = 끝까지)
+     FRAME_FROM=1 FRAME_TO=2 NODE_FROM=0  NODE_TO=30 → batch-2a.json   … 화면마다 반복
+     node scripts/merge-snapshot.mjs batch-*.json
+   병합 스크립트가 같은 프레임의 청크를 node_range 로 검사하며 재조합한다.
+   총 노드 수는 첫 청크 응답의 `node_range.total_nodes` 로 알 수 있다 — 그걸 보고 남은 청크 수를 정한다.
+   ⚠️ 배치는 처음부터 범위를 정해 **한 바퀴만** 돈다. 뽑는 도중 결함을 고치고 다시 뽑지 않는다.
+      결함은 뽑기 전에 figma-lint.js 로 잡는다.
 
 4) 반환된 JSON 을 design/04-screens/figma-snapshot.json 에 Write
    - 파일이 없으면: { schema_version, file_key, snapshot_date, pages: [반환된 page],
@@ -383,11 +445,42 @@ Figma 쪽 명명 규칙이 어긋난 것이다 (예: primary 버튼 이름에 "P
 ### 절차
 
 - 컴포넌트 1개당 use_figma 호출 1회 (큰 프레임 한 번에 금지)
-- 전부 만든 뒤 한 프레임에 모아 get_screenshot 1회 (내부용)
 - 레이어 이름: `Component/Variant=...` semantic 네이밍
 - 색·간격·radius·텍스트: setBoundVariable / setTextStyleIdAsync로만
 - setBoundVariable 에 넘기는 변수는 **반드시 `semantic` 컬렉션에서** 찾는다
   (`primitives` 에서 찾아 바인딩하면 토큰 계층 검사에서 걸린다)
+- **전부 만든 뒤 `scripts/figma-lint.js` 를 돌린다** (아래 "⭐ lint 먼저, 스냅샷은 마지막에")
+  위반 0건이 될 때까지 Figma 를 고친다. 이 단계에서 스냅샷을 뽑지 않는다
+- lint 0건 → 한 프레임에 모아 get_screenshot 1회 (내부용)
+- 그 다음에야 스냅샷 1회
+
+### ⭐ lint 먼저, 스냅샷은 마지막에
+
+**추출 코드를 직접 작성하지 않는다.** `scripts/figma-lint.js` 를 그대로 쓴다.
+
+```
+1) Read scripts/figma-lint.js
+2) CONFIG 치환
+   __PAGE_NAME__    → "02 Components"
+   __FIXED_ALLOW__  → design-rules.md 컴포넌트 규칙에서 `- Height: fixed(` 로 선언된 이름들
+                      (예: "Button,Input,AppBar,TabBar,BottomActionBar,DeviceFrame")
+                      → Grep "Height: fixed" design/03-design-rules/design-rules.md 로 뽑는다
+   __FRAME_NAMES__  → 비움 (페이지 전체) / 특정 것만 다시 볼 땐 프레임 이름을 쉼표로
+3) use_figma 로 실행 → findings 만 돌아온다 (수 KB, 잘리지 않는다)
+4) findings 의 rule 별로 Figma 를 고친다:
+   primitive-binding  → semantic 컬렉션 변수로 다시 setBoundVariable
+   unbound-paint      → 값 대신 semantic 변수 바인딩
+   fixed-height       → layoutSizingVertical = "HUG" (resize 를 부른 곳을 찾아 지운다)
+   no-auto-layout     → layoutMode 지정
+   content-overflow   → 부모 HUG 확인, 텍스트 textAutoResize = "HEIGHT"
+   text-no-style      → setTextStyleIdAsync(Text/*)
+   text-no-autoresize → textAutoResize = "HEIGHT"
+5) 다시 lint → 0건이면 다음 단계. 3회 돌려도 남으면 build-log 에 적고 넘어간다
+```
+
+lint 의 판정 기준은 `check-layout.mjs` / `figma-audit.mjs` 와 같다. 여기서 0건이면
+스냅샷 검증도 통과해야 정상이다. 그래도 FAIL 이 나면 그 차이를 build-log 에 적는다
+(세 스크립트의 기준이 어긋난 것 — 하네스 수정 대상).
 
 ### ⭐ 높이 거동 — 컨테이너는 내용을 감싼다
 
@@ -435,12 +528,16 @@ Card, DestinationCard, Avatar 처럼 이미지를 품는 컴포넌트는
 "버튼"·"텍스트" 같은 더미 금지.
 실제 문구 사용 (예: "예약하기", "여행지 검색").
 
-### ⭐ Snapshot 갱신 (필수)
+### ⭐ Snapshot 갱신 (필수 · lint 0건 이후 1회)
 
-STAGE 종료 시 figma-snapshot.json 재저장.
+STAGE 종료 시 figma-snapshot.json 재저장. **lint 가 0건인 상태에서만 뽑는다.**
 **절차는 STAGE=tokens 의 "⭐ Snapshot 저장" 5단계와 동일**하되
 `__PAGE_NAME__` 을 `02 Components` 로 치환한다.
 pages 배열에서 `02 Components` 항목만 교체하고 `01 Tokens` 는 그대로 둔다.
+
+프레임이 많아 배치로 나눌 때는 처음부터 범위를 정해 한 바퀴만 돈다
+(예: 35프레임 → 4개씩 9배치). 뽑는 도중에 결함을 발견해 고치고 다시 뽑는 일은
+lint 를 건너뛴 결과다 — 그 경우 멈추고 lint 로 돌아간다.
 
 검증 (둘 다 통과해야 한다):
 
@@ -819,29 +916,33 @@ screens.md의 화면 목록 순서대로 순차 생성.
      어떤 노드가 어떤 슬롯인지는 **배치하는 그 순간의 코드가 알고 있다.**
      나중에 이름으로 되찾으려 하지 말고 이때 매핑을 확정한다.
 5. **이미지 주입** (아래 "이미지 주입" 절차)
-6. `get_screenshot` 1회 (화면 단위) — 이미지 주입 **후**에 찍는다
-7. **즉시 사용자에게 스크린샷 전달** (하나씩)
-8. build-log 갱신
+6. **`scripts/figma-lint.js` 실행** — `__PAGE_NAME__` = `03 Screens`, `__FRAME_NAMES__` = 이 화면 프레임 이름
+   (방금 만든 화면만 본다 · 수 초). 위반은 그 자리에서 고친다. 스냅샷은 뽑지 않는다
+7. `get_screenshot` 1회 (화면 단위) — 이미지 주입·lint **후**에 찍는다
+8. **즉시 사용자에게 스크린샷 전달** (하나씩)
+9. build-log 갱신
 
 ### 이미지 주입
 
 **`figma.createImage` 로 외부 URL 을 가져오지 않는다.** `upload_assets` 를 쓴다.
 로컬 파일 바이트를 직접 올리므로 CDN 만료·CORS·네트워크 정책에 영향받지 않는다.
 
+**`upload_assets` 는 imageHash 를 받는 용도로만 쓴다. 슬롯에 넣는 건 플러그인 코드가 한다.**
+`upload_assets` 의 `nodeIds` 는 `"123:456"` 단순 id 만 받는데, 인스턴스 내부 슬롯(카드 썸네일)은
+`"I68:367;13:103;13:26"` 같은 복합 id 라 거부된다. 실제로 이 때문에 주입이 막힌 적이 있다.
+그래서 nodeIds 를 쓰지 않고, 해시를 먼저 받아 `fills` 에 직접 대입한다. 이 방식은 두 경우 모두 통한다.
+
 ```
 1) 이 화면의 슬롯들을 매니페스트에서 고른다 (screen 필드로 필터)
    status: "reuse" 슬롯은 reuse_of 가 가리키는 슬롯의 file 을 쓴다
    각 슬롯의 node_id 는 4단계 C 에서 돌려받은 placements 에서 가져온다
 
-2) mcp__figma__upload_assets({
+2) 유니크한 파일 수만큼 업로드 URL 을 받는다 (nodeIds 없이)
+   mcp__figma__upload_assets({
      fileKey: "{figma-file-key.txt 의 키}",
-     count: {이 화면 슬롯 수},
-     nodeIds: ["{슬롯1 node_id}", "{슬롯2 node_id}", ...],   // placements 순서 그대로
-     scaleMode: "FILL"
+     count: {이 화면에 쓰이는 유니크 파일 수}
    })
-   ⚠️ nodeIds 배열 길이 = count. 순서가 곧 업로드 URL 순서다.
-      슬롯 순서와 nodeIds 순서가 어긋나면 엉뚱한 자리에 이미지가 들어간다.
-   ⚠️ 인스턴스 내부 노드에도 그대로 쓴다. fill 은 오버라이드로 들어간다.
+   → 파일마다 { uploadUrl, imageHash } 가 돌아온다. 순서대로 파일에 대응시킨다
 
 3) 반환된 업로드 URL 각각에 파일 바이트를 POST (Bash)
    curl -sS -X POST --data-binary @design/04-screens/assets/img/{key}.png \
@@ -849,17 +950,24 @@ screens.md의 화면 목록 순서대로 순차 생성.
    · 업로드 URL 은 1회용이다. 실패하면 upload_assets 부터 다시 부른다
    · Content-Type 을 파일 확장자에 맞춘다 (png → image/png, jpg → image/jpeg)
 
-4) get_screenshot 으로 실제로 채워졌는지 눈으로 확인한다
-   회색으로 남아 있으면 그 슬롯만 2) 부터 다시 한다
+4) use_figma 로 슬롯마다 fills 를 대입한다 (node_id 는 placements 의 값 그대로)
+   const n = await figma.getNodeByIdAsync("{node_id}");   // 복합 id 도 그대로 통한다
+   n.fills = [{ type: "IMAGE", imageHash: "{imageHash}", scaleMode: "FILL" }];
+   → 슬롯별로 { node_id, fillType: n.fills[0].type } 를 return 해서 전부 "IMAGE" 인지 확인한다
+   ⚠️ 인스턴스 내부 노드도 getNodeByIdAsync 로 잡힌다. fill 은 오버라이드로 들어간다
+   ⚠️ 같은 파일을 쓰는 슬롯(reuse)은 같은 imageHash 를 쓴다. 다시 업로드하지 않는다
 
-5) 매니페스트의 해당 슬롯에 placements 를 적는다 (STAGE=fix 재주입용)
-   "placements": [{ "frame": "01 Home", "node_id": "12:345" }]
-   ⚠️ 안 적으면 나중에 재주입할 때 노드를 다시 찾지 못한다.
-      특히 인스턴스 내부 슬롯은 이름이 전부 같아 이름으로 못 찾는다
+5) get_screenshot 으로 실제로 채워졌는지 눈으로 확인한다
+   회색으로 남아 있으면 그 슬롯만 4) 부터 다시 한다 (해시는 남아 있다)
+
+6) 매니페스트의 해당 슬롯에 placements 를 적는다 (STAGE=fix 재주입용)
+   "placements": [{ "frame": "01 Home", "node_id": "I68:358;13:17", "imageHash": "…" }]
+   ⚠️ 복합 id 를 그대로 적는다. check-assets.mjs 는 placements 형식을 검사하지 않으므로
+      "스키마 위반"을 이유로 [] 로 비우지 않는다 — 비우면 재주입 때 노드를 못 찾는다
 ```
 
-**한 번에 60개까지** 업로드 URL 을 받을 수 있다. 화면당 최대 4개이므로
-화면 단위로 한 번씩 부르면 충분하다.
+**한 번에 60개까지** 업로드 URL 을 받을 수 있다. 화면당 유니크 파일은 많아야 3~4개이므로
+화면 단위로 한 번씩 부르면 충분하다. 같은 파일이 여러 화면에 쓰이면 해시를 기억해 두고 재사용한다.
 
 ### 스크린샷 저장
 
@@ -890,32 +998,38 @@ screens.md의 "필요 상태" 항목:
 
 ### 화면 규칙 검증
 
-각 화면 생성 시 자동 확인:
+각 화면 생성 시 확인. **lint 가 잡는 것**(스냅샷 없이 즉시)과 **생성 코드가 스스로 확인할 것**으로 나눈다.
+
+`figma-lint.js` (`__FRAME_NAMES__` 에 이 화면만) 가 잡는다:
+
+- 모든 fill/stroke 가 **semantic 컬렉션** 변수에 바인딩 (primitive 직접 바인딩 0개)
+  · `Img/*` 슬롯의 IMAGE fill 은 예외다. 이미지에는 색 변수를 바인딩하지 않는다
+  (figma-audit.mjs 의 팔레트 검사도 `type === "SOLID"` 만 본다)
+- 모든 텍스트가 Text/\* 스타일, textAutoResize 가 NONE 이 아님
+- 컨테이너 HUG · 오토레이아웃 · 넘침
+
+생성 코드의 `return` 값으로 직접 확인한다 (lint 범위 밖):
 
 - 프레임 크기 정확히 390×844
 - safe-area 침범 없음 (상단 44, 하단 34)
 - primary 버튼 정확히 1개
-- 모든 fill/stroke 가 **semantic 컬렉션** 변수에 바인딩 (primitive 직접 바인딩 0개)
-  · 단, `Img/*` 슬롯의 IMAGE fill 은 예외다. 이미지에는 색 변수를 바인딩하지 않는다
-  (figma-audit.mjs 의 팔레트 검사도 `type === "SOLID"` 만 본다)
-- 모든 텍스트가 Text/* 스타일
 - **`Img/*` 슬롯이 전부 IMAGE fill 로 채워짐** (빈 슬롯 0개)
-  · 스냅샷에서 `fills[].type === "IMAGE"` 가 없는 `Img/*` 노드가 하나라도 있으면
+  · 주입 코드가 슬롯별 `fills[0].type` 을 돌려주게 한다. IMAGE 가 아닌 슬롯이 있으면
   주입이 실패한 것이다. 화면을 넘기지 말고 그 자리에서 다시 주입한다
 
 위반 발견 시:
 
-- 즉시 수정
+- 즉시 수정 (스냅샷을 뽑지 않는다)
 - build-log에 기록
 
-### ⭐ Snapshot 갱신 (screens STAGE 종료 시)
+### ⭐ Snapshot 갱신 (screens STAGE 종료 시 · 1회)
 
 **절차는 STAGE=tokens 의 "⭐ Snapshot 저장" 5단계와 동일**하되
 `__PAGE_NAME__` 을 `03 Screens` 로 치환한다.
 pages 배열에서 `03 Screens` 항목만 교체하고 앞선 두 페이지는 그대로 둔다.
 
-화면 하나마다 재추출하지 않는다. 페이지 단위로 한 번에 추출한다
-(use_figma 는 호출당 페이지 전환 1회 제한).
+화면 하나마다 재추출하지 않는다. **모든 화면이 lint 0건인 뒤** 페이지 단위로 한 번에 추출한다
+(use_figma 는 호출당 페이지 전환 1회 제한). 화면 5개면 배치 5개(화면당 1배치)가 한 바퀴다.
 
 검증: `node scripts/check-snapshot.mjs` — 통과해야 audit 으로 넘어간다.
 figma-audit.mjs 가 이 데이터로 검증하며, 아래가 실제 출력 스키마다.
@@ -1240,6 +1354,9 @@ design/04-screens/assets/img/ (원본 이미지)
 - ❌ **figma-snapshot.json 갱신 없이 STAGE 종료** (audit 불가)
 - ❌ **snapshot 추출 코드 직접 작성** (scripts/figma-snapshot.js 만 사용 — 스키마 드리프트 시 audit 이 조용히 오판)
 - ❌ **배치 병합 스크립트 즉흥 작성** (scripts/merge-snapshot.mjs 만 사용)
+- ❌ **응답이 크다고 "필드를 줄인 경량 추출" 코드 직접 작성** (범위를 절반으로 나눌 것)
+- ❌ **lint 없이 스냅샷으로 검증 → 수정 → 재추출 루프** (figma-lint.js 로 먼저 0건, 스냅샷은 STAGE 당 최대 2회)
+- ❌ **lint 검사 코드 즉흥 작성** (scripts/figma-lint.js 만 사용 — check-layout / figma-audit 과 기준이 어긋난다)
 - ❌ **스냅샷의 값을 "정확성"을 이유로 손으로 정정** — 인스턴스 오버라이드 시 자식 레이어
   name 이 마스터 기본값으로 남는 것은 Figma 의 정상 동작이다. 스냅샷은 그 정상 동작을
   그대로 담아야 한다. 고치고 싶으면 Figma 쪽 이름을 바꾸고 재추출할 것.
@@ -1298,6 +1415,23 @@ build-log에 실패 지점 기록
 - 실패 시 build-log에 명시
 ```
 
+### Snapshot 이 잘리거나 오래 걸림
+
+```
+- 같은 범위 2회 실패 → 범위를 절반으로 나눠 1회 더
+- 그래도 실패 → 중단하고 보고 (프레임 이름·범위·응답 크기)
+- ❌ 필드를 줄인 경량 추출 코드를 직접 짜지 않는다 (check-* 가 조용히 오판한다)
+- STAGE 당 스냅샷 추출은 최대 2회. 3회째가 필요하면 절차가 틀린 것 — lint 로 돌아간다
+```
+
+### 검증 FAIL 후 재추출
+
+```
+- 먼저 figma-lint.js 로 0건 확인 (스냅샷 없이)
+- 지목된 프레임이 속한 배치만 재추출 → merge-snapshot.mjs
+- 2회째도 FAIL → 멈추고 남은 결함을 표시한 채 보고. 사용자 판단으로 넘긴다
+```
+
 ### 이미지 생성 실패 (STAGE=assets)
 
 ```
@@ -1349,6 +1483,7 @@ build-log에 실패 지점 기록
    - "snapshot이 다음 단계 audit의 입력이 됩니다"
 
 5. **대기 시간 활용**
-   - STAGE=components 5-7분 대기
-   - STAGE=screens 10-15분 대기
-   - 이 시간에 하네스 설계 사고법 리캡
+   - STAGE=components 15-20분 대기 (생성 10분 + lint·스냅샷 5-10분)
+   - STAGE=screens 25-30분 대기 (화면당 5-6분)
+   - 이 시간에 하네스 설계 사고법 리캡 — 특히 "검증은 lint 로 먼저, 스냅샷은 마지막 1회"
+     (46분 걸린 실제 사례와 왜 그랬는지가 좋은 소재다)

@@ -133,6 +133,25 @@ design/
 
 ---
 
+## 시간 예산 · 지연 시 기준
+
+하네스는 "언제 멈추고 무엇을 포기할지"를 미리 정한다. 지연됐을 때 탐색을 더 하는 게 아니라
+기본값을 적용하고 필수 콘텐츠에 집중한다. 누적 시점 기준.
+
+| 시점                  | 목표                  | 지연됐을 때                                                     |
+| --------------------- | --------------------- | --------------------------------------------------------------- |
+| 15분                  | 분석 · 구조 확정      | 추가 탐색을 중단하고 채택 패턴 확정                             |
+| 25분                  | 규칙 · 대표 시안 확정 | 미결정 스타일에 기본값(default-tokens) 적용                     |
+| 45분                  | Figma 화면 생성       | 장식 개선 중단, 필수 콘텐츠 완성에 집중                         |
+| 52분                  | 검수 · 수정 종료      | 남은 결함을 표시하고 결과 설명                                  |
+| 어느 단계든 도구 장애 | 실행 재개             | 준비된 체크포인트(build-log 마지막 ✅)로 전환했다고 알리고 진행 |
+
+Phase 4 의 STAGE 별 예산과 재시도 상한은 `.claude/agents/figma-builder.md` 의
+"시간 예산 · 재시도 기준" 에 있다 (tokens 15 · components 20 · assets 15 · screens 30분).
+검증은 `scripts/figma-lint.js` 로 먼저 하고, 스냅샷은 STAGE 마지막에 1회만 뽑는다.
+
+---
+
 ## 진행 상태 확인
 
 각 Phase 완료 여부는 해당 폴더 존재로 판단.
@@ -172,6 +191,13 @@ node scripts/check-phase.mjs
 - design-rules.md 상단 status 확인 (confirmed 여야 함)
 - Phase 3 다시 확인
 
+**"STAGE 가 예산보다 오래 걸림 / 스냅샷을 계속 다시 뽑음"**
+
+- 원인 대부분은 스냅샷으로 검증하고 → 고치고 → 다시 뽑는 루프 (한 번 뽑는 데 1분+)
+- 생성 직후 `scripts/figma-lint.js` 를 use_figma 로 돌려 위반만 받아 고친다 (수 초)
+- 스냅샷은 lint 0건 이후 STAGE 당 1회. 응답이 잘리면 `__FRAME_FROM__/__FRAME_TO__` 로 범위만 나눈다
+  ("경량 추출" 코드를 직접 짜지 않는다 — check-\* 가 조용히 오판한다)
+
 **"MCP 인증 오류"**
 
 - /mcp 명령으로 상태 확인
@@ -184,5 +210,6 @@ node scripts/check-phase.mjs
 - 하네스 설계 원칙: docs/harness-principles.md (별도)
 - 토큰 문서 규격: docs/token-docs-spec.md
 - 각 에이전트 상세: .claude/agents/*.md
-- 검증 스크립트: scripts/*.mjs
+- 검증 스크립트: scripts/*.mjs (로컬 · 스냅샷 기반)
+- Figma 안에서 돌리는 스크립트: scripts/figma-snapshot.js (추출) · scripts/figma-lint.js (즉시 검증) · scripts/figma-token-docs.js (토큰 문서)
 - 기본 토큰: scripts/default-tokens.md

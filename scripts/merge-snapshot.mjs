@@ -21,6 +21,9 @@
  *
  * 동작:
  *   - 배치는 전부 같은 file_key / schema_version / page.name 이어야 한다.
+ *   - frame.node_range 가 있는 배치(노드 청크)는 같은 프레임끼리 먼저 재조합한다.
+ *     (프레임 1개가 응답 상한을 넘어 NODE_FROM/NODE_TO 로 나눠 뽑은 경우)
+ *     노드 범위의 구멍·중복·누락도 같은 기준으로 검사한다.
  *   - frame_range 로 정렬한 뒤 구멍(gap)·중복(overlap)·누락을 검사한다.
  *     하나라도 걸리면 아무것도 쓰지 않고 exit 1.
  *   - 값은 절대 고치지 않는다. frames 배열을 순서대로 이어 붙이기만 한다.
@@ -136,8 +139,108 @@ if (problems.length > 0) {
   die("배치 메타가 맞지 않는다", problems.join("\n   "));
 }
 
-// 2. 범위 정렬 + 커버리지
-const sorted = [...batches].sort(
+// 2. 노드 청크 재조합
+//
+// 프레임 1개가 응답 상한을 넘으면 figma-snapshot.js 가 NODE_FROM/NODE_TO 로 노드를 나눠 뽑고
+// frame.node_range 를 남긴다. 같은 frame_range(=같은 프레임)의 청크를 여기서 하나의 프레임으로
+// 되돌린다. 값은 건드리지 않고 nodes 배열만 이어 붙인다. 구멍·중복·누락이 있으면 전부 거부한다.
+// 재조합이 끝난 프레임은 node_range 를 떼어 내서, 아래 프레임 단위 검사에는 일반 배치처럼 들어간다.
+function isChunkBatch(data) {
+  return data.page.frames.some((f) => f && f.node_range);
+}
+
+const chunkGroups = new Map(); // "from-to" → [{path, data}]
+const plain = [];
+for (const b of batches) {
+  if (!isChunkBatch(b.data)) {
+    plain.push(b);
+    continue;
+  }
+  const { from, to } = b.data.frame_range;
+  if (to - from !== 1 || b.data.page.frames.length !== 1) {
+    problems.push(
+      `노드 청크는 프레임 1개여야 한다: ${b.path} (frame_range ${from}~${to}, 프레임 ${b.data.page.frames.length}개)`,
+    );
+    continue;
+  }
+  const key = `${from}-${to}`;
+  if (!chunkGroups.has(key)) chunkGroups.set(key, []);
+  chunkGroups.get(key).push(b);
+}
+
+if (problems.length > 0) {
+  die("노드 청크 배치 형식이 맞지 않는다", problems.join("\n   "));
+}
+
+const reassembled = [];
+for (const group of chunkGroups.values()) {
+  const chunks = [...group].sort(
+    (a, b) =>
+      a.data.page.frames[0].node_range.from -
+      b.data.page.frames[0].node_range.from,
+  );
+  const head = chunks[0].data.page.frames[0];
+  const total = head.node_range.total_nodes;
+  const name = head.name;
+
+  let cursor = 0;
+  const nodes = [];
+  let truncated = false;
+  for (const { path, data } of chunks) {
+    const f = data.page.frames[0];
+    const { from, to, total_nodes } = f.node_range;
+    if (f.name !== name)
+      problems.push(
+        `청크의 프레임 이름 불일치: ${path} ("${f.name}" ≠ "${name}") — 다른 프레임의 청크가 섞였다`,
+      );
+    if (total_nodes !== total)
+      problems.push(
+        `total_nodes 불일치: ${path} (${total_nodes} ≠ ${total}) — 추출 도중 프레임이 바뀌었다. 이 프레임 청크를 전부 다시 뽑을 것`,
+      );
+    if (f.nodes.length !== to - from)
+      problems.push(
+        `노드 개수가 범위와 다름: ${path} (범위 ${from}~${to} = ${to - from}개인데 실제 ${f.nodes.length}개)`,
+      );
+    if (from > cursor)
+      problems.push(
+        `노드 범위에 구멍: "${name}" 의 ${cursor}~${from} 이 어느 청크에도 없다 (${path} 앞)`,
+      );
+    if (from < cursor)
+      problems.push(
+        `노드 범위 중복: ${path} 의 ${from}~${to} 가 앞 청크와 겹친다 (직전까지 ${cursor})`,
+      );
+    cursor = Math.max(cursor, to);
+    nodes.push(...f.nodes);
+    truncated = truncated || !!f.truncated;
+  }
+  if (cursor < total)
+    problems.push(
+      `노드 범위 누락: "${name}" 의 ${cursor}~${total} 가 빠졌다. 마지막 청크를 NODE_TO=0 (끝까지) 으로 다시 뽑을 것`,
+    );
+
+  // 프레임 메타는 첫 청크의 것을 쓴다 (어느 청크나 같은 값이다). node_range 는 뗀다.
+  const { node_range, nodes: _drop, ...meta } = head;
+  const frame = { ...meta, truncated, nodes };
+
+  // 재조합된 프레임을 담은 "가상 배치". 파일 단위 정보는 가장 늦은 청크의 것을 쓴다.
+  const latestChunk = [...chunks]
+    .sort((a, b) =>
+      String(a.data.snapshot_date).localeCompare(String(b.data.snapshot_date)),
+    )
+    .at(-1).data;
+  reassembled.push({
+    path: `${chunks.map((c) => c.path).join(" + ")}`,
+    chunks: chunks.length,
+    data: { ...latestChunk, page: { ...latestChunk.page, frames: [frame] } },
+  });
+}
+
+if (problems.length > 0) {
+  die("노드 청크 재조합 실패 — 아무것도 쓰지 않았다", problems.join("\n   "));
+}
+
+// 3. 범위 정렬 + 커버리지 (재조합된 프레임도 일반 배치로 들어간다)
+const sorted = [...plain, ...reassembled].sort(
   (a, b) => a.data.frame_range.from - b.data.frame_range.from,
 );
 
@@ -253,9 +356,13 @@ if (isJson) {
   log("");
   log(`🧩 snapshot 병합 · ${pageName}`, "cyan");
   log("─".repeat(50));
-  sorted.forEach(({ path, data }) => {
+  sorted.forEach(({ path, data, chunks }) => {
     const { from, to } = data.frame_range;
-    log(`  ✓ ${path}  [${from}~${to}) ${data.page.frames.length}개`, "green");
+    const tag = chunks ? ` (노드 청크 ${chunks}개 재조합)` : "";
+    log(
+      `  ✓ ${path}  [${from}~${to}) ${data.page.frames.length}개${tag}`,
+      "green",
+    );
   });
   log("");
   log(`  프레임 ${mergedFrames.length}/${total}개 · 구멍·중복 없음`, "green");
