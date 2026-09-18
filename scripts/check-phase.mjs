@@ -379,7 +379,15 @@ function checkRules() {
       detail: /color-primary/.test(content) ? "정의됨" : "누락",
     });
 
-    // 7. 컴포넌트 카탈로그 완결성
+    // 7. preview.html 화면 시안
+    //
+    // 왜 있나: 토큰·컴포넌트가 낱개로는 다 멀쩡한데 화면에 모으면 무너지는 일이
+    // 있었다 (콘텐츠가 844 를 넘겨 섹션끼리 겹쳐 렌더). Figma 에서 조립한 뒤에야
+    // 발견하면 되돌리는 비용이 크다. 레이아웃은 HTML 에서 먼저 확정하고,
+    // Phase 4 는 확정된 시안을 옮기기만 하게 한다.
+    results.push(checkPreviewScreens());
+
+    // 8. 컴포넌트 카탈로그 완결성
     //
     // 왜 있나: default-tokens.md 는 규칙의 상위 소스다. 그런데 Phase 2 의 컴포넌트
     // 목록은 "화면 기능에서 역산"하는 방식이라, Icon·Divider 처럼 다른 컴포넌트
@@ -410,6 +418,61 @@ function checkRules() {
     gate: 3,
     checks: results,
     passed: results.every((r) => r.pass),
+  };
+}
+
+// preview.html 이 "토큰 스와치 카탈로그"가 아니라 "화면 시안"인지 본다.
+// screens.md 의 화면 수와 시안 수가 맞아야 한다.
+function checkPreviewScreens() {
+  const previewPath = "design/03-design-rules/preview.html";
+  const screensPath = "design/02-structure/screens.md";
+
+  if (!fileExists(previewPath)) {
+    return {
+      name: "preview.html 화면 시안",
+      pass: false,
+      detail:
+        `${previewPath} 없음\n` +
+        `    → screens.md 의 화면을 각각 390x844 프레임으로 렌더한 시안을 만드세요.\n` +
+        `    → 각 프레임 래퍼에 data-screen="01-home" 형태의 마커가 필요합니다.`,
+    };
+  }
+
+  const html = readFile(previewPath);
+  const mockups = [...html.matchAll(/data-screen\s*=\s*["']([^"']+)["']/g)].map(
+    (m) => m[1],
+  );
+  const unique = [...new Set(mockups)];
+
+  const screensSrc = fileExists(screensPath) ? readFile(screensPath) : "";
+  const expected = (screensSrc.match(/^## 화면 \d+/gm) || []).length;
+
+  if (expected === 0) {
+    return {
+      name: "preview.html 화면 시안",
+      pass: unique.length > 0,
+      detail:
+        unique.length > 0
+          ? `시안 ${unique.length}개 (screens.md 미확인 — 개수 대조 생략)`
+          : "data-screen 마커가 없습니다 — 토큰 스와치만 있고 화면 시안이 없는 상태",
+    };
+  }
+
+  if (unique.length < expected) {
+    return {
+      name: "preview.html 화면 시안",
+      pass: false,
+      detail:
+        `시안 ${unique.length}개 / screens.md 화면 ${expected}개 — ${expected - unique.length}개 부족\n` +
+        `    → 발견된 마커: ${unique.length ? unique.join(", ") : "(없음)"}\n` +
+        `    → 화면마다 data-screen="{번호}-{이름}" 래퍼를 두고 390x844 로 렌더하세요.`,
+    };
+  }
+
+  return {
+    name: "preview.html 화면 시안",
+    pass: true,
+    detail: `시안 ${unique.length}개 (screens.md 화면 ${expected}개와 일치)`,
   };
 }
 
