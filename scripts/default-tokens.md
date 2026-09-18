@@ -356,12 +356,12 @@ Figma 레이어 이름 = Img/{key}
 
 ### Icon
 
-| 속성    | 값                                                                    |
-| ------- | --------------------------------------------------------------------- |
-| Sizes   | icon-sm / icon-md / icon-lg                                           |
-| Stroke  | 1.5 / 1.75 / 2                                                        |
-| Library | lucide                                                                |
-| CDN     | `https://cdn.jsdelivr.net/npm/lucide-static@0.475.0/icons/{name}.svg` |
+| 속성    | 값                                                                   |
+| ------- | -------------------------------------------------------------------- |
+| Sizes   | icon-sm / icon-md / icon-lg                                          |
+| Stroke  | 1.5 / 1.75 / 2                                                       |
+| Library | lucide                                                               |
+| CDN     | `https://cdn.jsdelivr.net/npm/lucide-static@1.47.0/icons/{name}.svg` |
 
 **아이콘은 손으로 그리지 않는다.** design-rules.md 컴포넌트 규칙에 `Icon: lucide/{name}` 으로
 이름만 적고, figma-builder 가 위 CDN 에서 그 SVG 를 받아(`curl`) `figma.createNodeFromSvg` 로

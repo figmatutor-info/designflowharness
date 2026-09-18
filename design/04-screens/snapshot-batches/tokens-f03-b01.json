@@ -1,0 +1,654 @@
+{
+  "schema_version": 4,
+  "file_key": "9mSXSf3cI36nDWiyolGXja",
+  "snapshot_date": "2026-09-18T05:49:09.421Z",
+  "frame_range": { "from": 3, "to": 4, "total_frames": 6 },
+  "page": {
+    "name": "01 Tokens",
+    "profile": "docs",
+    "frames": [
+      {
+        "name": "Token Documentation — Scale Semantic",
+        "width": 1280,
+        "height": 2235,
+        "layout": {
+          "layoutMode": "NONE",
+          "layoutSizingHorizontal": "FIXED",
+          "layoutSizingVertical": "FIXED",
+          "primaryAxisSizingMode": null,
+          "counterAxisSizingMode": null,
+          "vSizing": "FIXED"
+        },
+        "padding": null,
+        "truncated": false,
+        "nodes": [
+          {
+            "id": "19:412",
+            "parentId": null,
+            "name": "_Status",
+            "type": "FRAME",
+            "size": { "width": 1280, "height": 64 },
+            "position": { "x": 0, "y": 0 }
+          },
+          {
+            "id": "19:415",
+            "parentId": null,
+            "name": "Title",
+            "type": "FRAME",
+            "size": { "width": 1280, "height": 192 },
+            "position": { "x": 0, "y": 64 }
+          },
+          {
+            "id": "19:418",
+            "parentId": null,
+            "name": "Section · 간격",
+            "type": "FRAME",
+            "size": { "width": 1280, "height": 413 },
+            "position": { "x": 0, "y": 256 }
+          },
+          {
+            "id": "19:453",
+            "parentId": null,
+            "name": "Section · 라운드",
+            "type": "FRAME",
+            "size": { "width": 1280, "height": 261 },
+            "position": { "x": 0, "y": 669 }
+          },
+          {
+            "id": "19:483",
+            "parentId": null,
+            "name": "Section · 크기",
+            "type": "FRAME",
+            "size": { "width": 1280, "height": 261 },
+            "position": { "x": 0, "y": 930 }
+          },
+          {
+            "id": "19:508",
+            "parentId": null,
+            "name": "Section · 아이콘",
+            "type": "FRAME",
+            "size": { "width": 1280, "height": 261 },
+            "position": { "x": 0, "y": 1191 }
+          },
+          {
+            "id": "19:528",
+            "parentId": null,
+            "name": "Section · 세이프에어리어",
+            "type": "FRAME",
+            "size": { "width": 1280, "height": 261 },
+            "position": { "x": 0, "y": 1452 }
+          },
+          {
+            "id": "19:548",
+            "parentId": null,
+            "name": "Section · 앱바",
+            "type": "FRAME",
+            "size": { "width": 1280, "height": 261 },
+            "position": { "x": 0, "y": 1713 }
+          },
+          {
+            "id": "19:558",
+            "parentId": null,
+            "name": "Section · 탭바",
+            "type": "FRAME",
+            "size": { "width": 1280, "height": 261 },
+            "position": { "x": 0, "y": 1974 }
+          },
+          {
+            "id": "19:413",
+            "parentId": "19:412",
+            "name": "DESIGN SYSTEM",
+            "type": "TEXT",
+            "size": { "width": 400, "height": 20 },
+            "position": { "x": 32, "y": 24 }
+          },
+          {
+            "id": "19:414",
+            "parentId": "19:412",
+            "name": "SEP 18, 2026",
+            "type": "TEXT",
+            "size": { "width": 200, "height": 20 },
+            "position": { "x": 1048, "y": 24 }
+          },
+          {
+            "id": "19:416",
+            "parentId": "19:415",
+            "name": "Scale Semantic",
+            "type": "TEXT",
+            "size": { "width": 1152, "height": 20 },
+            "position": { "x": 64, "y": 120 }
+          },
+          {
+            "id": "19:417",
+            "parentId": "19:415",
+            "name": "제품 UI가 참조하는 의도 단위입니다. 수치는 프리미티브에서 옵니다.",
+            "type": "TEXT",
+            "size": { "width": 760, "height": 20 },
+            "position": { "x": 64, "y": 179 }
+          },
+          {
+            "id": "19:419",
+            "parentId": "19:418",
+            "name": "Section Header",
+            "type": "FRAME",
+            "size": { "width": 1152, "height": 40 },
+            "position": { "x": 64, "y": 289 }
+          },
+          {
+            "id": "19:422",
+            "parentId": "19:418",
+            "name": "Token Grid",
+            "type": "FRAME",
+            "size": { "width": 1152, "height": 288 },
+            "position": { "x": 64, "y": 349 }
+          },
+          {
+            "id": "19:454",
+            "parentId": "19:453",
+            "name": "Section Header",
+            "type": "FRAME",
+            "size": { "width": 1152, "height": 40 },
+            "position": { "x": 64, "y": 702 }
+          },
+          {
+            "id": "19:457",
+            "parentId": "19:453",
+            "name": "Token Grid",
+            "type": "FRAME",
+            "size": { "width": 1152, "height": 136 },
+            "position": { "x": 64, "y": 762 }
+          },
+          {
+            "id": "19:484",
+            "parentId": "19:483",
+            "name": "Section Header",
+            "type": "FRAME",
+            "size": { "width": 1152, "height": 40 },
+            "position": { "x": 64, "y": 963 }
+          },
+          {
+            "id": "19:487",
+            "parentId": "19:483",
+            "name": "Token Grid",
+            "type": "FRAME",
+            "size": { "width": 1152, "height": 136 },
+            "position": { "x": 64, "y": 1023 }
+          },
+          {
+            "id": "19:509",
+            "parentId": "19:508",
+            "name": "Section Header",
+            "type": "FRAME",
+            "size": { "width": 1152, "height": 40 },
+            "position": { "x": 64, "y": 1224 }
+          },
+          {
+            "id": "19:512",
+            "parentId": "19:508",
+            "name": "Token Grid",
+            "type": "FRAME",
+            "size": { "width": 1152, "height": 136 },
+            "position": { "x": 64, "y": 1284 }
+          },
+          {
+            "id": "19:529",
+            "parentId": "19:528",
+            "name": "Section Header",
+            "type": "FRAME",
+            "size": { "width": 1152, "height": 40 },
+            "position": { "x": 64, "y": 1485 }
+          },
+          {
+            "id": "19:532",
+            "parentId": "19:528",
+            "name": "Token Grid",
+            "type": "FRAME",
+            "size": { "width": 1152, "height": 136 },
+            "position": { "x": 64, "y": 1545 }
+          },
+          {
+            "id": "19:549",
+            "parentId": "19:548",
+            "name": "Section Header",
+            "type": "FRAME",
+            "size": { "width": 1152, "height": 40 },
+            "position": { "x": 64, "y": 1746 }
+          },
+          {
+            "id": "19:552",
+            "parentId": "19:548",
+            "name": "Token Grid",
+            "type": "FRAME",
+            "size": { "width": 1152, "height": 136 },
+            "position": { "x": 64, "y": 1806 }
+          },
+          {
+            "id": "19:559",
+            "parentId": "19:558",
+            "name": "Section Header",
+            "type": "FRAME",
+            "size": { "width": 1152, "height": 40 },
+            "position": { "x": 64, "y": 2007 }
+          },
+          {
+            "id": "19:562",
+            "parentId": "19:558",
+            "name": "Token Grid",
+            "type": "FRAME",
+            "size": { "width": 1152, "height": 136 },
+            "position": { "x": 64, "y": 2067 }
+          },
+          {
+            "id": "19:420",
+            "parentId": "19:419",
+            "name": "간격",
+            "type": "TEXT",
+            "size": { "width": 400, "height": 20 },
+            "position": { "x": 64, "y": 289 }
+          },
+          {
+            "id": "19:421",
+            "parentId": "19:419",
+            "name": "제품 UI는 이 계층만 참조합니다. 값은 프리미티브에서 옵니다.",
+            "type": "TEXT",
+            "size": { "width": 620, "height": 20 },
+            "position": { "x": 596, "y": 289 }
+          },
+          {
+            "id": "19:423",
+            "parentId": "19:422",
+            "name": "space-screen-padding",
+            "type": "FRAME",
+            "size": { "width": 214, "height": 136 },
+            "position": { "x": 64, "y": 349 }
+          },
+          {
+            "id": "19:428",
+            "parentId": "19:422",
+            "name": "space-section",
+            "type": "FRAME",
+            "size": { "width": 214, "height": 136 },
+            "position": { "x": 294, "y": 349 }
+          },
+          {
+            "id": "19:433",
+            "parentId": "19:422",
+            "name": "space-card-padding",
+            "type": "FRAME",
+            "size": { "width": 214, "height": 136 },
+            "position": { "x": 524, "y": 349 }
+          },
+          {
+            "id": "19:438",
+            "parentId": "19:422",
+            "name": "space-list-gap",
+            "type": "FRAME",
+            "size": { "width": 214, "height": 136 },
+            "position": { "x": 754, "y": 349 }
+          },
+          {
+            "id": "19:443",
+            "parentId": "19:422",
+            "name": "space-inline",
+            "type": "FRAME",
+            "size": { "width": 214, "height": 136 },
+            "position": { "x": 984, "y": 349 }
+          },
+          {
+            "id": "19:448",
+            "parentId": "19:422",
+            "name": "space-tap-gap-min",
+            "type": "FRAME",
+            "size": { "width": 214, "height": 136 },
+            "position": { "x": 64, "y": 501 }
+          },
+          {
+            "id": "19:455",
+            "parentId": "19:454",
+            "name": "라운드",
+            "type": "TEXT",
+            "size": { "width": 400, "height": 20 },
+            "position": { "x": 64, "y": 702 }
+          },
+          {
+            "id": "19:456",
+            "parentId": "19:454",
+            "name": "제품 UI는 이 계층만 참조합니다. 값은 프리미티브에서 옵니다.",
+            "type": "TEXT",
+            "size": { "width": 620, "height": 20 },
+            "position": { "x": 596, "y": 702 }
+          },
+          {
+            "id": "19:458",
+            "parentId": "19:457",
+            "name": "radius-tag",
+            "type": "FRAME",
+            "size": { "width": 214, "height": 136 },
+            "position": { "x": 64, "y": 762 }
+          },
+          {
+            "id": "19:463",
+            "parentId": "19:457",
+            "name": "radius-button",
+            "type": "FRAME",
+            "size": { "width": 214, "height": 136 },
+            "position": { "x": 294, "y": 762 }
+          },
+          {
+            "id": "19:468",
+            "parentId": "19:457",
+            "name": "radius-card",
+            "type": "FRAME",
+            "size": { "width": 214, "height": 136 },
+            "position": { "x": 524, "y": 762 }
+          },
+          {
+            "id": "19:473",
+            "parentId": "19:457",
+            "name": "radius-sheet",
+            "type": "FRAME",
+            "size": { "width": 214, "height": 136 },
+            "position": { "x": 754, "y": 762 }
+          },
+          {
+            "id": "19:478",
+            "parentId": "19:457",
+            "name": "radius-pill",
+            "type": "FRAME",
+            "size": { "width": 214, "height": 136 },
+            "position": { "x": 984, "y": 762 }
+          },
+          {
+            "id": "19:485",
+            "parentId": "19:484",
+            "name": "크기",
+            "type": "TEXT",
+            "size": { "width": 400, "height": 20 },
+            "position": { "x": 64, "y": 963 }
+          },
+          {
+            "id": "19:486",
+            "parentId": "19:484",
+            "name": "제품 UI는 이 계층만 참조합니다. 값은 프리미티브에서 옵니다.",
+            "type": "TEXT",
+            "size": { "width": 620, "height": 20 },
+            "position": { "x": 596, "y": 963 }
+          },
+          {
+            "id": "19:488",
+            "parentId": "19:487",
+            "name": "size-tap-min",
+            "type": "FRAME",
+            "size": { "width": 214, "height": 136 },
+            "position": { "x": 64, "y": 1023 }
+          },
+          {
+            "id": "19:493",
+            "parentId": "19:487",
+            "name": "size-button-sm",
+            "type": "FRAME",
+            "size": { "width": 214, "height": 136 },
+            "position": { "x": 294, "y": 1023 }
+          },
+          {
+            "id": "19:498",
+            "parentId": "19:487",
+            "name": "size-button-md",
+            "type": "FRAME",
+            "size": { "width": 214, "height": 136 },
+            "position": { "x": 524, "y": 1023 }
+          },
+          {
+            "id": "19:503",
+            "parentId": "19:487",
+            "name": "size-button-lg",
+            "type": "FRAME",
+            "size": { "width": 214, "height": 136 },
+            "position": { "x": 754, "y": 1023 }
+          },
+          {
+            "id": "19:510",
+            "parentId": "19:509",
+            "name": "아이콘",
+            "type": "TEXT",
+            "size": { "width": 400, "height": 20 },
+            "position": { "x": 64, "y": 1224 }
+          },
+          {
+            "id": "19:511",
+            "parentId": "19:509",
+            "name": "제품 UI는 이 계층만 참조합니다. 값은 프리미티브에서 옵니다.",
+            "type": "TEXT",
+            "size": { "width": 620, "height": 20 },
+            "position": { "x": 596, "y": 1224 }
+          },
+          {
+            "id": "19:513",
+            "parentId": "19:512",
+            "name": "icon-sm",
+            "type": "FRAME",
+            "size": { "width": 214, "height": 136 },
+            "position": { "x": 64, "y": 1284 }
+          },
+          {
+            "id": "19:518",
+            "parentId": "19:512",
+            "name": "icon-md",
+            "type": "FRAME",
+            "size": { "width": 214, "height": 136 },
+            "position": { "x": 294, "y": 1284 }
+          },
+          {
+            "id": "19:523",
+            "parentId": "19:512",
+            "name": "icon-lg",
+            "type": "FRAME",
+            "size": { "width": 214, "height": 136 },
+            "position": { "x": 524, "y": 1284 }
+          },
+          {
+            "id": "19:530",
+            "parentId": "19:529",
+            "name": "세이프에어리어",
+            "type": "TEXT",
+            "size": { "width": 400, "height": 20 },
+            "position": { "x": 64, "y": 1485 }
+          },
+          {
+            "id": "19:531",
+            "parentId": "19:529",
+            "name": "제품 UI는 이 계층만 참조합니다. 값은 프리미티브에서 옵니다.",
+            "type": "TEXT",
+            "size": { "width": 620, "height": 20 },
+            "position": { "x": 596, "y": 1485 }
+          },
+          {
+            "id": "19:533",
+            "parentId": "19:532",
+            "name": "safe-area-top",
+            "type": "FRAME",
+            "size": { "width": 214, "height": 136 },
+            "position": { "x": 64, "y": 1545 }
+          },
+          {
+            "id": "19:538",
+            "parentId": "19:532",
+            "name": "safe-area-top-notch",
+            "type": "FRAME",
+            "size": { "width": 214, "height": 136 },
+            "position": { "x": 294, "y": 1545 }
+          },
+          {
+            "id": "19:543",
+            "parentId": "19:532",
+            "name": "safe-area-bottom",
+            "type": "FRAME",
+            "size": { "width": 214, "height": 136 },
+            "position": { "x": 524, "y": 1545 }
+          },
+          {
+            "id": "19:550",
+            "parentId": "19:549",
+            "name": "앱바",
+            "type": "TEXT",
+            "size": { "width": 400, "height": 20 },
+            "position": { "x": 64, "y": 1746 }
+          },
+          {
+            "id": "19:551",
+            "parentId": "19:549",
+            "name": "제품 UI는 이 계층만 참조합니다. 값은 프리미티브에서 옵니다.",
+            "type": "TEXT",
+            "size": { "width": 620, "height": 20 },
+            "position": { "x": 596, "y": 1746 }
+          },
+          {
+            "id": "19:553",
+            "parentId": "19:552",
+            "name": "app-bar-height",
+            "type": "FRAME",
+            "size": { "width": 214, "height": 136 },
+            "position": { "x": 64, "y": 1806 }
+          },
+          {
+            "id": "19:560",
+            "parentId": "19:559",
+            "name": "탭바",
+            "type": "TEXT",
+            "size": { "width": 400, "height": 20 },
+            "position": { "x": 64, "y": 2007 }
+          },
+          {
+            "id": "19:561",
+            "parentId": "19:559",
+            "name": "제품 UI는 이 계층만 참조합니다. 값은 프리미티브에서 옵니다.",
+            "type": "TEXT",
+            "size": { "width": 620, "height": 20 },
+            "position": { "x": 596, "y": 2007 }
+          },
+          {
+            "id": "19:563",
+            "parentId": "19:562",
+            "name": "tab-bar-height",
+            "type": "FRAME",
+            "size": { "width": 214, "height": 136 },
+            "position": { "x": 64, "y": 2067 }
+          },
+          {
+            "id": "19:424",
+            "parentId": "19:423",
+            "name": "Swatch · space-screen-padding",
+            "type": "FRAME",
+            "size": { "width": 190, "height": 56 },
+            "position": { "x": 77, "y": 362 }
+          },
+          {
+            "id": "19:426",
+            "parentId": "19:423",
+            "name": "space-screen-padding",
+            "type": "TEXT",
+            "size": { "width": 190, "height": 20 },
+            "position": { "x": 77, "y": 426 }
+          },
+          {
+            "id": "19:427",
+            "parentId": "19:423",
+            "name": "→ space-4 · 16",
+            "type": "TEXT",
+            "size": { "width": 190, "height": 20 },
+            "position": { "x": 77, "y": 454 }
+          },
+          {
+            "id": "19:429",
+            "parentId": "19:428",
+            "name": "Swatch · space-section",
+            "type": "FRAME",
+            "size": { "width": 190, "height": 56 },
+            "position": { "x": 307, "y": 362 }
+          },
+          {
+            "id": "19:431",
+            "parentId": "19:428",
+            "name": "space-section",
+            "type": "TEXT",
+            "size": { "width": 190, "height": 20 },
+            "position": { "x": 307, "y": 426 }
+          },
+          {
+            "id": "19:432",
+            "parentId": "19:428",
+            "name": "→ space-6 · 24",
+            "type": "TEXT",
+            "size": { "width": 190, "height": 20 },
+            "position": { "x": 307, "y": 454 }
+          },
+          {
+            "id": "19:434",
+            "parentId": "19:433",
+            "name": "Swatch · space-card-padding",
+            "type": "FRAME",
+            "size": { "width": 190, "height": 56 },
+            "position": { "x": 537, "y": 362 }
+          },
+          {
+            "id": "19:436",
+            "parentId": "19:433",
+            "name": "space-card-padding",
+            "type": "TEXT",
+            "size": { "width": 190, "height": 20 },
+            "position": { "x": 537, "y": 426 }
+          },
+          {
+            "id": "19:437",
+            "parentId": "19:433",
+            "name": "→ space-4 · 16",
+            "type": "TEXT",
+            "size": { "width": 190, "height": 20 },
+            "position": { "x": 537, "y": 454 }
+          },
+          {
+            "id": "19:439",
+            "parentId": "19:438",
+            "name": "Swatch · space-list-gap",
+            "type": "FRAME",
+            "size": { "width": 190, "height": 56 },
+            "position": { "x": 767, "y": 362 }
+          },
+          {
+            "id": "19:441",
+            "parentId": "19:438",
+            "name": "space-list-gap",
+            "type": "TEXT",
+            "size": { "width": 190, "height": 20 },
+            "position": { "x": 767, "y": 426 }
+          },
+          {
+            "id": "19:442",
+            "parentId": "19:438",
+            "name": "→ space-3 · 12",
+            "type": "TEXT",
+            "size": { "width": 190, "height": 20 },
+            "position": { "x": 767, "y": 454 }
+          },
+          {
+            "id": "19:444",
+            "parentId": "19:443",
+            "name": "Swatch · space-inline",
+            "type": "FRAME",
+            "size": { "width": 190, "height": 56 },
+            "position": { "x": 997, "y": 362 }
+          },
+          {
+            "id": "19:446",
+            "parentId": "19:443",
+            "name": "space-inline",
+            "type": "TEXT",
+            "size": { "width": 190, "height": 20 },
+            "position": { "x": 997, "y": 426 }
+          }
+        ],
+        "node_range": { "from": 0, "to": 78, "total_nodes": 156 }
+      }
+    ]
+  }
+}

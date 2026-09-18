@@ -1,0 +1,670 @@
+{
+  "schema_version": 4,
+  "file_key": "9mSXSf3cI36nDWiyolGXja",
+  "snapshot_date": "2026-09-18T07:04:57.280Z",
+  "frame_range": { "from": 1, "to": 2, "total_frames": 5 },
+  "page": {
+    "name": "03 Screens",
+    "profile": "full",
+    "frames": [
+      {
+        "name": "DeviceFrame · 02 Skill Library",
+        "width": 390,
+        "height": 844,
+        "layout": {
+          "layoutMode": "NONE",
+          "layoutSizingHorizontal": "FIXED",
+          "layoutSizingVertical": "FIXED",
+          "primaryAxisSizingMode": null,
+          "counterAxisSizingMode": null,
+          "vSizing": "FIXED"
+        },
+        "padding": null,
+        "truncated": false,
+        "nodes": [
+          {
+            "id": "I74:111;37:22",
+            "parentId": "74:111",
+            "name": "Underline",
+            "type": "RECTANGLE",
+            "size": { "width": 24, "height": 2 },
+            "position": { "x": 80, "y": 191 },
+            "layout": {
+              "layoutMode": "NONE",
+              "layoutSizingHorizontal": "FIXED",
+              "layoutSizingVertical": "FIXED",
+              "primaryAxisSizingMode": null,
+              "counterAxisSizingMode": null,
+              "vSizing": "FIXED"
+            }
+          },
+          {
+            "id": "I74:114;37:21",
+            "parentId": "74:114",
+            "name": "전체",
+            "type": "TEXT",
+            "size": { "width": 23, "height": 16 },
+            "position": { "x": 113, "y": 171 },
+            "layout": {
+              "layoutMode": "NONE",
+              "layoutSizingHorizontal": "HUG",
+              "layoutSizingVertical": "HUG",
+              "primaryAxisSizingMode": null,
+              "counterAxisSizingMode": null,
+              "vSizing": "HUG"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": "#6B7280",
+                "boundVariable": "color-text-muted",
+                "boundVariableCollection": "semantic"
+              }
+            ],
+            "textStyle": "Text/label",
+            "textAutoResize": "WIDTH_AND_HEIGHT"
+          },
+          {
+            "id": "I74:114;37:22",
+            "parentId": "74:114",
+            "name": "Underline",
+            "type": "RECTANGLE",
+            "size": { "width": 24, "height": 2 },
+            "position": { "x": 112, "y": 191 },
+            "layout": {
+              "layoutMode": "NONE",
+              "layoutSizingHorizontal": "FIXED",
+              "layoutSizingVertical": "FIXED",
+              "primaryAxisSizingMode": null,
+              "counterAxisSizingMode": null,
+              "vSizing": "FIXED"
+            }
+          },
+          {
+            "id": "I74:117;37:27",
+            "parentId": "I74:117;37:26",
+            "name": "CategoryTag",
+            "type": "FRAME",
+            "size": { "width": 54, "height": 24 },
+            "position": { "x": 32, "y": 256 },
+            "layout": {
+              "layoutMode": "HORIZONTAL",
+              "layoutSizingHorizontal": "HUG",
+              "layoutSizingVertical": "HUG",
+              "primaryAxisSizingMode": "AUTO",
+              "counterAxisSizingMode": "AUTO",
+              "vSizing": "HUG"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": "#E9E9EE",
+                "boundVariable": "color-surface-2",
+                "boundVariableCollection": "semantic"
+              }
+            ],
+            "padding": { "top": 4, "right": 8, "bottom": 4, "left": 8 },
+            "itemSpacing": 0
+          },
+          {
+            "id": "I74:117;37:29",
+            "parentId": "I74:117;37:26",
+            "name": "DifficultyBadge",
+            "type": "FRAME",
+            "size": { "width": 39, "height": 24 },
+            "position": { "x": 92, "y": 256 },
+            "layout": {
+              "layoutMode": "HORIZONTAL",
+              "layoutSizingHorizontal": "HUG",
+              "layoutSizingVertical": "HUG",
+              "primaryAxisSizingMode": "AUTO",
+              "counterAxisSizingMode": "AUTO",
+              "vSizing": "HUG"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": "#5B5FEF",
+                "boundVariable": "color-primary-soft",
+                "boundVariableCollection": "semantic"
+              }
+            ],
+            "padding": { "top": 4, "right": 8, "bottom": 4, "left": 8 },
+            "itemSpacing": 0
+          },
+          {
+            "id": "I74:117;37:33",
+            "parentId": "I74:117;37:32",
+            "name": "무료",
+            "type": "TEXT",
+            "size": { "width": 23, "height": 16 },
+            "position": { "x": 40, "y": 314 },
+            "layout": {
+              "layoutMode": "NONE",
+              "layoutSizingHorizontal": "HUG",
+              "layoutSizingVertical": "HUG",
+              "primaryAxisSizingMode": null,
+              "counterAxisSizingMode": null,
+              "vSizing": "HUG"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": "#111827",
+                "boundVariable": "color-text",
+                "boundVariableCollection": "semantic"
+              }
+            ],
+            "textStyle": "Text/label",
+            "textAutoResize": "WIDTH_AND_HEIGHT"
+          },
+          {
+            "id": "I74:127;37:27",
+            "parentId": "I74:127;37:26",
+            "name": "CategoryTag",
+            "type": "FRAME",
+            "size": { "width": 73, "height": 24 },
+            "position": { "x": 32, "y": 406 },
+            "layout": {
+              "layoutMode": "HORIZONTAL",
+              "layoutSizingHorizontal": "HUG",
+              "layoutSizingVertical": "HUG",
+              "primaryAxisSizingMode": "AUTO",
+              "counterAxisSizingMode": "AUTO",
+              "vSizing": "HUG"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": "#E9E9EE",
+                "boundVariable": "color-surface-2",
+                "boundVariableCollection": "semantic"
+              }
+            ],
+            "padding": { "top": 4, "right": 8, "bottom": 4, "left": 8 },
+            "itemSpacing": 0
+          },
+          {
+            "id": "I74:127;37:29",
+            "parentId": "I74:127;37:26",
+            "name": "DifficultyBadge",
+            "type": "FRAME",
+            "size": { "width": 39, "height": 24 },
+            "position": { "x": 111, "y": 406 },
+            "layout": {
+              "layoutMode": "HORIZONTAL",
+              "layoutSizingHorizontal": "HUG",
+              "layoutSizingVertical": "HUG",
+              "primaryAxisSizingMode": "AUTO",
+              "counterAxisSizingMode": "AUTO",
+              "vSizing": "HUG"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": "#5B5FEF",
+                "boundVariable": "color-primary-soft",
+                "boundVariableCollection": "semantic"
+              }
+            ],
+            "padding": { "top": 4, "right": 8, "bottom": 4, "left": 8 },
+            "itemSpacing": 0
+          },
+          {
+            "id": "I74:127;37:33",
+            "parentId": "I74:127;37:32",
+            "name": "무료",
+            "type": "TEXT",
+            "size": { "width": 23, "height": 16 },
+            "position": { "x": 40, "y": 464 },
+            "layout": {
+              "layoutMode": "NONE",
+              "layoutSizingHorizontal": "HUG",
+              "layoutSizingVertical": "HUG",
+              "primaryAxisSizingMode": null,
+              "counterAxisSizingMode": null,
+              "vSizing": "HUG"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": "#111827",
+                "boundVariable": "color-text",
+                "boundVariableCollection": "semantic"
+              }
+            ],
+            "textStyle": "Text/label",
+            "textAutoResize": "WIDTH_AND_HEIGHT"
+          },
+          {
+            "id": "I74:137;37:27",
+            "parentId": "I74:137;37:26",
+            "name": "CategoryTag",
+            "type": "FRAME",
+            "size": { "width": 50, "height": 24 },
+            "position": { "x": 32, "y": 556 },
+            "layout": {
+              "layoutMode": "HORIZONTAL",
+              "layoutSizingHorizontal": "HUG",
+              "layoutSizingVertical": "HUG",
+              "primaryAxisSizingMode": "AUTO",
+              "counterAxisSizingMode": "AUTO",
+              "vSizing": "HUG"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": "#E9E9EE",
+                "boundVariable": "color-surface-2",
+                "boundVariableCollection": "semantic"
+              }
+            ],
+            "padding": { "top": 4, "right": 8, "bottom": 4, "left": 8 },
+            "itemSpacing": 0
+          },
+          {
+            "id": "I74:137;37:29",
+            "parentId": "I74:137;37:26",
+            "name": "DifficultyBadge",
+            "type": "FRAME",
+            "size": { "width": 39, "height": 24 },
+            "position": { "x": 88, "y": 556 },
+            "layout": {
+              "layoutMode": "HORIZONTAL",
+              "layoutSizingHorizontal": "HUG",
+              "layoutSizingVertical": "HUG",
+              "primaryAxisSizingMode": "AUTO",
+              "counterAxisSizingMode": "AUTO",
+              "vSizing": "HUG"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": "#5B5FEF",
+                "boundVariable": "color-primary-soft",
+                "boundVariableCollection": "semantic"
+              }
+            ],
+            "padding": { "top": 4, "right": 8, "bottom": 4, "left": 8 },
+            "itemSpacing": 0
+          },
+          {
+            "id": "I74:137;37:33",
+            "parentId": "I74:137;37:32",
+            "name": "무료",
+            "type": "TEXT",
+            "size": { "width": 23, "height": 16 },
+            "position": { "x": 40, "y": 614 },
+            "layout": {
+              "layoutMode": "NONE",
+              "layoutSizingHorizontal": "HUG",
+              "layoutSizingVertical": "HUG",
+              "primaryAxisSizingMode": null,
+              "counterAxisSizingMode": null,
+              "vSizing": "HUG"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": "#111827",
+                "boundVariable": "color-text",
+                "boundVariableCollection": "semantic"
+              }
+            ],
+            "textStyle": "Text/label",
+            "textAutoResize": "WIDTH_AND_HEIGHT"
+          },
+          {
+            "id": "I74:147;58:19;57:25",
+            "parentId": "I74:147;58:19",
+            "name": "Vector",
+            "type": "VECTOR",
+            "size": { "width": 6, "height": 9 },
+            "position": { "x": 25, "y": 776 },
+            "layout": {
+              "layoutMode": "NONE",
+              "layoutSizingHorizontal": "FIXED",
+              "layoutSizingVertical": "FIXED",
+              "primaryAxisSizingMode": null,
+              "counterAxisSizingMode": null,
+              "vSizing": "FIXED"
+            },
+            "strokes": [
+              {
+                "type": "SOLID",
+                "color": "#6B7280",
+                "boundVariable": "color-text-muted",
+                "boundVariableCollection": "semantic"
+              }
+            ]
+          },
+          {
+            "id": "I74:147;58:19;57:26",
+            "parentId": "I74:147;58:19",
+            "name": "Vector",
+            "type": "VECTOR",
+            "size": { "width": 18, "height": 19 },
+            "position": { "x": 19, "y": 765 },
+            "layout": {
+              "layoutMode": "NONE",
+              "layoutSizingHorizontal": "FIXED",
+              "layoutSizingVertical": "FIXED",
+              "primaryAxisSizingMode": null,
+              "counterAxisSizingMode": null,
+              "vSizing": "FIXED"
+            },
+            "strokes": [
+              {
+                "type": "SOLID",
+                "color": "#6B7280",
+                "boundVariable": "color-text-muted",
+                "boundVariableCollection": "semantic"
+              }
+            ]
+          },
+          {
+            "id": "I74:147;58:22;57:38",
+            "parentId": "I74:147;58:22",
+            "name": "Vector",
+            "type": "VECTOR",
+            "size": { "width": 0, "height": 16 },
+            "position": { "x": 136, "y": 769 },
+            "layout": {
+              "layoutMode": "NONE",
+              "layoutSizingHorizontal": "FIXED",
+              "layoutSizingVertical": "FIXED",
+              "primaryAxisSizingMode": null,
+              "counterAxisSizingMode": null,
+              "vSizing": "FIXED"
+            },
+            "strokes": [
+              {
+                "type": "SOLID",
+                "color": "#5B5FEF",
+                "boundVariable": "color-primary",
+                "boundVariableCollection": "semantic"
+              }
+            ]
+          },
+          {
+            "id": "I74:147;58:22;57:39",
+            "parentId": "I74:147;58:22",
+            "name": "Vector",
+            "type": "VECTOR",
+            "size": { "width": 20, "height": 18 },
+            "position": { "x": 126, "y": 767 },
+            "layout": {
+              "layoutMode": "NONE",
+              "layoutSizingHorizontal": "FIXED",
+              "layoutSizingVertical": "FIXED",
+              "primaryAxisSizingMode": null,
+              "counterAxisSizingMode": null,
+              "vSizing": "FIXED"
+            },
+            "strokes": [
+              {
+                "type": "SOLID",
+                "color": "#5B5FEF",
+                "boundVariable": "color-primary",
+                "boundVariableCollection": "semantic"
+              }
+            ]
+          },
+          {
+            "id": "I74:147;58:25;57:69",
+            "parentId": "I74:147;58:25",
+            "name": "Vector",
+            "type": "VECTOR",
+            "size": { "width": 20, "height": 5 },
+            "position": { "x": 241, "y": 767 },
+            "layout": {
+              "layoutMode": "NONE",
+              "layoutSizingHorizontal": "FIXED",
+              "layoutSizingVertical": "FIXED",
+              "primaryAxisSizingMode": null,
+              "counterAxisSizingMode": null,
+              "vSizing": "FIXED"
+            },
+            "strokes": [
+              {
+                "type": "SOLID",
+                "color": "#6B7280",
+                "boundVariable": "color-text-muted",
+                "boundVariableCollection": "semantic"
+              }
+            ]
+          },
+          {
+            "id": "I74:147;58:25;57:70",
+            "parentId": "I74:147;58:25",
+            "name": "Vector",
+            "type": "VECTOR",
+            "size": { "width": 16, "height": 13 },
+            "position": { "x": 243, "y": 772 },
+            "layout": {
+              "layoutMode": "NONE",
+              "layoutSizingHorizontal": "FIXED",
+              "layoutSizingVertical": "FIXED",
+              "primaryAxisSizingMode": null,
+              "counterAxisSizingMode": null,
+              "vSizing": "FIXED"
+            },
+            "strokes": [
+              {
+                "type": "SOLID",
+                "color": "#6B7280",
+                "boundVariable": "color-text-muted",
+                "boundVariableCollection": "semantic"
+              }
+            ]
+          },
+          {
+            "id": "I74:147;58:25;57:71",
+            "parentId": "I74:147;58:25",
+            "name": "Vector",
+            "type": "VECTOR",
+            "size": { "width": 4, "height": 0 },
+            "position": { "x": 249, "y": 776 },
+            "layout": {
+              "layoutMode": "NONE",
+              "layoutSizingHorizontal": "FIXED",
+              "layoutSizingVertical": "FIXED",
+              "primaryAxisSizingMode": null,
+              "counterAxisSizingMode": null,
+              "vSizing": "FIXED"
+            },
+            "strokes": [
+              {
+                "type": "SOLID",
+                "color": "#6B7280",
+                "boundVariable": "color-text-muted",
+                "boundVariableCollection": "semantic"
+              }
+            ]
+          },
+          {
+            "id": "I74:147;58:29;57:81",
+            "parentId": "I74:147;58:29",
+            "name": "Vector",
+            "type": "VECTOR",
+            "size": { "width": 20, "height": 19 },
+            "position": { "x": 339, "y": 766 },
+            "layout": {
+              "layoutMode": "NONE",
+              "layoutSizingHorizontal": "FIXED",
+              "layoutSizingVertical": "FIXED",
+              "primaryAxisSizingMode": null,
+              "counterAxisSizingMode": null,
+              "vSizing": "FIXED"
+            },
+            "strokes": [
+              {
+                "type": "SOLID",
+                "color": "#6B7280",
+                "boundVariable": "color-text-muted",
+                "boundVariableCollection": "semantic"
+              }
+            ]
+          },
+          {
+            "id": "I74:117;37:28",
+            "parentId": "I74:117;37:27",
+            "name": "AI 도구",
+            "type": "TEXT",
+            "size": { "width": 38, "height": 16 },
+            "position": { "x": 40, "y": 260 },
+            "layout": {
+              "layoutMode": "NONE",
+              "layoutSizingHorizontal": "HUG",
+              "layoutSizingVertical": "HUG",
+              "primaryAxisSizingMode": null,
+              "counterAxisSizingMode": null,
+              "vSizing": "HUG"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": "#111827",
+                "boundVariable": "color-text",
+                "boundVariableCollection": "semantic"
+              }
+            ],
+            "textStyle": "Text/label",
+            "textAutoResize": "WIDTH_AND_HEIGHT"
+          },
+          {
+            "id": "I74:117;37:30",
+            "parentId": "I74:117;37:29",
+            "name": "중급",
+            "type": "TEXT",
+            "size": { "width": 23, "height": 16 },
+            "position": { "x": 100, "y": 260 },
+            "layout": {
+              "layoutMode": "NONE",
+              "layoutSizingHorizontal": "HUG",
+              "layoutSizingVertical": "HUG",
+              "primaryAxisSizingMode": null,
+              "counterAxisSizingMode": null,
+              "vSizing": "HUG"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": "#5B5FEF",
+                "boundVariable": "color-primary",
+                "boundVariableCollection": "semantic"
+              }
+            ],
+            "textStyle": "Text/label",
+            "textAutoResize": "WIDTH_AND_HEIGHT"
+          },
+          {
+            "id": "I74:127;37:28",
+            "parentId": "I74:127;37:27",
+            "name": "AI 도구",
+            "type": "TEXT",
+            "size": { "width": 57, "height": 16 },
+            "position": { "x": 40, "y": 410 },
+            "layout": {
+              "layoutMode": "NONE",
+              "layoutSizingHorizontal": "HUG",
+              "layoutSizingVertical": "HUG",
+              "primaryAxisSizingMode": null,
+              "counterAxisSizingMode": null,
+              "vSizing": "HUG"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": "#111827",
+                "boundVariable": "color-text",
+                "boundVariableCollection": "semantic"
+              }
+            ],
+            "textStyle": "Text/label",
+            "textAutoResize": "WIDTH_AND_HEIGHT"
+          },
+          {
+            "id": "I74:127;37:30",
+            "parentId": "I74:127;37:29",
+            "name": "중급",
+            "type": "TEXT",
+            "size": { "width": 23, "height": 16 },
+            "position": { "x": 119, "y": 410 },
+            "layout": {
+              "layoutMode": "NONE",
+              "layoutSizingHorizontal": "HUG",
+              "layoutSizingVertical": "HUG",
+              "primaryAxisSizingMode": null,
+              "counterAxisSizingMode": null,
+              "vSizing": "HUG"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": "#5B5FEF",
+                "boundVariable": "color-primary",
+                "boundVariableCollection": "semantic"
+              }
+            ],
+            "textStyle": "Text/label",
+            "textAutoResize": "WIDTH_AND_HEIGHT"
+          },
+          {
+            "id": "I74:137;37:28",
+            "parentId": "I74:137;37:27",
+            "name": "AI 도구",
+            "type": "TEXT",
+            "size": { "width": 34, "height": 16 },
+            "position": { "x": 40, "y": 560 },
+            "layout": {
+              "layoutMode": "NONE",
+              "layoutSizingHorizontal": "HUG",
+              "layoutSizingVertical": "HUG",
+              "primaryAxisSizingMode": null,
+              "counterAxisSizingMode": null,
+              "vSizing": "HUG"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": "#111827",
+                "boundVariable": "color-text",
+                "boundVariableCollection": "semantic"
+              }
+            ],
+            "textStyle": "Text/label",
+            "textAutoResize": "WIDTH_AND_HEIGHT"
+          },
+          {
+            "id": "I74:137;37:30",
+            "parentId": "I74:137;37:29",
+            "name": "중급",
+            "type": "TEXT",
+            "size": { "width": 23, "height": 16 },
+            "position": { "x": 96, "y": 560 },
+            "layout": {
+              "layoutMode": "NONE",
+              "layoutSizingHorizontal": "HUG",
+              "layoutSizingVertical": "HUG",
+              "primaryAxisSizingMode": null,
+              "counterAxisSizingMode": null,
+              "vSizing": "HUG"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": "#5B5FEF",
+                "boundVariable": "color-primary",
+                "boundVariableCollection": "semantic"
+              }
+            ],
+            "textStyle": "Text/label",
+            "textAutoResize": "WIDTH_AND_HEIGHT"
+          }
+        ],
+        "node_range": { "from": 60, "to": 86, "total_nodes": 86 }
+      }
+    ]
+  }
+}

@@ -1,0 +1,317 @@
+{
+  "schema_version": 4,
+  "file_key": "9mSXSf3cI36nDWiyolGXja",
+  "snapshot_date": "2026-09-18T05:43:08.091Z",
+  "frame_range": { "from": 5, "to": 6, "total_frames": 6 },
+  "page": {
+    "name": "01 Tokens",
+    "profile": "docs",
+    "frames": [
+      {
+        "name": "Token Documentation — Shadow",
+        "width": 1280,
+        "height": 1039,
+        "layout": {
+          "layoutMode": "NONE",
+          "layoutSizingHorizontal": "FIXED",
+          "layoutSizingVertical": "FIXED",
+          "primaryAxisSizingMode": null,
+          "counterAxisSizingMode": null,
+          "vSizing": "FIXED"
+        },
+        "padding": null,
+        "truncated": false,
+        "nodes": [
+          {
+            "id": "19:651",
+            "parentId": null,
+            "name": "_Status",
+            "type": "FRAME",
+            "size": { "width": 1280, "height": 64 },
+            "position": { "x": 0, "y": 0 }
+          },
+          {
+            "id": "19:654",
+            "parentId": null,
+            "name": "Title",
+            "type": "FRAME",
+            "size": { "width": 1280, "height": 192 },
+            "position": { "x": 0, "y": 64 }
+          },
+          {
+            "id": "19:657",
+            "parentId": null,
+            "name": "Section · Shadow/lg",
+            "type": "FRAME",
+            "size": { "width": 1280, "height": 261 },
+            "position": { "x": 0, "y": 256 }
+          },
+          {
+            "id": "19:667",
+            "parentId": null,
+            "name": "Section · Shadow/md",
+            "type": "FRAME",
+            "size": { "width": 1280, "height": 261 },
+            "position": { "x": 0, "y": 517 }
+          },
+          {
+            "id": "19:677",
+            "parentId": null,
+            "name": "Section · Shadow/sm",
+            "type": "FRAME",
+            "size": { "width": 1280, "height": 261 },
+            "position": { "x": 0, "y": 778 }
+          },
+          {
+            "id": "19:652",
+            "parentId": "19:651",
+            "name": "DESIGN SYSTEM",
+            "type": "TEXT",
+            "size": { "width": 400, "height": 20 },
+            "position": { "x": 32, "y": 24 }
+          },
+          {
+            "id": "19:653",
+            "parentId": "19:651",
+            "name": "SEP 18, 2026",
+            "type": "TEXT",
+            "size": { "width": 200, "height": 20 },
+            "position": { "x": 1048, "y": 24 }
+          },
+          {
+            "id": "19:655",
+            "parentId": "19:654",
+            "name": "Shadow",
+            "type": "TEXT",
+            "size": { "width": 1152, "height": 20 },
+            "position": { "x": 64, "y": 120 }
+          },
+          {
+            "id": "19:656",
+            "parentId": "19:654",
+            "name": "이펙트 스타일입니다. 화면에서 그림자를 직접 그리지 않고 이 스타일을 씁니다.",
+            "type": "TEXT",
+            "size": { "width": 760, "height": 20 },
+            "position": { "x": 64, "y": 179 }
+          },
+          {
+            "id": "19:658",
+            "parentId": "19:657",
+            "name": "Section Header",
+            "type": "FRAME",
+            "size": { "width": 1152, "height": 40 },
+            "position": { "x": 64, "y": 289 }
+          },
+          {
+            "id": "19:661",
+            "parentId": "19:657",
+            "name": "Token Grid",
+            "type": "FRAME",
+            "size": { "width": 1152, "height": 136 },
+            "position": { "x": 64, "y": 349 }
+          },
+          {
+            "id": "19:668",
+            "parentId": "19:667",
+            "name": "Section Header",
+            "type": "FRAME",
+            "size": { "width": 1152, "height": 40 },
+            "position": { "x": 64, "y": 550 }
+          },
+          {
+            "id": "19:671",
+            "parentId": "19:667",
+            "name": "Token Grid",
+            "type": "FRAME",
+            "size": { "width": 1152, "height": 136 },
+            "position": { "x": 64, "y": 610 }
+          },
+          {
+            "id": "19:678",
+            "parentId": "19:677",
+            "name": "Section Header",
+            "type": "FRAME",
+            "size": { "width": 1152, "height": 40 },
+            "position": { "x": 64, "y": 811 }
+          },
+          {
+            "id": "19:681",
+            "parentId": "19:677",
+            "name": "Token Grid",
+            "type": "FRAME",
+            "size": { "width": 1152, "height": 136 },
+            "position": { "x": 64, "y": 871 }
+          },
+          {
+            "id": "19:659",
+            "parentId": "19:658",
+            "name": "Shadow/lg",
+            "type": "TEXT",
+            "size": { "width": 400, "height": 20 },
+            "position": { "x": 64, "y": 289 }
+          },
+          {
+            "id": "19:660",
+            "parentId": "19:658",
+            "name": "이펙트 스타일입니다. 그림자를 직접 그리지 마세요.",
+            "type": "TEXT",
+            "size": { "width": 620, "height": 20 },
+            "position": { "x": 596, "y": 289 }
+          },
+          {
+            "id": "19:662",
+            "parentId": "19:661",
+            "name": "Shadow/lg",
+            "type": "FRAME",
+            "size": { "width": 214, "height": 136 },
+            "position": { "x": 64, "y": 349 }
+          },
+          {
+            "id": "19:669",
+            "parentId": "19:668",
+            "name": "Shadow/md",
+            "type": "TEXT",
+            "size": { "width": 400, "height": 20 },
+            "position": { "x": 64, "y": 550 }
+          },
+          {
+            "id": "19:670",
+            "parentId": "19:668",
+            "name": "이펙트 스타일입니다. 그림자를 직접 그리지 마세요.",
+            "type": "TEXT",
+            "size": { "width": 620, "height": 20 },
+            "position": { "x": 596, "y": 550 }
+          },
+          {
+            "id": "19:672",
+            "parentId": "19:671",
+            "name": "Shadow/md",
+            "type": "FRAME",
+            "size": { "width": 214, "height": 136 },
+            "position": { "x": 64, "y": 610 }
+          },
+          {
+            "id": "19:679",
+            "parentId": "19:678",
+            "name": "Shadow/sm",
+            "type": "TEXT",
+            "size": { "width": 400, "height": 20 },
+            "position": { "x": 64, "y": 811 }
+          },
+          {
+            "id": "19:680",
+            "parentId": "19:678",
+            "name": "이펙트 스타일입니다. 그림자를 직접 그리지 마세요.",
+            "type": "TEXT",
+            "size": { "width": 620, "height": 20 },
+            "position": { "x": 596, "y": 811 }
+          },
+          {
+            "id": "19:682",
+            "parentId": "19:681",
+            "name": "Shadow/sm",
+            "type": "FRAME",
+            "size": { "width": 214, "height": 136 },
+            "position": { "x": 64, "y": 871 }
+          },
+          {
+            "id": "19:663",
+            "parentId": "19:662",
+            "name": "Swatch · Shadow/lg",
+            "type": "FRAME",
+            "size": { "width": 190, "height": 56 },
+            "position": { "x": 77, "y": 362 }
+          },
+          {
+            "id": "19:665",
+            "parentId": "19:662",
+            "name": "Shadow/lg",
+            "type": "TEXT",
+            "size": { "width": 190, "height": 20 },
+            "position": { "x": 77, "y": 426 }
+          },
+          {
+            "id": "19:666",
+            "parentId": "19:662",
+            "name": "y8 · blur 24",
+            "type": "TEXT",
+            "size": { "width": 190, "height": 20 },
+            "position": { "x": 77, "y": 454 }
+          },
+          {
+            "id": "19:673",
+            "parentId": "19:672",
+            "name": "Swatch · Shadow/md",
+            "type": "FRAME",
+            "size": { "width": 190, "height": 56 },
+            "position": { "x": 77, "y": 623 }
+          },
+          {
+            "id": "19:675",
+            "parentId": "19:672",
+            "name": "Shadow/md",
+            "type": "TEXT",
+            "size": { "width": 190, "height": 20 },
+            "position": { "x": 77, "y": 687 }
+          },
+          {
+            "id": "19:676",
+            "parentId": "19:672",
+            "name": "y4 · blur 12",
+            "type": "TEXT",
+            "size": { "width": 190, "height": 20 },
+            "position": { "x": 77, "y": 715 }
+          },
+          {
+            "id": "19:683",
+            "parentId": "19:682",
+            "name": "Swatch · Shadow/sm",
+            "type": "FRAME",
+            "size": { "width": 190, "height": 56 },
+            "position": { "x": 77, "y": 884 }
+          },
+          {
+            "id": "19:685",
+            "parentId": "19:682",
+            "name": "Shadow/sm",
+            "type": "TEXT",
+            "size": { "width": 190, "height": 20 },
+            "position": { "x": 77, "y": 948 }
+          },
+          {
+            "id": "19:686",
+            "parentId": "19:682",
+            "name": "y1 · blur 2",
+            "type": "TEXT",
+            "size": { "width": 190, "height": 20 },
+            "position": { "x": 77, "y": 976 }
+          },
+          {
+            "id": "19:664",
+            "parentId": "19:663",
+            "name": "Card · Shadow/lg",
+            "type": "RECTANGLE",
+            "size": { "width": 158, "height": 40 },
+            "position": { "x": 93, "y": 370 }
+          },
+          {
+            "id": "19:674",
+            "parentId": "19:673",
+            "name": "Card · Shadow/md",
+            "type": "RECTANGLE",
+            "size": { "width": 158, "height": 40 },
+            "position": { "x": 93, "y": 631 }
+          },
+          {
+            "id": "19:684",
+            "parentId": "19:683",
+            "name": "Card · Shadow/sm",
+            "type": "RECTANGLE",
+            "size": { "width": 158, "height": 40 },
+            "position": { "x": 93, "y": 892 }
+          }
+        ]
+      }
+    ]
+  }
+}

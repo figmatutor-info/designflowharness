@@ -149,11 +149,19 @@ function componentNameOf(node) {
   return base.split(/[/·,]/)[0].trim();
 }
 
-function isExempt(node) {
+function isExempt(node, frame) {
   const name = String(node.name || "");
   if (BUILTIN_EXEMPT.test(name)) return "하네스 기본 면제";
-  const decl = heightDecl.get(componentNameOf(node));
-  if (decl === "fixed") return "design-rules 가 fixed 로 선언";
+  if (heightDecl.get(componentNameOf(node)) === "fixed")
+    return "design-rules 가 fixed 로 선언";
+  // 컴포넌트 세트 안의 variant 는 이름이 "Variant=primary, Size=sm, …" 라 컴포넌트명이 안 나온다.
+  // 세트 직속(parentId 없음)이면 세트(프레임) 이름으로 선언을 찾는다.
+  if (
+    frame &&
+    node.parentId == null &&
+    heightDecl.get(componentNameOf(frame)) === "fixed"
+  )
+    return "design-rules 가 fixed 로 선언 (컴포넌트 세트)";
   return null;
 }
 
@@ -195,7 +203,7 @@ for (const page of snap.pages || []) {
         node.layout.layoutMode !== "NONE" &&
         node.layout.vSizing === "FIXED"
       ) {
-        const exempt = isExempt(node);
+        const exempt = isExempt(node, frame);
         if (!exempt) {
           findings.push({
             rule: "fixed-height",
@@ -215,7 +223,7 @@ for (const page of snap.pages || []) {
         node.layout &&
         node.layout.layoutMode === "NONE" &&
         nodes.some((n) => n.parentId === node.id) &&
-        !isExempt(node)
+        !isExempt(node, frame)
       ) {
         findings.push({
           rule: "no-auto-layout",

@@ -1,0 +1,677 @@
+{
+  "schema_version": 4,
+  "file_key": "9mSXSf3cI36nDWiyolGXja",
+  "snapshot_date": "2026-09-18T05:42:30.152Z",
+  "frame_range": { "from": 4, "to": 5, "total_frames": 6 },
+  "page": {
+    "name": "01 Tokens",
+    "profile": "docs",
+    "frames": [
+      {
+        "name": "Token Documentation — Typography",
+        "width": 1280,
+        "height": 2083,
+        "layout": {
+          "layoutMode": "NONE",
+          "layoutSizingHorizontal": "FIXED",
+          "layoutSizingVertical": "FIXED",
+          "primaryAxisSizingMode": null,
+          "counterAxisSizingMode": null,
+          "vSizing": "FIXED"
+        },
+        "padding": null,
+        "truncated": false,
+        "nodes": [
+          {
+            "id": "19:569",
+            "parentId": null,
+            "name": "_Status",
+            "type": "FRAME",
+            "size": { "width": 1280, "height": 64 },
+            "position": { "x": 0, "y": 0 }
+          },
+          {
+            "id": "19:572",
+            "parentId": null,
+            "name": "Title",
+            "type": "FRAME",
+            "size": { "width": 1280, "height": 192 },
+            "position": { "x": 0, "y": 64 }
+          },
+          {
+            "id": "19:575",
+            "parentId": null,
+            "name": "Section · Text/body",
+            "type": "FRAME",
+            "size": { "width": 1280, "height": 261 },
+            "position": { "x": 0, "y": 256 }
+          },
+          {
+            "id": "19:590",
+            "parentId": null,
+            "name": "Section · Text/caption",
+            "type": "FRAME",
+            "size": { "width": 1280, "height": 261 },
+            "position": { "x": 0, "y": 517 }
+          },
+          {
+            "id": "19:600",
+            "parentId": null,
+            "name": "Section · Text/display",
+            "type": "FRAME",
+            "size": { "width": 1280, "height": 261 },
+            "position": { "x": 0, "y": 778 }
+          },
+          {
+            "id": "19:610",
+            "parentId": null,
+            "name": "Section · Text/h1",
+            "type": "FRAME",
+            "size": { "width": 1280, "height": 261 },
+            "position": { "x": 0, "y": 1039 }
+          },
+          {
+            "id": "19:620",
+            "parentId": null,
+            "name": "Section · Text/h2",
+            "type": "FRAME",
+            "size": { "width": 1280, "height": 261 },
+            "position": { "x": 0, "y": 1300 }
+          },
+          {
+            "id": "19:630",
+            "parentId": null,
+            "name": "Section · Text/h3",
+            "type": "FRAME",
+            "size": { "width": 1280, "height": 261 },
+            "position": { "x": 0, "y": 1561 }
+          },
+          {
+            "id": "19:640",
+            "parentId": null,
+            "name": "Section · Text/label",
+            "type": "FRAME",
+            "size": { "width": 1280, "height": 261 },
+            "position": { "x": 0, "y": 1822 }
+          },
+          {
+            "id": "19:570",
+            "parentId": "19:569",
+            "name": "DESIGN SYSTEM",
+            "type": "TEXT",
+            "size": { "width": 400, "height": 20 },
+            "position": { "x": 32, "y": 24 }
+          },
+          {
+            "id": "19:571",
+            "parentId": "19:569",
+            "name": "SEP 18, 2026",
+            "type": "TEXT",
+            "size": { "width": 200, "height": 20 },
+            "position": { "x": 1048, "y": 24 }
+          },
+          {
+            "id": "19:573",
+            "parentId": "19:572",
+            "name": "Typography",
+            "type": "TEXT",
+            "size": { "width": 1152, "height": 20 },
+            "position": { "x": 64, "y": 120 }
+          },
+          {
+            "id": "19:574",
+            "parentId": "19:572",
+            "name": "role 기반 텍스트 스타일입니다. 화면에서는 크기를 직접 지정하지 않고 이 스타일을 씁니다.",
+            "type": "TEXT",
+            "size": { "width": 760, "height": 20 },
+            "position": { "x": 64, "y": 179 }
+          },
+          {
+            "id": "19:576",
+            "parentId": "19:575",
+            "name": "Section Header",
+            "type": "FRAME",
+            "size": { "width": 1152, "height": 40 },
+            "position": { "x": 64, "y": 289 }
+          },
+          {
+            "id": "19:579",
+            "parentId": "19:575",
+            "name": "Token Grid",
+            "type": "FRAME",
+            "size": { "width": 1152, "height": 136 },
+            "position": { "x": 64, "y": 349 }
+          },
+          {
+            "id": "19:591",
+            "parentId": "19:590",
+            "name": "Section Header",
+            "type": "FRAME",
+            "size": { "width": 1152, "height": 40 },
+            "position": { "x": 64, "y": 550 }
+          },
+          {
+            "id": "19:594",
+            "parentId": "19:590",
+            "name": "Token Grid",
+            "type": "FRAME",
+            "size": { "width": 1152, "height": 136 },
+            "position": { "x": 64, "y": 610 }
+          },
+          {
+            "id": "19:601",
+            "parentId": "19:600",
+            "name": "Section Header",
+            "type": "FRAME",
+            "size": { "width": 1152, "height": 40 },
+            "position": { "x": 64, "y": 811 }
+          },
+          {
+            "id": "19:604",
+            "parentId": "19:600",
+            "name": "Token Grid",
+            "type": "FRAME",
+            "size": { "width": 1152, "height": 136 },
+            "position": { "x": 64, "y": 871 }
+          },
+          {
+            "id": "19:611",
+            "parentId": "19:610",
+            "name": "Section Header",
+            "type": "FRAME",
+            "size": { "width": 1152, "height": 40 },
+            "position": { "x": 64, "y": 1072 }
+          },
+          {
+            "id": "19:614",
+            "parentId": "19:610",
+            "name": "Token Grid",
+            "type": "FRAME",
+            "size": { "width": 1152, "height": 136 },
+            "position": { "x": 64, "y": 1132 }
+          },
+          {
+            "id": "19:621",
+            "parentId": "19:620",
+            "name": "Section Header",
+            "type": "FRAME",
+            "size": { "width": 1152, "height": 40 },
+            "position": { "x": 64, "y": 1333 }
+          },
+          {
+            "id": "19:624",
+            "parentId": "19:620",
+            "name": "Token Grid",
+            "type": "FRAME",
+            "size": { "width": 1152, "height": 136 },
+            "position": { "x": 64, "y": 1393 }
+          },
+          {
+            "id": "19:631",
+            "parentId": "19:630",
+            "name": "Section Header",
+            "type": "FRAME",
+            "size": { "width": 1152, "height": 40 },
+            "position": { "x": 64, "y": 1594 }
+          },
+          {
+            "id": "19:634",
+            "parentId": "19:630",
+            "name": "Token Grid",
+            "type": "FRAME",
+            "size": { "width": 1152, "height": 136 },
+            "position": { "x": 64, "y": 1654 }
+          },
+          {
+            "id": "19:641",
+            "parentId": "19:640",
+            "name": "Section Header",
+            "type": "FRAME",
+            "size": { "width": 1152, "height": 40 },
+            "position": { "x": 64, "y": 1855 }
+          },
+          {
+            "id": "19:644",
+            "parentId": "19:640",
+            "name": "Token Grid",
+            "type": "FRAME",
+            "size": { "width": 1152, "height": 136 },
+            "position": { "x": 64, "y": 1915 }
+          },
+          {
+            "id": "19:577",
+            "parentId": "19:576",
+            "name": "Text/body",
+            "type": "TEXT",
+            "size": { "width": 400, "height": 20 },
+            "position": { "x": 64, "y": 289 }
+          },
+          {
+            "id": "19:578",
+            "parentId": "19:576",
+            "name": "role 기반 텍스트 스타일입니다. 크기를 직접 쓰지 마세요.",
+            "type": "TEXT",
+            "size": { "width": 620, "height": 20 },
+            "position": { "x": 596, "y": 289 }
+          },
+          {
+            "id": "19:580",
+            "parentId": "19:579",
+            "name": "Text/body",
+            "type": "FRAME",
+            "size": { "width": 214, "height": 136 },
+            "position": { "x": 64, "y": 349 }
+          },
+          {
+            "id": "19:585",
+            "parentId": "19:579",
+            "name": "Text/body-sm",
+            "type": "FRAME",
+            "size": { "width": 214, "height": 136 },
+            "position": { "x": 294, "y": 349 }
+          },
+          {
+            "id": "19:592",
+            "parentId": "19:591",
+            "name": "Text/caption",
+            "type": "TEXT",
+            "size": { "width": 400, "height": 20 },
+            "position": { "x": 64, "y": 550 }
+          },
+          {
+            "id": "19:593",
+            "parentId": "19:591",
+            "name": "role 기반 텍스트 스타일입니다. 크기를 직접 쓰지 마세요.",
+            "type": "TEXT",
+            "size": { "width": 620, "height": 20 },
+            "position": { "x": 596, "y": 550 }
+          },
+          {
+            "id": "19:595",
+            "parentId": "19:594",
+            "name": "Text/caption",
+            "type": "FRAME",
+            "size": { "width": 214, "height": 136 },
+            "position": { "x": 64, "y": 610 }
+          },
+          {
+            "id": "19:602",
+            "parentId": "19:601",
+            "name": "Text/display",
+            "type": "TEXT",
+            "size": { "width": 400, "height": 20 },
+            "position": { "x": 64, "y": 811 }
+          },
+          {
+            "id": "19:603",
+            "parentId": "19:601",
+            "name": "role 기반 텍스트 스타일입니다. 크기를 직접 쓰지 마세요.",
+            "type": "TEXT",
+            "size": { "width": 620, "height": 20 },
+            "position": { "x": 596, "y": 811 }
+          },
+          {
+            "id": "19:605",
+            "parentId": "19:604",
+            "name": "Text/display",
+            "type": "FRAME",
+            "size": { "width": 214, "height": 136 },
+            "position": { "x": 64, "y": 871 }
+          },
+          {
+            "id": "19:612",
+            "parentId": "19:611",
+            "name": "Text/h1",
+            "type": "TEXT",
+            "size": { "width": 400, "height": 20 },
+            "position": { "x": 64, "y": 1072 }
+          },
+          {
+            "id": "19:613",
+            "parentId": "19:611",
+            "name": "role 기반 텍스트 스타일입니다. 크기를 직접 쓰지 마세요.",
+            "type": "TEXT",
+            "size": { "width": 620, "height": 20 },
+            "position": { "x": 596, "y": 1072 }
+          },
+          {
+            "id": "19:615",
+            "parentId": "19:614",
+            "name": "Text/h1",
+            "type": "FRAME",
+            "size": { "width": 214, "height": 136 },
+            "position": { "x": 64, "y": 1132 }
+          },
+          {
+            "id": "19:622",
+            "parentId": "19:621",
+            "name": "Text/h2",
+            "type": "TEXT",
+            "size": { "width": 400, "height": 20 },
+            "position": { "x": 64, "y": 1333 }
+          },
+          {
+            "id": "19:623",
+            "parentId": "19:621",
+            "name": "role 기반 텍스트 스타일입니다. 크기를 직접 쓰지 마세요.",
+            "type": "TEXT",
+            "size": { "width": 620, "height": 20 },
+            "position": { "x": 596, "y": 1333 }
+          },
+          {
+            "id": "19:625",
+            "parentId": "19:624",
+            "name": "Text/h2",
+            "type": "FRAME",
+            "size": { "width": 214, "height": 136 },
+            "position": { "x": 64, "y": 1393 }
+          },
+          {
+            "id": "19:632",
+            "parentId": "19:631",
+            "name": "Text/h3",
+            "type": "TEXT",
+            "size": { "width": 400, "height": 20 },
+            "position": { "x": 64, "y": 1594 }
+          },
+          {
+            "id": "19:633",
+            "parentId": "19:631",
+            "name": "role 기반 텍스트 스타일입니다. 크기를 직접 쓰지 마세요.",
+            "type": "TEXT",
+            "size": { "width": 620, "height": 20 },
+            "position": { "x": 596, "y": 1594 }
+          },
+          {
+            "id": "19:635",
+            "parentId": "19:634",
+            "name": "Text/h3",
+            "type": "FRAME",
+            "size": { "width": 214, "height": 136 },
+            "position": { "x": 64, "y": 1654 }
+          },
+          {
+            "id": "19:642",
+            "parentId": "19:641",
+            "name": "Text/label",
+            "type": "TEXT",
+            "size": { "width": 400, "height": 20 },
+            "position": { "x": 64, "y": 1855 }
+          },
+          {
+            "id": "19:643",
+            "parentId": "19:641",
+            "name": "role 기반 텍스트 스타일입니다. 크기를 직접 쓰지 마세요.",
+            "type": "TEXT",
+            "size": { "width": 620, "height": 20 },
+            "position": { "x": 596, "y": 1855 }
+          },
+          {
+            "id": "19:645",
+            "parentId": "19:644",
+            "name": "Text/label",
+            "type": "FRAME",
+            "size": { "width": 214, "height": 136 },
+            "position": { "x": 64, "y": 1915 }
+          },
+          {
+            "id": "19:581",
+            "parentId": "19:580",
+            "name": "Swatch · Text/body",
+            "type": "FRAME",
+            "size": { "width": 190, "height": 56 },
+            "position": { "x": 77, "y": 362 }
+          },
+          {
+            "id": "19:583",
+            "parentId": "19:580",
+            "name": "Text/body",
+            "type": "TEXT",
+            "size": { "width": 190, "height": 20 },
+            "position": { "x": 77, "y": 426 }
+          },
+          {
+            "id": "19:584",
+            "parentId": "19:580",
+            "name": "15 / Regular",
+            "type": "TEXT",
+            "size": { "width": 190, "height": 20 },
+            "position": { "x": 77, "y": 454 }
+          },
+          {
+            "id": "19:586",
+            "parentId": "19:585",
+            "name": "Swatch · Text/body-sm",
+            "type": "FRAME",
+            "size": { "width": 190, "height": 56 },
+            "position": { "x": 307, "y": 362 }
+          },
+          {
+            "id": "19:588",
+            "parentId": "19:585",
+            "name": "Text/body-sm",
+            "type": "TEXT",
+            "size": { "width": 190, "height": 20 },
+            "position": { "x": 307, "y": 426 }
+          },
+          {
+            "id": "19:589",
+            "parentId": "19:585",
+            "name": "14 / Regular",
+            "type": "TEXT",
+            "size": { "width": 190, "height": 20 },
+            "position": { "x": 307, "y": 454 }
+          },
+          {
+            "id": "19:596",
+            "parentId": "19:595",
+            "name": "Swatch · Text/caption",
+            "type": "FRAME",
+            "size": { "width": 190, "height": 56 },
+            "position": { "x": 77, "y": 623 }
+          },
+          {
+            "id": "19:598",
+            "parentId": "19:595",
+            "name": "Text/caption",
+            "type": "TEXT",
+            "size": { "width": 190, "height": 20 },
+            "position": { "x": 77, "y": 687 }
+          },
+          {
+            "id": "19:599",
+            "parentId": "19:595",
+            "name": "12 / Regular",
+            "type": "TEXT",
+            "size": { "width": 190, "height": 20 },
+            "position": { "x": 77, "y": 715 }
+          },
+          {
+            "id": "19:606",
+            "parentId": "19:605",
+            "name": "Swatch · Text/display",
+            "type": "FRAME",
+            "size": { "width": 190, "height": 56 },
+            "position": { "x": 77, "y": 884 }
+          },
+          {
+            "id": "19:608",
+            "parentId": "19:605",
+            "name": "Text/display",
+            "type": "TEXT",
+            "size": { "width": 190, "height": 20 },
+            "position": { "x": 77, "y": 948 }
+          },
+          {
+            "id": "19:609",
+            "parentId": "19:605",
+            "name": "28 / Bold",
+            "type": "TEXT",
+            "size": { "width": 190, "height": 20 },
+            "position": { "x": 77, "y": 976 }
+          },
+          {
+            "id": "19:616",
+            "parentId": "19:615",
+            "name": "Swatch · Text/h1",
+            "type": "FRAME",
+            "size": { "width": 190, "height": 56 },
+            "position": { "x": 77, "y": 1145 }
+          },
+          {
+            "id": "19:618",
+            "parentId": "19:615",
+            "name": "Text/h1",
+            "type": "TEXT",
+            "size": { "width": 190, "height": 20 },
+            "position": { "x": 77, "y": 1209 }
+          },
+          {
+            "id": "19:619",
+            "parentId": "19:615",
+            "name": "24 / SemiBold",
+            "type": "TEXT",
+            "size": { "width": 190, "height": 20 },
+            "position": { "x": 77, "y": 1237 }
+          },
+          {
+            "id": "19:626",
+            "parentId": "19:625",
+            "name": "Swatch · Text/h2",
+            "type": "FRAME",
+            "size": { "width": 190, "height": 56 },
+            "position": { "x": 77, "y": 1406 }
+          },
+          {
+            "id": "19:628",
+            "parentId": "19:625",
+            "name": "Text/h2",
+            "type": "TEXT",
+            "size": { "width": 190, "height": 20 },
+            "position": { "x": 77, "y": 1470 }
+          },
+          {
+            "id": "19:629",
+            "parentId": "19:625",
+            "name": "20 / SemiBold",
+            "type": "TEXT",
+            "size": { "width": 190, "height": 20 },
+            "position": { "x": 77, "y": 1498 }
+          },
+          {
+            "id": "19:636",
+            "parentId": "19:635",
+            "name": "Swatch · Text/h3",
+            "type": "FRAME",
+            "size": { "width": 190, "height": 56 },
+            "position": { "x": 77, "y": 1667 }
+          },
+          {
+            "id": "19:638",
+            "parentId": "19:635",
+            "name": "Text/h3",
+            "type": "TEXT",
+            "size": { "width": 190, "height": 20 },
+            "position": { "x": 77, "y": 1731 }
+          },
+          {
+            "id": "19:639",
+            "parentId": "19:635",
+            "name": "17 / SemiBold",
+            "type": "TEXT",
+            "size": { "width": 190, "height": 20 },
+            "position": { "x": 77, "y": 1759 }
+          },
+          {
+            "id": "19:646",
+            "parentId": "19:645",
+            "name": "Swatch · Text/label",
+            "type": "FRAME",
+            "size": { "width": 190, "height": 56 },
+            "position": { "x": 77, "y": 1928 }
+          },
+          {
+            "id": "19:648",
+            "parentId": "19:645",
+            "name": "Text/label",
+            "type": "TEXT",
+            "size": { "width": 190, "height": 20 },
+            "position": { "x": 77, "y": 1992 }
+          },
+          {
+            "id": "19:649",
+            "parentId": "19:645",
+            "name": "13 / Medium",
+            "type": "TEXT",
+            "size": { "width": 190, "height": 20 },
+            "position": { "x": 77, "y": 2020 }
+          },
+          {
+            "id": "19:582",
+            "parentId": "19:581",
+            "name": "Sample · Text/body",
+            "type": "TEXT",
+            "size": { "width": 190, "height": 56 },
+            "position": { "x": 77, "y": 362 }
+          },
+          {
+            "id": "19:587",
+            "parentId": "19:586",
+            "name": "Sample · Text/body-sm",
+            "type": "TEXT",
+            "size": { "width": 190, "height": 56 },
+            "position": { "x": 307, "y": 362 }
+          },
+          {
+            "id": "19:597",
+            "parentId": "19:596",
+            "name": "Sample · Text/caption",
+            "type": "TEXT",
+            "size": { "width": 190, "height": 56 },
+            "position": { "x": 77, "y": 623 }
+          },
+          {
+            "id": "19:607",
+            "parentId": "19:606",
+            "name": "Sample · Text/display",
+            "type": "TEXT",
+            "size": { "width": 190, "height": 56 },
+            "position": { "x": 77, "y": 884 }
+          },
+          {
+            "id": "19:617",
+            "parentId": "19:616",
+            "name": "Sample · Text/h1",
+            "type": "TEXT",
+            "size": { "width": 190, "height": 56 },
+            "position": { "x": 77, "y": 1145 }
+          },
+          {
+            "id": "19:627",
+            "parentId": "19:626",
+            "name": "Sample · Text/h2",
+            "type": "TEXT",
+            "size": { "width": 190, "height": 56 },
+            "position": { "x": 77, "y": 1406 }
+          },
+          {
+            "id": "19:637",
+            "parentId": "19:636",
+            "name": "Sample · Text/h3",
+            "type": "TEXT",
+            "size": { "width": 190, "height": 56 },
+            "position": { "x": 77, "y": 1667 }
+          },
+          {
+            "id": "19:647",
+            "parentId": "19:646",
+            "name": "Sample · Text/label",
+            "type": "TEXT",
+            "size": { "width": 190, "height": 56 },
+            "position": { "x": 77, "y": 1928 }
+          }
+        ]
+      }
+    ]
+  }
+}

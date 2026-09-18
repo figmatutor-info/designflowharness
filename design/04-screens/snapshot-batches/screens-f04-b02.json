@@ -1,0 +1,497 @@
+{
+  "schema_version": 4,
+  "file_key": "9mSXSf3cI36nDWiyolGXja",
+  "snapshot_date": "2026-09-18T07:13:33.077Z",
+  "frame_range": { "from": 4, "to": 5, "total_frames": 5 },
+  "page": {
+    "name": "03 Screens",
+    "profile": "full",
+    "frames": [
+      {
+        "name": "DeviceFrame · 05 Huddling Pick",
+        "width": 390,
+        "height": 844,
+        "layout": {
+          "layoutMode": "NONE",
+          "layoutSizingHorizontal": "FIXED",
+          "layoutSizingVertical": "FIXED",
+          "primaryAxisSizingMode": null,
+          "counterAxisSizingMode": null,
+          "vSizing": "FIXED"
+        },
+        "padding": null,
+        "truncated": false,
+        "nodes": [
+          {
+            "id": "79:254",
+            "parentId": "79:253",
+            "name": "Tab",
+            "type": "INSTANCE",
+            "size": { "width": 34, "height": 36 },
+            "position": { "x": 16, "y": 164 },
+            "layout": {
+              "layoutMode": "VERTICAL",
+              "layoutSizingHorizontal": "HUG",
+              "layoutSizingVertical": "FIXED",
+              "primaryAxisSizingMode": "FIXED",
+              "counterAxisSizingMode": "AUTO",
+              "vSizing": "FIXED"
+            },
+            "padding": { "top": 0, "right": 0, "bottom": 0, "left": 0 },
+            "itemSpacing": 4,
+            "isTapTarget": true,
+            "isInstance": true,
+            "mainComponent": "State=active"
+          },
+          {
+            "id": "79:257",
+            "parentId": "79:253",
+            "name": "Tab",
+            "type": "INSTANCE",
+            "size": { "width": 34, "height": 36 },
+            "position": { "x": 58, "y": 164 },
+            "layout": {
+              "layoutMode": "VERTICAL",
+              "layoutSizingHorizontal": "HUG",
+              "layoutSizingVertical": "FIXED",
+              "primaryAxisSizingMode": "FIXED",
+              "counterAxisSizingMode": "AUTO",
+              "vSizing": "FIXED"
+            },
+            "padding": { "top": 0, "right": 0, "bottom": 0, "left": 0 },
+            "itemSpacing": 4,
+            "isTapTarget": true,
+            "isInstance": true,
+            "mainComponent": "State=inactive"
+          },
+          {
+            "id": "79:260",
+            "parentId": "79:253",
+            "name": "Tab",
+            "type": "INSTANCE",
+            "size": { "width": 34, "height": 36 },
+            "position": { "x": 100, "y": 164 },
+            "layout": {
+              "layoutMode": "VERTICAL",
+              "layoutSizingHorizontal": "HUG",
+              "layoutSizingVertical": "FIXED",
+              "primaryAxisSizingMode": "FIXED",
+              "counterAxisSizingMode": "AUTO",
+              "vSizing": "FIXED"
+            },
+            "padding": { "top": 0, "right": 0, "bottom": 0, "left": 0 },
+            "itemSpacing": 4,
+            "isTapTarget": true,
+            "isInstance": true,
+            "mainComponent": "State=inactive"
+          },
+          {
+            "id": "79:264",
+            "parentId": "79:263",
+            "name": "PickCard",
+            "type": "INSTANCE",
+            "size": { "width": 171, "height": 319 },
+            "position": { "x": 16, "y": 212 },
+            "layout": {
+              "layoutMode": "VERTICAL",
+              "layoutSizingHorizontal": "FIXED",
+              "layoutSizingVertical": "HUG",
+              "primaryAxisSizingMode": "AUTO",
+              "counterAxisSizingMode": "FIXED",
+              "vSizing": "HUG"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": "#FFFFFF",
+                "boundVariable": "color-bg",
+                "boundVariableCollection": "semantic"
+              }
+            ],
+            "padding": { "top": 16, "right": 16, "bottom": 16, "left": 16 },
+            "itemSpacing": 8,
+            "isInstance": true,
+            "mainComponent": "PickCard"
+          },
+          {
+            "id": "79:272",
+            "parentId": "79:263",
+            "name": "PickCard",
+            "type": "INSTANCE",
+            "size": { "width": 171, "height": 319 },
+            "position": { "x": 199, "y": 212 },
+            "layout": {
+              "layoutMode": "VERTICAL",
+              "layoutSizingHorizontal": "FIXED",
+              "layoutSizingVertical": "HUG",
+              "primaryAxisSizingMode": "AUTO",
+              "counterAxisSizingMode": "FIXED",
+              "vSizing": "HUG"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": "#FFFFFF",
+                "boundVariable": "color-bg",
+                "boundVariableCollection": "semantic"
+              }
+            ],
+            "padding": { "top": 16, "right": 16, "bottom": 16, "left": 16 },
+            "itemSpacing": 8,
+            "isInstance": true,
+            "mainComponent": "PickCard"
+          },
+          {
+            "id": "I79:280;36:121",
+            "parentId": "79:280",
+            "name": "Thumb",
+            "type": "RECTANGLE",
+            "size": { "width": 44, "height": 44 },
+            "position": { "x": 16, "y": 543 },
+            "layout": {
+              "layoutMode": "NONE",
+              "layoutSizingHorizontal": "FIXED",
+              "layoutSizingVertical": "FIXED",
+              "primaryAxisSizingMode": null,
+              "counterAxisSizingMode": null,
+              "vSizing": "FIXED"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": "#D6ECFF",
+                "boundVariable": "color-image-slot-bg",
+                "boundVariableCollection": "semantic"
+              },
+              {
+                "type": "IMAGE",
+                "color": null,
+                "boundVariable": null,
+                "boundVariableCollection": null
+              }
+            ]
+          },
+          {
+            "id": "I79:280;36:122",
+            "parentId": "79:280",
+            "name": "TextCol",
+            "type": "FRAME",
+            "size": { "width": 302, "height": 34 },
+            "position": { "x": 72, "y": 548 },
+            "layout": {
+              "layoutMode": "VERTICAL",
+              "layoutSizingHorizontal": "FILL",
+              "layoutSizingVertical": "HUG",
+              "primaryAxisSizingMode": "AUTO",
+              "counterAxisSizingMode": "FIXED",
+              "vSizing": "HUG"
+            },
+            "padding": { "top": 0, "right": 0, "bottom": 0, "left": 0 },
+            "itemSpacing": 2
+          },
+          {
+            "id": "I79:285;58:19",
+            "parentId": "I79:285;37:49",
+            "name": "Icon/home",
+            "type": "INSTANCE",
+            "size": { "width": 24, "height": 24 },
+            "position": { "x": 16, "y": 764 },
+            "layout": {
+              "layoutMode": "NONE",
+              "layoutSizingHorizontal": "FIXED",
+              "layoutSizingVertical": "FIXED",
+              "primaryAxisSizingMode": null,
+              "counterAxisSizingMode": null,
+              "vSizing": "FIXED"
+            },
+            "isInstance": true,
+            "mainComponent": "Size=lg"
+          },
+          {
+            "id": "I79:285;37:50",
+            "parentId": "I79:285;37:49",
+            "name": "홈",
+            "type": "TEXT",
+            "size": { "width": 12, "height": 16 },
+            "position": { "x": 22, "y": 792 },
+            "layout": {
+              "layoutMode": "NONE",
+              "layoutSizingHorizontal": "HUG",
+              "layoutSizingVertical": "HUG",
+              "primaryAxisSizingMode": null,
+              "counterAxisSizingMode": null,
+              "vSizing": "HUG"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": "#6B7280",
+                "boundVariable": "color-text-muted",
+                "boundVariableCollection": "semantic"
+              }
+            ],
+            "textStyle": "Text/label",
+            "textAutoResize": "WIDTH_AND_HEIGHT"
+          },
+          {
+            "id": "I79:285;58:22",
+            "parentId": "I79:285;37:51",
+            "name": "Icon/book-open",
+            "type": "INSTANCE",
+            "size": { "width": 24, "height": 24 },
+            "position": { "x": 124, "y": 764 },
+            "layout": {
+              "layoutMode": "NONE",
+              "layoutSizingHorizontal": "FIXED",
+              "layoutSizingVertical": "FIXED",
+              "primaryAxisSizingMode": null,
+              "counterAxisSizingMode": null,
+              "vSizing": "FIXED"
+            },
+            "isInstance": true,
+            "mainComponent": "Size=lg"
+          },
+          {
+            "id": "I79:285;37:52",
+            "parentId": "I79:285;37:51",
+            "name": "스킬 라이브러리",
+            "type": "TEXT",
+            "size": { "width": 82, "height": 16 },
+            "position": { "x": 95, "y": 792 },
+            "layout": {
+              "layoutMode": "NONE",
+              "layoutSizingHorizontal": "HUG",
+              "layoutSizingVertical": "HUG",
+              "primaryAxisSizingMode": null,
+              "counterAxisSizingMode": null,
+              "vSizing": "HUG"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": "#6B7280",
+                "boundVariable": "color-text-muted",
+                "boundVariableCollection": "semantic"
+              }
+            ],
+            "textStyle": "Text/label",
+            "textAutoResize": "WIDTH_AND_HEIGHT"
+          },
+          {
+            "id": "I79:285;58:25",
+            "parentId": "I79:285;37:53",
+            "name": "Icon/archive",
+            "type": "INSTANCE",
+            "size": { "width": 24, "height": 24 },
+            "position": { "x": 239, "y": 764 },
+            "layout": {
+              "layoutMode": "NONE",
+              "layoutSizingHorizontal": "FIXED",
+              "layoutSizingVertical": "FIXED",
+              "primaryAxisSizingMode": null,
+              "counterAxisSizingMode": null,
+              "vSizing": "FIXED"
+            },
+            "isInstance": true,
+            "mainComponent": "Size=lg"
+          },
+          {
+            "id": "I79:285;37:54",
+            "parentId": "I79:285;37:53",
+            "name": "내 자산",
+            "type": "TEXT",
+            "size": { "width": 37, "height": 16 },
+            "position": { "x": 233, "y": 792 },
+            "layout": {
+              "layoutMode": "NONE",
+              "layoutSizingHorizontal": "HUG",
+              "layoutSizingVertical": "HUG",
+              "primaryAxisSizingMode": null,
+              "counterAxisSizingMode": null,
+              "vSizing": "HUG"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": "#6B7280",
+                "boundVariable": "color-text-muted",
+                "boundVariableCollection": "semantic"
+              }
+            ],
+            "textStyle": "Text/label",
+            "textAutoResize": "WIDTH_AND_HEIGHT"
+          },
+          {
+            "id": "I79:285;58:29",
+            "parentId": "I79:285;37:55",
+            "name": "Icon/star",
+            "type": "INSTANCE",
+            "size": { "width": 24, "height": 24 },
+            "position": { "x": 338, "y": 764 },
+            "layout": {
+              "layoutMode": "NONE",
+              "layoutSizingHorizontal": "FIXED",
+              "layoutSizingVertical": "FIXED",
+              "primaryAxisSizingMode": null,
+              "counterAxisSizingMode": null,
+              "vSizing": "FIXED"
+            },
+            "isInstance": true,
+            "mainComponent": "Size=lg"
+          },
+          {
+            "id": "I79:285;37:56",
+            "parentId": "I79:285;37:55",
+            "name": "허들링 픽",
+            "type": "TEXT",
+            "size": { "width": 49, "height": 16 },
+            "position": { "x": 325, "y": 792 },
+            "layout": {
+              "layoutMode": "NONE",
+              "layoutSizingHorizontal": "HUG",
+              "layoutSizingVertical": "HUG",
+              "primaryAxisSizingMode": null,
+              "counterAxisSizingMode": null,
+              "vSizing": "HUG"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": "#5B5FEF",
+                "boundVariable": "color-primary",
+                "boundVariableCollection": "semantic"
+              }
+            ],
+            "textStyle": "Text/label",
+            "textAutoResize": "WIDTH_AND_HEIGHT"
+          },
+          {
+            "id": "I79:235;58:16;57:89",
+            "parentId": "I79:235;58:16",
+            "name": "Vector",
+            "type": "VECTOR",
+            "size": { "width": 4, "height": 4 },
+            "position": { "x": 46, "y": 86 },
+            "layout": {
+              "layoutMode": "NONE",
+              "layoutSizingHorizontal": "FIXED",
+              "layoutSizingVertical": "FIXED",
+              "primaryAxisSizingMode": null,
+              "counterAxisSizingMode": null,
+              "vSizing": "FIXED"
+            },
+            "strokes": [
+              {
+                "type": "SOLID",
+                "color": "#6B7280",
+                "boundVariable": "color-text-muted",
+                "boundVariableCollection": "semantic"
+              }
+            ]
+          },
+          {
+            "id": "I79:235;58:16;57:90",
+            "parentId": "I79:235;58:16",
+            "name": "Vector",
+            "type": "VECTOR",
+            "size": { "width": 13, "height": 13 },
+            "position": { "x": 35, "y": 75 },
+            "layout": {
+              "layoutMode": "NONE",
+              "layoutSizingHorizontal": "FIXED",
+              "layoutSizingVertical": "FIXED",
+              "primaryAxisSizingMode": null,
+              "counterAxisSizingMode": null,
+              "vSizing": "FIXED"
+            },
+            "strokes": [
+              {
+                "type": "SOLID",
+                "color": "#111827",
+                "boundVariable": "color-text",
+                "boundVariableCollection": "semantic"
+              }
+            ]
+          },
+          {
+            "id": "I79:241;37:18",
+            "parentId": "79:241",
+            "name": "전체",
+            "type": "TEXT",
+            "size": { "width": 23, "height": 16 },
+            "position": { "x": 17, "y": 123 },
+            "layout": {
+              "layoutMode": "NONE",
+              "layoutSizingHorizontal": "HUG",
+              "layoutSizingVertical": "HUG",
+              "primaryAxisSizingMode": null,
+              "counterAxisSizingMode": null,
+              "vSizing": "HUG"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": "#111827",
+                "boundVariable": "color-text",
+                "boundVariableCollection": "semantic"
+              }
+            ],
+            "textStyle": "Text/label",
+            "textAutoResize": "WIDTH_AND_HEIGHT"
+          },
+          {
+            "id": "I79:241;37:19",
+            "parentId": "79:241",
+            "name": "Underline",
+            "type": "RECTANGLE",
+            "size": { "width": 24, "height": 2 },
+            "position": { "x": 16, "y": 143 },
+            "layout": {
+              "layoutMode": "NONE",
+              "layoutSizingHorizontal": "FIXED",
+              "layoutSizingVertical": "FIXED",
+              "primaryAxisSizingMode": null,
+              "counterAxisSizingMode": null,
+              "vSizing": "FIXED"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": "#5B5FEF",
+                "boundVariable": "color-primary",
+                "boundVariableCollection": "semantic"
+              }
+            ]
+          },
+          {
+            "id": "I79:244;37:21",
+            "parentId": "79:244",
+            "name": "전체",
+            "type": "TEXT",
+            "size": { "width": 34, "height": 16 },
+            "position": { "x": 48, "y": 123 },
+            "layout": {
+              "layoutMode": "NONE",
+              "layoutSizingHorizontal": "HUG",
+              "layoutSizingVertical": "HUG",
+              "primaryAxisSizingMode": null,
+              "counterAxisSizingMode": null,
+              "vSizing": "HUG"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": "#6B7280",
+                "boundVariable": "color-text-muted",
+                "boundVariableCollection": "semantic"
+              }
+            ],
+            "textStyle": "Text/label",
+            "textAutoResize": "WIDTH_AND_HEIGHT"
+          }
+        ],
+        "node_range": { "from": 20, "to": 40, "total_nodes": 75 }
+      }
+    ]
+  }
+}

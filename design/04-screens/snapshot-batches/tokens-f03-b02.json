@@ -1,0 +1,654 @@
+{
+  "schema_version": 4,
+  "file_key": "9mSXSf3cI36nDWiyolGXja",
+  "snapshot_date": "2026-09-18T05:49:50.194Z",
+  "frame_range": { "from": 3, "to": 4, "total_frames": 6 },
+  "page": {
+    "name": "01 Tokens",
+    "profile": "docs",
+    "frames": [
+      {
+        "name": "Token Documentation — Scale Semantic",
+        "width": 1280,
+        "height": 2235,
+        "layout": {
+          "layoutMode": "NONE",
+          "layoutSizingHorizontal": "FIXED",
+          "layoutSizingVertical": "FIXED",
+          "primaryAxisSizingMode": null,
+          "counterAxisSizingMode": null,
+          "vSizing": "FIXED"
+        },
+        "padding": null,
+        "truncated": false,
+        "nodes": [
+          {
+            "id": "19:447",
+            "parentId": "19:443",
+            "name": "→ space-1 · 4",
+            "type": "TEXT",
+            "size": { "width": 190, "height": 20 },
+            "position": { "x": 997, "y": 454 }
+          },
+          {
+            "id": "19:449",
+            "parentId": "19:448",
+            "name": "Swatch · space-tap-gap-min",
+            "type": "FRAME",
+            "size": { "width": 190, "height": 56 },
+            "position": { "x": 77, "y": 514 }
+          },
+          {
+            "id": "19:451",
+            "parentId": "19:448",
+            "name": "space-tap-gap-min",
+            "type": "TEXT",
+            "size": { "width": 190, "height": 20 },
+            "position": { "x": 77, "y": 578 }
+          },
+          {
+            "id": "19:452",
+            "parentId": "19:448",
+            "name": "→ space-2 · 8",
+            "type": "TEXT",
+            "size": { "width": 190, "height": 20 },
+            "position": { "x": 77, "y": 606 }
+          },
+          {
+            "id": "19:459",
+            "parentId": "19:458",
+            "name": "Swatch · radius-tag",
+            "type": "FRAME",
+            "size": { "width": 190, "height": 56 },
+            "position": { "x": 77, "y": 775 }
+          },
+          {
+            "id": "19:461",
+            "parentId": "19:458",
+            "name": "radius-tag",
+            "type": "TEXT",
+            "size": { "width": 190, "height": 20 },
+            "position": { "x": 77, "y": 839 }
+          },
+          {
+            "id": "19:462",
+            "parentId": "19:458",
+            "name": "→ radius-4 · 4",
+            "type": "TEXT",
+            "size": { "width": 190, "height": 20 },
+            "position": { "x": 77, "y": 867 }
+          },
+          {
+            "id": "19:464",
+            "parentId": "19:463",
+            "name": "Swatch · radius-button",
+            "type": "FRAME",
+            "size": { "width": 190, "height": 56 },
+            "position": { "x": 307, "y": 775 }
+          },
+          {
+            "id": "19:466",
+            "parentId": "19:463",
+            "name": "radius-button",
+            "type": "TEXT",
+            "size": { "width": 190, "height": 20 },
+            "position": { "x": 307, "y": 839 }
+          },
+          {
+            "id": "19:467",
+            "parentId": "19:463",
+            "name": "→ radius-8 · 8",
+            "type": "TEXT",
+            "size": { "width": 190, "height": 20 },
+            "position": { "x": 307, "y": 867 }
+          },
+          {
+            "id": "19:469",
+            "parentId": "19:468",
+            "name": "Swatch · radius-card",
+            "type": "FRAME",
+            "size": { "width": 190, "height": 56 },
+            "position": { "x": 537, "y": 775 }
+          },
+          {
+            "id": "19:471",
+            "parentId": "19:468",
+            "name": "radius-card",
+            "type": "TEXT",
+            "size": { "width": 190, "height": 20 },
+            "position": { "x": 537, "y": 839 }
+          },
+          {
+            "id": "19:472",
+            "parentId": "19:468",
+            "name": "→ radius-12 · 12",
+            "type": "TEXT",
+            "size": { "width": 190, "height": 20 },
+            "position": { "x": 537, "y": 867 }
+          },
+          {
+            "id": "19:474",
+            "parentId": "19:473",
+            "name": "Swatch · radius-sheet",
+            "type": "FRAME",
+            "size": { "width": 190, "height": 56 },
+            "position": { "x": 767, "y": 775 }
+          },
+          {
+            "id": "19:476",
+            "parentId": "19:473",
+            "name": "radius-sheet",
+            "type": "TEXT",
+            "size": { "width": 190, "height": 20 },
+            "position": { "x": 767, "y": 839 }
+          },
+          {
+            "id": "19:477",
+            "parentId": "19:473",
+            "name": "→ radius-16 · 16",
+            "type": "TEXT",
+            "size": { "width": 190, "height": 20 },
+            "position": { "x": 767, "y": 867 }
+          },
+          {
+            "id": "19:479",
+            "parentId": "19:478",
+            "name": "Swatch · radius-pill",
+            "type": "FRAME",
+            "size": { "width": 190, "height": 56 },
+            "position": { "x": 997, "y": 775 }
+          },
+          {
+            "id": "19:481",
+            "parentId": "19:478",
+            "name": "radius-pill",
+            "type": "TEXT",
+            "size": { "width": 190, "height": 20 },
+            "position": { "x": 997, "y": 839 }
+          },
+          {
+            "id": "19:482",
+            "parentId": "19:478",
+            "name": "→ radius-full · 9999",
+            "type": "TEXT",
+            "size": { "width": 190, "height": 20 },
+            "position": { "x": 997, "y": 867 }
+          },
+          {
+            "id": "19:489",
+            "parentId": "19:488",
+            "name": "Swatch · size-tap-min",
+            "type": "FRAME",
+            "size": { "width": 190, "height": 56 },
+            "position": { "x": 77, "y": 1036 }
+          },
+          {
+            "id": "19:491",
+            "parentId": "19:488",
+            "name": "size-tap-min",
+            "type": "TEXT",
+            "size": { "width": 190, "height": 20 },
+            "position": { "x": 77, "y": 1100 }
+          },
+          {
+            "id": "19:492",
+            "parentId": "19:488",
+            "name": "→ size-44 · 44",
+            "type": "TEXT",
+            "size": { "width": 190, "height": 20 },
+            "position": { "x": 77, "y": 1128 }
+          },
+          {
+            "id": "19:494",
+            "parentId": "19:493",
+            "name": "Swatch · size-button-sm",
+            "type": "FRAME",
+            "size": { "width": 190, "height": 56 },
+            "position": { "x": 307, "y": 1036 }
+          },
+          {
+            "id": "19:496",
+            "parentId": "19:493",
+            "name": "size-button-sm",
+            "type": "TEXT",
+            "size": { "width": 190, "height": 20 },
+            "position": { "x": 307, "y": 1100 }
+          },
+          {
+            "id": "19:497",
+            "parentId": "19:493",
+            "name": "→ size-36 · 36",
+            "type": "TEXT",
+            "size": { "width": 190, "height": 20 },
+            "position": { "x": 307, "y": 1128 }
+          },
+          {
+            "id": "19:499",
+            "parentId": "19:498",
+            "name": "Swatch · size-button-md",
+            "type": "FRAME",
+            "size": { "width": 190, "height": 56 },
+            "position": { "x": 537, "y": 1036 }
+          },
+          {
+            "id": "19:501",
+            "parentId": "19:498",
+            "name": "size-button-md",
+            "type": "TEXT",
+            "size": { "width": 190, "height": 20 },
+            "position": { "x": 537, "y": 1100 }
+          },
+          {
+            "id": "19:502",
+            "parentId": "19:498",
+            "name": "→ size-44 · 44",
+            "type": "TEXT",
+            "size": { "width": 190, "height": 20 },
+            "position": { "x": 537, "y": 1128 }
+          },
+          {
+            "id": "19:504",
+            "parentId": "19:503",
+            "name": "Swatch · size-button-lg",
+            "type": "FRAME",
+            "size": { "width": 190, "height": 56 },
+            "position": { "x": 767, "y": 1036 }
+          },
+          {
+            "id": "19:506",
+            "parentId": "19:503",
+            "name": "size-button-lg",
+            "type": "TEXT",
+            "size": { "width": 190, "height": 20 },
+            "position": { "x": 767, "y": 1100 }
+          },
+          {
+            "id": "19:507",
+            "parentId": "19:503",
+            "name": "→ size-52 · 52",
+            "type": "TEXT",
+            "size": { "width": 190, "height": 20 },
+            "position": { "x": 767, "y": 1128 }
+          },
+          {
+            "id": "19:514",
+            "parentId": "19:513",
+            "name": "Swatch · icon-sm",
+            "type": "FRAME",
+            "size": { "width": 190, "height": 56 },
+            "position": { "x": 77, "y": 1297 }
+          },
+          {
+            "id": "19:516",
+            "parentId": "19:513",
+            "name": "icon-sm",
+            "type": "TEXT",
+            "size": { "width": 190, "height": 20 },
+            "position": { "x": 77, "y": 1361 }
+          },
+          {
+            "id": "19:517",
+            "parentId": "19:513",
+            "name": "→ icon-16 · 16",
+            "type": "TEXT",
+            "size": { "width": 190, "height": 20 },
+            "position": { "x": 77, "y": 1389 }
+          },
+          {
+            "id": "19:519",
+            "parentId": "19:518",
+            "name": "Swatch · icon-md",
+            "type": "FRAME",
+            "size": { "width": 190, "height": 56 },
+            "position": { "x": 307, "y": 1297 }
+          },
+          {
+            "id": "19:521",
+            "parentId": "19:518",
+            "name": "icon-md",
+            "type": "TEXT",
+            "size": { "width": 190, "height": 20 },
+            "position": { "x": 307, "y": 1361 }
+          },
+          {
+            "id": "19:522",
+            "parentId": "19:518",
+            "name": "→ icon-20 · 20",
+            "type": "TEXT",
+            "size": { "width": 190, "height": 20 },
+            "position": { "x": 307, "y": 1389 }
+          },
+          {
+            "id": "19:524",
+            "parentId": "19:523",
+            "name": "Swatch · icon-lg",
+            "type": "FRAME",
+            "size": { "width": 190, "height": 56 },
+            "position": { "x": 537, "y": 1297 }
+          },
+          {
+            "id": "19:526",
+            "parentId": "19:523",
+            "name": "icon-lg",
+            "type": "TEXT",
+            "size": { "width": 190, "height": 20 },
+            "position": { "x": 537, "y": 1361 }
+          },
+          {
+            "id": "19:527",
+            "parentId": "19:523",
+            "name": "→ icon-24 · 24",
+            "type": "TEXT",
+            "size": { "width": 190, "height": 20 },
+            "position": { "x": 537, "y": 1389 }
+          },
+          {
+            "id": "19:534",
+            "parentId": "19:533",
+            "name": "Swatch · safe-area-top",
+            "type": "FRAME",
+            "size": { "width": 190, "height": 56 },
+            "position": { "x": 77, "y": 1558 }
+          },
+          {
+            "id": "19:536",
+            "parentId": "19:533",
+            "name": "safe-area-top",
+            "type": "TEXT",
+            "size": { "width": 190, "height": 20 },
+            "position": { "x": 77, "y": 1622 }
+          },
+          {
+            "id": "19:537",
+            "parentId": "19:533",
+            "name": "→ size-44 · 44",
+            "type": "TEXT",
+            "size": { "width": 190, "height": 20 },
+            "position": { "x": 77, "y": 1650 }
+          },
+          {
+            "id": "19:539",
+            "parentId": "19:538",
+            "name": "Swatch · safe-area-top-notch",
+            "type": "FRAME",
+            "size": { "width": 190, "height": 56 },
+            "position": { "x": 307, "y": 1558 }
+          },
+          {
+            "id": "19:541",
+            "parentId": "19:538",
+            "name": "safe-area-top-notch",
+            "type": "TEXT",
+            "size": { "width": 190, "height": 20 },
+            "position": { "x": 307, "y": 1622 }
+          },
+          {
+            "id": "19:542",
+            "parentId": "19:538",
+            "name": "→ size-47 · 47",
+            "type": "TEXT",
+            "size": { "width": 190, "height": 20 },
+            "position": { "x": 307, "y": 1650 }
+          },
+          {
+            "id": "19:544",
+            "parentId": "19:543",
+            "name": "Swatch · safe-area-bottom",
+            "type": "FRAME",
+            "size": { "width": 190, "height": 56 },
+            "position": { "x": 537, "y": 1558 }
+          },
+          {
+            "id": "19:546",
+            "parentId": "19:543",
+            "name": "safe-area-bottom",
+            "type": "TEXT",
+            "size": { "width": 190, "height": 20 },
+            "position": { "x": 537, "y": 1622 }
+          },
+          {
+            "id": "19:547",
+            "parentId": "19:543",
+            "name": "→ size-34 · 34",
+            "type": "TEXT",
+            "size": { "width": 190, "height": 20 },
+            "position": { "x": 537, "y": 1650 }
+          },
+          {
+            "id": "19:554",
+            "parentId": "19:553",
+            "name": "Swatch · app-bar-height",
+            "type": "FRAME",
+            "size": { "width": 190, "height": 56 },
+            "position": { "x": 77, "y": 1819 }
+          },
+          {
+            "id": "19:556",
+            "parentId": "19:553",
+            "name": "app-bar-height",
+            "type": "TEXT",
+            "size": { "width": 190, "height": 20 },
+            "position": { "x": 77, "y": 1883 }
+          },
+          {
+            "id": "19:557",
+            "parentId": "19:553",
+            "name": "→ size-56 · 56",
+            "type": "TEXT",
+            "size": { "width": 190, "height": 20 },
+            "position": { "x": 77, "y": 1911 }
+          },
+          {
+            "id": "19:564",
+            "parentId": "19:563",
+            "name": "Swatch · tab-bar-height",
+            "type": "FRAME",
+            "size": { "width": 190, "height": 56 },
+            "position": { "x": 77, "y": 2080 }
+          },
+          {
+            "id": "19:566",
+            "parentId": "19:563",
+            "name": "tab-bar-height",
+            "type": "TEXT",
+            "size": { "width": 190, "height": 20 },
+            "position": { "x": 77, "y": 2144 }
+          },
+          {
+            "id": "19:567",
+            "parentId": "19:563",
+            "name": "→ size-49 · 49",
+            "type": "TEXT",
+            "size": { "width": 190, "height": 20 },
+            "position": { "x": 77, "y": 2172 }
+          },
+          {
+            "id": "19:425",
+            "parentId": "19:424",
+            "name": "Bar",
+            "type": "RECTANGLE",
+            "size": { "width": 16, "height": 12 },
+            "position": { "x": 77, "y": 384 }
+          },
+          {
+            "id": "19:430",
+            "parentId": "19:429",
+            "name": "Bar",
+            "type": "RECTANGLE",
+            "size": { "width": 24, "height": 12 },
+            "position": { "x": 307, "y": 384 }
+          },
+          {
+            "id": "19:435",
+            "parentId": "19:434",
+            "name": "Bar",
+            "type": "RECTANGLE",
+            "size": { "width": 16, "height": 12 },
+            "position": { "x": 537, "y": 384 }
+          },
+          {
+            "id": "19:440",
+            "parentId": "19:439",
+            "name": "Bar",
+            "type": "RECTANGLE",
+            "size": { "width": 12, "height": 12 },
+            "position": { "x": 767, "y": 384 }
+          },
+          {
+            "id": "19:445",
+            "parentId": "19:444",
+            "name": "Bar",
+            "type": "RECTANGLE",
+            "size": { "width": 4, "height": 12 },
+            "position": { "x": 997, "y": 384 }
+          },
+          {
+            "id": "19:450",
+            "parentId": "19:449",
+            "name": "Bar",
+            "type": "RECTANGLE",
+            "size": { "width": 8, "height": 12 },
+            "position": { "x": 77, "y": 536 }
+          },
+          {
+            "id": "19:460",
+            "parentId": "19:459",
+            "name": "Bar",
+            "type": "RECTANGLE",
+            "size": { "width": 4, "height": 12 },
+            "position": { "x": 77, "y": 797 }
+          },
+          {
+            "id": "19:465",
+            "parentId": "19:464",
+            "name": "Bar",
+            "type": "RECTANGLE",
+            "size": { "width": 8, "height": 12 },
+            "position": { "x": 307, "y": 797 }
+          },
+          {
+            "id": "19:470",
+            "parentId": "19:469",
+            "name": "Bar",
+            "type": "RECTANGLE",
+            "size": { "width": 12, "height": 12 },
+            "position": { "x": 537, "y": 797 }
+          },
+          {
+            "id": "19:475",
+            "parentId": "19:474",
+            "name": "Bar",
+            "type": "RECTANGLE",
+            "size": { "width": 16, "height": 12 },
+            "position": { "x": 767, "y": 797 }
+          },
+          {
+            "id": "19:480",
+            "parentId": "19:479",
+            "name": "Bar",
+            "type": "RECTANGLE",
+            "size": { "width": 190, "height": 12 },
+            "position": { "x": 997, "y": 797 }
+          },
+          {
+            "id": "19:490",
+            "parentId": "19:489",
+            "name": "Bar",
+            "type": "RECTANGLE",
+            "size": { "width": 44, "height": 12 },
+            "position": { "x": 77, "y": 1058 }
+          },
+          {
+            "id": "19:495",
+            "parentId": "19:494",
+            "name": "Bar",
+            "type": "RECTANGLE",
+            "size": { "width": 36, "height": 12 },
+            "position": { "x": 307, "y": 1058 }
+          },
+          {
+            "id": "19:500",
+            "parentId": "19:499",
+            "name": "Bar",
+            "type": "RECTANGLE",
+            "size": { "width": 44, "height": 12 },
+            "position": { "x": 537, "y": 1058 }
+          },
+          {
+            "id": "19:505",
+            "parentId": "19:504",
+            "name": "Bar",
+            "type": "RECTANGLE",
+            "size": { "width": 52, "height": 12 },
+            "position": { "x": 767, "y": 1058 }
+          },
+          {
+            "id": "19:515",
+            "parentId": "19:514",
+            "name": "Bar",
+            "type": "RECTANGLE",
+            "size": { "width": 16, "height": 12 },
+            "position": { "x": 77, "y": 1319 }
+          },
+          {
+            "id": "19:520",
+            "parentId": "19:519",
+            "name": "Bar",
+            "type": "RECTANGLE",
+            "size": { "width": 20, "height": 12 },
+            "position": { "x": 307, "y": 1319 }
+          },
+          {
+            "id": "19:525",
+            "parentId": "19:524",
+            "name": "Bar",
+            "type": "RECTANGLE",
+            "size": { "width": 24, "height": 12 },
+            "position": { "x": 537, "y": 1319 }
+          },
+          {
+            "id": "19:535",
+            "parentId": "19:534",
+            "name": "Bar",
+            "type": "RECTANGLE",
+            "size": { "width": 44, "height": 12 },
+            "position": { "x": 77, "y": 1580 }
+          },
+          {
+            "id": "19:540",
+            "parentId": "19:539",
+            "name": "Bar",
+            "type": "RECTANGLE",
+            "size": { "width": 47, "height": 12 },
+            "position": { "x": 307, "y": 1580 }
+          },
+          {
+            "id": "19:545",
+            "parentId": "19:544",
+            "name": "Bar",
+            "type": "RECTANGLE",
+            "size": { "width": 34, "height": 12 },
+            "position": { "x": 537, "y": 1580 }
+          },
+          {
+            "id": "19:555",
+            "parentId": "19:554",
+            "name": "Bar",
+            "type": "RECTANGLE",
+            "size": { "width": 56, "height": 12 },
+            "position": { "x": 77, "y": 1841 }
+          },
+          {
+            "id": "19:565",
+            "parentId": "19:564",
+            "name": "Bar",
+            "type": "RECTANGLE",
+            "size": { "width": 49, "height": 12 },
+            "position": { "x": 77, "y": 2102 }
+          }
+        ],
+        "node_range": { "from": 78, "to": 156, "total_nodes": 156 }
+      }
+    ]
+  }
+}

@@ -387,7 +387,7 @@ Figma 쪽 명명 규칙이 어긋난 것이다 (예: primary 버튼 이름에 "P
 
    ```
    1) design-rules.md 에서 CDN URL 패턴과 아이콘 이름 목록을 읽는다
-      (기본: https://cdn.jsdelivr.net/npm/lucide-static@0.475.0/icons/{name}.svg — 버전 고정)
+      (기본: https://cdn.jsdelivr.net/npm/lucide-static@1.47.0/icons/{name}.svg — 버전 고정)
    2) Bash 로 전부 한 번에 받는다 (플러그인 샌드박스는 네트워크가 안 된다)
       mkdir -p design/04-screens/.icons
       for n in home book-open target …; do

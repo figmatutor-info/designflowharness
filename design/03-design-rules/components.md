@@ -308,6 +308,6 @@ design-rules.md의 컴포넌트 섹션 상세. 모든 값은 semantic 토큰만 
 ## Icon
 
 - Height: fixed(icon-sm / icon-md / icon-lg) — 정사각 고정
-- Library: lucide (버전 고정: lucide-static@0.475.0), CDN 에서 받는다 · 손으로 그리지 않는다
+- Library: lucide (버전 고정: lucide-static@1.47.0), CDN 에서 받는다 · 손으로 그리지 않는다
 - Color: color-text (기본) / color-text-muted (비활성) / color-primary (활성 탭·강조)
 - Icons: home / book-open / target / archive / star / search / chevron-right / chevron-left / bell / sparkles / lock / circle-check / filter / arrow-up-down

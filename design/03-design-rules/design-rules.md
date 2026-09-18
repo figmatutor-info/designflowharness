@@ -13,9 +13,8 @@ based_on:
 
 # Design Rules
 
-**주의:** 이 파일은 초안(draft) 상태입니다.
-사용자 승인 후 `status: confirmed`로 변경됩니다.
-`status: confirmed`가 없으면 figma-builder는 실행되지 않습니다.
+**상태:** 2026-09-18 사용자 승인으로 `status: confirmed`. 이 파일이 규칙 SSOT 다.
+값을 바꾸면 version 을 올리고 Phase 4 산출물(토큰·컴포넌트·화면)에 반영 여부를 build-log 에 남긴다.
 
 ---
 
@@ -412,7 +411,7 @@ image-library: design/assets/characters
 ### Icon
 
 - Height: fixed(icon-sm / icon-md / icon-lg) — 아이콘은 정사각 고정 (하네스 기본 면제)
-- Library: lucide (버전 고정: lucide-static@0.475.0)
+- Library: lucide (버전 고정: lucide-static@1.47.0)
 - Icons: home / book-open / target / archive / star / search / chevron-right / chevron-left / bell / sparkles / lock / circle-check / filter / arrow-up-down
   (screens.md·flows.md에 등장하는 아이콘 후보를 lucide 공식 이름으로 나열. 실제 화면 제작 시 필요한 것만 사용)
 

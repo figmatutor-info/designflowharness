@@ -1,0 +1,464 @@
+{
+  "schema_version": 4,
+  "file_key": "9mSXSf3cI36nDWiyolGXja",
+  "snapshot_date": "2026-09-18T06:57:41.026Z",
+  "frame_range": { "from": 0, "to": 1, "total_frames": 5 },
+  "page": {
+    "name": "03 Screens",
+    "profile": "full",
+    "frames": [
+      {
+        "name": "DeviceFrame · 01 Home",
+        "width": 390,
+        "height": 844,
+        "layout": {
+          "layoutMode": "NONE",
+          "layoutSizingHorizontal": "FIXED",
+          "layoutSizingVertical": "FIXED",
+          "primaryAxisSizingMode": null,
+          "counterAxisSizingMode": null,
+          "vSizing": "FIXED"
+        },
+        "padding": null,
+        "truncated": false,
+        "nodes": [
+          {
+            "id": "71:109",
+            "parentId": "71:105",
+            "name": "Rows",
+            "type": "FRAME",
+            "size": { "width": 358, "height": 100 },
+            "position": { "x": 16, "y": 366 },
+            "layout": {
+              "layoutMode": "VERTICAL",
+              "layoutSizingHorizontal": "FILL",
+              "layoutSizingVertical": "HUG",
+              "primaryAxisSizingMode": "AUTO",
+              "counterAxisSizingMode": "FIXED",
+              "vSizing": "HUG"
+            },
+            "padding": { "top": 0, "right": 0, "bottom": 0, "left": 0 },
+            "itemSpacing": 12
+          },
+          {
+            "id": "71:121",
+            "parentId": "71:120",
+            "name": "SectionHeader",
+            "type": "INSTANCE",
+            "size": { "width": 358, "height": 24 },
+            "position": { "x": 16, "y": 490 },
+            "layout": {
+              "layoutMode": "HORIZONTAL",
+              "layoutSizingHorizontal": "FILL",
+              "layoutSizingVertical": "HUG",
+              "primaryAxisSizingMode": "FIXED",
+              "counterAxisSizingMode": "AUTO",
+              "vSizing": "HUG"
+            },
+            "padding": { "top": 0, "right": 0, "bottom": 0, "left": 0 },
+            "itemSpacing": 0,
+            "isInstance": true,
+            "mainComponent": "SectionHeader"
+          },
+          {
+            "id": "71:124",
+            "parentId": "71:120",
+            "name": "AssetSummaryRow",
+            "type": "FRAME",
+            "size": { "width": 223, "height": 24 },
+            "position": { "x": 16, "y": 526 },
+            "layout": {
+              "layoutMode": "HORIZONTAL",
+              "layoutSizingHorizontal": "HUG",
+              "layoutSizingVertical": "HUG",
+              "primaryAxisSizingMode": "AUTO",
+              "counterAxisSizingMode": "AUTO",
+              "vSizing": "HUG"
+            },
+            "padding": { "top": 0, "right": 0, "bottom": 0, "left": 0 },
+            "itemSpacing": 12
+          },
+          {
+            "id": "71:129",
+            "parentId": "71:128",
+            "name": "SectionHeader",
+            "type": "INSTANCE",
+            "size": { "width": 358, "height": 24 },
+            "position": { "x": 16, "y": 574 },
+            "layout": {
+              "layoutMode": "HORIZONTAL",
+              "layoutSizingHorizontal": "FILL",
+              "layoutSizingVertical": "HUG",
+              "primaryAxisSizingMode": "FIXED",
+              "counterAxisSizingMode": "AUTO",
+              "vSizing": "HUG"
+            },
+            "padding": { "top": 0, "right": 0, "bottom": 0, "left": 0 },
+            "itemSpacing": 0,
+            "isInstance": true,
+            "mainComponent": "SectionHeader"
+          },
+          {
+            "id": "71:132",
+            "parentId": "71:128",
+            "name": "NotifRow",
+            "type": "FRAME",
+            "size": { "width": 151, "height": 16 },
+            "position": { "x": 16, "y": 610 },
+            "layout": {
+              "layoutMode": "HORIZONTAL",
+              "layoutSizingHorizontal": "HUG",
+              "layoutSizingVertical": "HUG",
+              "primaryAxisSizingMode": "AUTO",
+              "counterAxisSizingMode": "AUTO",
+              "vSizing": "HUG"
+            },
+            "padding": { "top": 0, "right": 0, "bottom": 0, "left": 0 },
+            "itemSpacing": 4
+          },
+          {
+            "id": "71:137",
+            "parentId": "71:128",
+            "name": "NotifRow",
+            "type": "FRAME",
+            "size": { "width": 185, "height": 16 },
+            "position": { "x": 16, "y": 638 },
+            "layout": {
+              "layoutMode": "HORIZONTAL",
+              "layoutSizingHorizontal": "HUG",
+              "layoutSizingVertical": "HUG",
+              "primaryAxisSizingMode": "AUTO",
+              "counterAxisSizingMode": "AUTO",
+              "vSizing": "HUG"
+            },
+            "padding": { "top": 0, "right": 0, "bottom": 0, "left": 0 },
+            "itemSpacing": 4
+          },
+          {
+            "id": "I71:142;58:19",
+            "parentId": "I71:142;37:49",
+            "name": "Icon/home",
+            "type": "INSTANCE",
+            "size": { "width": 24, "height": 24 },
+            "position": { "x": 16, "y": 764 },
+            "layout": {
+              "layoutMode": "NONE",
+              "layoutSizingHorizontal": "FIXED",
+              "layoutSizingVertical": "FIXED",
+              "primaryAxisSizingMode": null,
+              "counterAxisSizingMode": null,
+              "vSizing": "FIXED"
+            },
+            "isInstance": true,
+            "mainComponent": "Size=lg"
+          },
+          {
+            "id": "I71:142;37:50",
+            "parentId": "I71:142;37:49",
+            "name": "홈",
+            "type": "TEXT",
+            "size": { "width": 12, "height": 16 },
+            "position": { "x": 22, "y": 792 },
+            "layout": {
+              "layoutMode": "NONE",
+              "layoutSizingHorizontal": "HUG",
+              "layoutSizingVertical": "HUG",
+              "primaryAxisSizingMode": null,
+              "counterAxisSizingMode": null,
+              "vSizing": "HUG"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": "#5B5FEF",
+                "boundVariable": "color-primary",
+                "boundVariableCollection": "semantic"
+              }
+            ],
+            "textStyle": "Text/label",
+            "textAutoResize": "WIDTH_AND_HEIGHT"
+          },
+          {
+            "id": "I71:142;58:22",
+            "parentId": "I71:142;37:51",
+            "name": "Icon/book-open",
+            "type": "INSTANCE",
+            "size": { "width": 24, "height": 24 },
+            "position": { "x": 124, "y": 764 },
+            "layout": {
+              "layoutMode": "NONE",
+              "layoutSizingHorizontal": "FIXED",
+              "layoutSizingVertical": "FIXED",
+              "primaryAxisSizingMode": null,
+              "counterAxisSizingMode": null,
+              "vSizing": "FIXED"
+            },
+            "isInstance": true,
+            "mainComponent": "Size=lg"
+          },
+          {
+            "id": "I71:142;37:52",
+            "parentId": "I71:142;37:51",
+            "name": "스킬 라이브러리",
+            "type": "TEXT",
+            "size": { "width": 82, "height": 16 },
+            "position": { "x": 95, "y": 792 },
+            "layout": {
+              "layoutMode": "NONE",
+              "layoutSizingHorizontal": "HUG",
+              "layoutSizingVertical": "HUG",
+              "primaryAxisSizingMode": null,
+              "counterAxisSizingMode": null,
+              "vSizing": "HUG"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": "#6B7280",
+                "boundVariable": "color-text-muted",
+                "boundVariableCollection": "semantic"
+              }
+            ],
+            "textStyle": "Text/label",
+            "textAutoResize": "WIDTH_AND_HEIGHT"
+          },
+          {
+            "id": "I71:142;58:25",
+            "parentId": "I71:142;37:53",
+            "name": "Icon/archive",
+            "type": "INSTANCE",
+            "size": { "width": 24, "height": 24 },
+            "position": { "x": 239, "y": 764 },
+            "layout": {
+              "layoutMode": "NONE",
+              "layoutSizingHorizontal": "FIXED",
+              "layoutSizingVertical": "FIXED",
+              "primaryAxisSizingMode": null,
+              "counterAxisSizingMode": null,
+              "vSizing": "FIXED"
+            },
+            "isInstance": true,
+            "mainComponent": "Size=lg"
+          },
+          {
+            "id": "I71:142;37:54",
+            "parentId": "I71:142;37:53",
+            "name": "내 자산",
+            "type": "TEXT",
+            "size": { "width": 37, "height": 16 },
+            "position": { "x": 233, "y": 792 },
+            "layout": {
+              "layoutMode": "NONE",
+              "layoutSizingHorizontal": "HUG",
+              "layoutSizingVertical": "HUG",
+              "primaryAxisSizingMode": null,
+              "counterAxisSizingMode": null,
+              "vSizing": "HUG"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": "#6B7280",
+                "boundVariable": "color-text-muted",
+                "boundVariableCollection": "semantic"
+              }
+            ],
+            "textStyle": "Text/label",
+            "textAutoResize": "WIDTH_AND_HEIGHT"
+          },
+          {
+            "id": "I71:142;58:29",
+            "parentId": "I71:142;37:55",
+            "name": "Icon/star",
+            "type": "INSTANCE",
+            "size": { "width": 24, "height": 24 },
+            "position": { "x": 338, "y": 764 },
+            "layout": {
+              "layoutMode": "NONE",
+              "layoutSizingHorizontal": "FIXED",
+              "layoutSizingVertical": "FIXED",
+              "primaryAxisSizingMode": null,
+              "counterAxisSizingMode": null,
+              "vSizing": "FIXED"
+            },
+            "isInstance": true,
+            "mainComponent": "Size=lg"
+          },
+          {
+            "id": "I71:142;37:56",
+            "parentId": "I71:142;37:55",
+            "name": "허들링 픽",
+            "type": "TEXT",
+            "size": { "width": 49, "height": 16 },
+            "position": { "x": 325, "y": 792 },
+            "layout": {
+              "layoutMode": "NONE",
+              "layoutSizingHorizontal": "HUG",
+              "layoutSizingVertical": "HUG",
+              "primaryAxisSizingMode": null,
+              "counterAxisSizingMode": null,
+              "vSizing": "HUG"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": "#6B7280",
+                "boundVariable": "color-text-muted",
+                "boundVariableCollection": "semantic"
+              }
+            ],
+            "textStyle": "Text/label",
+            "textAutoResize": "WIDTH_AND_HEIGHT"
+          },
+          {
+            "id": "I71:84;36:116",
+            "parentId": "I71:84;36:115",
+            "name": "이번 달 미션",
+            "type": "TEXT",
+            "size": { "width": 82, "height": 20 },
+            "position": { "x": 32, "y": 76 },
+            "layout": {
+              "layoutMode": "NONE",
+              "layoutSizingHorizontal": "HUG",
+              "layoutSizingVertical": "HUG",
+              "primaryAxisSizingMode": null,
+              "counterAxisSizingMode": null,
+              "vSizing": "HUG"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": "#111827",
+                "boundVariable": "color-text",
+                "boundVariableCollection": "semantic"
+              }
+            ],
+            "textStyle": "Text/h3",
+            "textAutoResize": "WIDTH_AND_HEIGHT"
+          },
+          {
+            "id": "I71:84;36:117",
+            "parentId": "I71:84;36:115",
+            "name": "D-7",
+            "type": "TEXT",
+            "size": { "width": 22, "height": 16 },
+            "position": { "x": 336, "y": 78 },
+            "layout": {
+              "layoutMode": "NONE",
+              "layoutSizingHorizontal": "HUG",
+              "layoutSizingVertical": "HUG",
+              "primaryAxisSizingMode": null,
+              "counterAxisSizingMode": null,
+              "vSizing": "HUG"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": "#5B5FEF",
+                "boundVariable": "color-primary",
+                "boundVariableCollection": "semantic"
+              }
+            ],
+            "textStyle": "Text/label",
+            "textAutoResize": "WIDTH_AND_HEIGHT"
+          },
+          {
+            "id": "I71:91;37:65",
+            "parentId": "71:91",
+            "name": "제출 상태",
+            "type": "TEXT",
+            "size": { "width": 131, "height": 24 },
+            "position": { "x": 16, "y": 170 },
+            "layout": {
+              "layoutMode": "NONE",
+              "layoutSizingHorizontal": "HUG",
+              "layoutSizingVertical": "HUG",
+              "primaryAxisSizingMode": null,
+              "counterAxisSizingMode": null,
+              "vSizing": "HUG"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": "#111827",
+                "boundVariable": "color-text",
+                "boundVariableCollection": "semantic"
+              }
+            ],
+            "textStyle": "Text/h2",
+            "textAutoResize": "WIDTH_AND_HEIGHT"
+          },
+          {
+            "id": "I71:91;37:66",
+            "parentId": "71:91",
+            "name": "전체보기",
+            "type": "TEXT",
+            "size": { "width": 32, "height": 14 },
+            "position": { "x": 342, "y": 175 },
+            "layout": {
+              "layoutMode": "NONE",
+              "layoutSizingHorizontal": "HUG",
+              "layoutSizingVertical": "HUG",
+              "primaryAxisSizingMode": null,
+              "counterAxisSizingMode": null,
+              "vSizing": "HUG"
+            },
+            "fills": [
+              {
+                "type": "SOLID",
+                "color": "#6B7280",
+                "boundVariable": "color-text-muted",
+                "boundVariableCollection": "semantic"
+              }
+            ],
+            "textStyle": "Text/caption",
+            "textAutoResize": "WIDTH_AND_HEIGHT"
+          },
+          {
+            "id": "71:95",
+            "parentId": "71:94",
+            "name": "ItemRow",
+            "type": "INSTANCE",
+            "size": { "width": 358, "height": 44 },
+            "position": { "x": 16, "y": 206 },
+            "layout": {
+              "layoutMode": "HORIZONTAL",
+              "layoutSizingHorizontal": "FILL",
+              "layoutSizingVertical": "HUG",
+              "primaryAxisSizingMode": "FIXED",
+              "counterAxisSizingMode": "AUTO",
+              "vSizing": "HUG"
+            },
+            "padding": { "top": 0, "right": 0, "bottom": 0, "left": 0 },
+            "itemSpacing": 12,
+            "isTapTarget": true,
+            "isInstance": true,
+            "mainComponent": "ItemRow"
+          },
+          {
+            "id": "71:100",
+            "parentId": "71:94",
+            "name": "ItemRow",
+            "type": "INSTANCE",
+            "size": { "width": 358, "height": 44 },
+            "position": { "x": 16, "y": 262 },
+            "layout": {
+              "layoutMode": "HORIZONTAL",
+              "layoutSizingHorizontal": "FILL",
+              "layoutSizingVertical": "HUG",
+              "primaryAxisSizingMode": "FIXED",
+              "counterAxisSizingMode": "AUTO",
+              "vSizing": "HUG"
+            },
+            "padding": { "top": 0, "right": 0, "bottom": 0, "left": 0 },
+            "itemSpacing": 12,
+            "isTapTarget": true,
+            "isInstance": true,
+            "mainComponent": "ItemRow"
+          }
+        ],
+        "node_range": { "from": 20, "to": 40, "total_nodes": 82 }
+      }
+    ]
+  }
+}

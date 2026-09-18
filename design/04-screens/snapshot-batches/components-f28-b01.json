@@ -1,0 +1,920 @@
+{
+  "schema_version": 4,
+  "file_key": "9mSXSf3cI36nDWiyolGXja",
+  "snapshot_date": "2026-09-18T06:45:06.309Z",
+  "frame_range": { "from": 28, "to": 32, "total_frames": 32 },
+  "page": {
+    "name": "02 Components",
+    "profile": "full",
+    "frames": [
+      {
+        "name": "Icon/lock",
+        "width": 24,
+        "height": 24,
+        "layout": {
+          "layoutMode": "NONE",
+          "layoutSizingHorizontal": "FIXED",
+          "layoutSizingVertical": "FIXED",
+          "primaryAxisSizingMode": null,
+          "counterAxisSizingMode": null,
+          "vSizing": "FIXED"
+        },
+        "padding": null,
+        "truncated": false,
+        "nodes": [
+          {
+            "id": "57:152",
+            "parentId": null,
+            "name": "Size=sm",
+            "type": "COMPONENT",
+            "size": { "width": 16, "height": 16 },
+            "position": { "x": 0, "y": 0 },
+            "layout": {
+              "layoutMode": "NONE",
+              "layoutSizingHorizontal": "FIXED",
+              "layoutSizingVertical": "FIXED",
+              "primaryAxisSizingMode": null,
+              "counterAxisSizingMode": null,
+              "vSizing": "FIXED"
+            }
+          },
+          {
+            "id": "57:156",
+            "parentId": null,
+            "name": "Size=md",
+            "type": "COMPONENT",
+            "size": { "width": 20, "height": 20 },
+            "position": { "x": 0, "y": 0 },
+            "layout": {
+              "layoutMode": "NONE",
+              "layoutSizingHorizontal": "FIXED",
+              "layoutSizingVertical": "FIXED",
+              "primaryAxisSizingMode": null,
+              "counterAxisSizingMode": null,
+              "vSizing": "FIXED"
+            }
+          },
+          {
+            "id": "57:160",
+            "parentId": null,
+            "name": "Size=lg",
+            "type": "COMPONENT",
+            "size": { "width": 24, "height": 24 },
+            "position": { "x": 0, "y": 0 },
+            "layout": {
+              "layoutMode": "NONE",
+              "layoutSizingHorizontal": "FIXED",
+              "layoutSizingVertical": "FIXED",
+              "primaryAxisSizingMode": null,
+              "counterAxisSizingMode": null,
+              "vSizing": "FIXED"
+            }
+          },
+          {
+            "id": "57:150",
+            "parentId": "57:152",
+            "name": "Vector",
+            "type": "VECTOR",
+            "size": { "width": 12, "height": 7 },
+            "position": { "x": 2, "y": 7 },
+            "layout": {
+              "layoutMode": "NONE",
+              "layoutSizingHorizontal": "FIXED",
+              "layoutSizingVertical": "FIXED",
+              "primaryAxisSizingMode": null,
+              "counterAxisSizingMode": null,
+              "vSizing": "FIXED"
+            },
+            "strokes": [
+              {
+                "type": "SOLID",
+                "color": "#111827",
+                "boundVariable": "color-text",
+                "boundVariableCollection": "semantic"
+              }
+            ]
+          },
+          {
+            "id": "57:151",
+            "parentId": "57:152",
+            "name": "Vector",
+            "type": "VECTOR",
+            "size": { "width": 7, "height": 6 },
+            "position": { "x": 5, "y": 1 },
+            "layout": {
+              "layoutMode": "NONE",
+              "layoutSizingHorizontal": "FIXED",
+              "layoutSizingVertical": "FIXED",
+              "primaryAxisSizingMode": null,
+              "counterAxisSizingMode": null,
+              "vSizing": "FIXED"
+            },
+            "strokes": [
+              {
+                "type": "SOLID",
+                "color": "#111827",
+                "boundVariable": "color-text",
+                "boundVariableCollection": "semantic"
+              }
+            ]
+          },
+          {
+            "id": "57:154",
+            "parentId": "57:156",
+            "name": "Vector",
+            "type": "VECTOR",
+            "size": { "width": 15, "height": 9 },
+            "position": { "x": 3, "y": 9 },
+            "layout": {
+              "layoutMode": "NONE",
+              "layoutSizingHorizontal": "FIXED",
+              "layoutSizingVertical": "FIXED",
+              "primaryAxisSizingMode": null,
+              "counterAxisSizingMode": null,
+              "vSizing": "FIXED"
+            },
+            "strokes": [
+              {
+                "type": "SOLID",
+                "color": "#111827",
+                "boundVariable": "color-text",
+                "boundVariableCollection": "semantic"
+              }
+            ]
+          },
+          {
+            "id": "57:155",
+            "parentId": "57:156",
+            "name": "Vector",
+            "type": "VECTOR",
+            "size": { "width": 8, "height": 8 },
+            "position": { "x": 6, "y": 2 },
+            "layout": {
+              "layoutMode": "NONE",
+              "layoutSizingHorizontal": "FIXED",
+              "layoutSizingVertical": "FIXED",
+              "primaryAxisSizingMode": null,
+              "counterAxisSizingMode": null,
+              "vSizing": "FIXED"
+            },
+            "strokes": [
+              {
+                "type": "SOLID",
+                "color": "#111827",
+                "boundVariable": "color-text",
+                "boundVariableCollection": "semantic"
+              }
+            ]
+          },
+          {
+            "id": "57:158",
+            "parentId": "57:160",
+            "name": "Vector",
+            "type": "VECTOR",
+            "size": { "width": 18, "height": 11 },
+            "position": { "x": 3, "y": 11 },
+            "layout": {
+              "layoutMode": "NONE",
+              "layoutSizingHorizontal": "FIXED",
+              "layoutSizingVertical": "FIXED",
+              "primaryAxisSizingMode": null,
+              "counterAxisSizingMode": null,
+              "vSizing": "FIXED"
+            },
+            "strokes": [
+              {
+                "type": "SOLID",
+                "color": "#111827",
+                "boundVariable": "color-text",
+                "boundVariableCollection": "semantic"
+              }
+            ]
+          },
+          {
+            "id": "57:159",
+            "parentId": "57:160",
+            "name": "Vector",
+            "type": "VECTOR",
+            "size": { "width": 10, "height": 9 },
+            "position": { "x": 7, "y": 2 },
+            "layout": {
+              "layoutMode": "NONE",
+              "layoutSizingHorizontal": "FIXED",
+              "layoutSizingVertical": "FIXED",
+              "primaryAxisSizingMode": null,
+              "counterAxisSizingMode": null,
+              "vSizing": "FIXED"
+            },
+            "strokes": [
+              {
+                "type": "SOLID",
+                "color": "#111827",
+                "boundVariable": "color-text",
+                "boundVariableCollection": "semantic"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "name": "Icon/circle-check",
+        "width": 24,
+        "height": 24,
+        "layout": {
+          "layoutMode": "NONE",
+          "layoutSizingHorizontal": "FIXED",
+          "layoutSizingVertical": "FIXED",
+          "primaryAxisSizingMode": null,
+          "counterAxisSizingMode": null,
+          "vSizing": "FIXED"
+        },
+        "padding": null,
+        "truncated": false,
+        "nodes": [
+          {
+            "id": "57:165",
+            "parentId": null,
+            "name": "Size=sm",
+            "type": "COMPONENT",
+            "size": { "width": 16, "height": 16 },
+            "position": { "x": 0, "y": 0 },
+            "layout": {
+              "layoutMode": "NONE",
+              "layoutSizingHorizontal": "FIXED",
+              "layoutSizingVertical": "FIXED",
+              "primaryAxisSizingMode": null,
+              "counterAxisSizingMode": null,
+              "vSizing": "FIXED"
+            }
+          },
+          {
+            "id": "57:169",
+            "parentId": null,
+            "name": "Size=md",
+            "type": "COMPONENT",
+            "size": { "width": 20, "height": 20 },
+            "position": { "x": 0, "y": 0 },
+            "layout": {
+              "layoutMode": "NONE",
+              "layoutSizingHorizontal": "FIXED",
+              "layoutSizingVertical": "FIXED",
+              "primaryAxisSizingMode": null,
+              "counterAxisSizingMode": null,
+              "vSizing": "FIXED"
+            }
+          },
+          {
+            "id": "57:173",
+            "parentId": null,
+            "name": "Size=lg",
+            "type": "COMPONENT",
+            "size": { "width": 24, "height": 24 },
+            "position": { "x": 0, "y": 0 },
+            "layout": {
+              "layoutMode": "NONE",
+              "layoutSizingHorizontal": "FIXED",
+              "layoutSizingVertical": "FIXED",
+              "primaryAxisSizingMode": null,
+              "counterAxisSizingMode": null,
+              "vSizing": "FIXED"
+            }
+          },
+          {
+            "id": "57:163",
+            "parentId": "57:165",
+            "name": "Vector",
+            "type": "VECTOR",
+            "size": { "width": 13, "height": 13 },
+            "position": { "x": 1, "y": 1 },
+            "layout": {
+              "layoutMode": "NONE",
+              "layoutSizingHorizontal": "FIXED",
+              "layoutSizingVertical": "FIXED",
+              "primaryAxisSizingMode": null,
+              "counterAxisSizingMode": null,
+              "vSizing": "FIXED"
+            },
+            "strokes": [
+              {
+                "type": "SOLID",
+                "color": "#111827",
+                "boundVariable": "color-text",
+                "boundVariableCollection": "semantic"
+              }
+            ]
+          },
+          {
+            "id": "57:164",
+            "parentId": "57:165",
+            "name": "Vector",
+            "type": "VECTOR",
+            "size": { "width": 5, "height": 4 },
+            "position": { "x": 5, "y": 6 },
+            "layout": {
+              "layoutMode": "NONE",
+              "layoutSizingHorizontal": "FIXED",
+              "layoutSizingVertical": "FIXED",
+              "primaryAxisSizingMode": null,
+              "counterAxisSizingMode": null,
+              "vSizing": "FIXED"
+            },
+            "strokes": [
+              {
+                "type": "SOLID",
+                "color": "#111827",
+                "boundVariable": "color-text",
+                "boundVariableCollection": "semantic"
+              }
+            ]
+          },
+          {
+            "id": "57:167",
+            "parentId": "57:169",
+            "name": "Vector",
+            "type": "VECTOR",
+            "size": { "width": 17, "height": 17 },
+            "position": { "x": 2, "y": 2 },
+            "layout": {
+              "layoutMode": "NONE",
+              "layoutSizingHorizontal": "FIXED",
+              "layoutSizingVertical": "FIXED",
+              "primaryAxisSizingMode": null,
+              "counterAxisSizingMode": null,
+              "vSizing": "FIXED"
+            },
+            "strokes": [
+              {
+                "type": "SOLID",
+                "color": "#111827",
+                "boundVariable": "color-text",
+                "boundVariableCollection": "semantic"
+              }
+            ]
+          },
+          {
+            "id": "57:168",
+            "parentId": "57:169",
+            "name": "Vector",
+            "type": "VECTOR",
+            "size": { "width": 7, "height": 5 },
+            "position": { "x": 7, "y": 8 },
+            "layout": {
+              "layoutMode": "NONE",
+              "layoutSizingHorizontal": "FIXED",
+              "layoutSizingVertical": "FIXED",
+              "primaryAxisSizingMode": null,
+              "counterAxisSizingMode": null,
+              "vSizing": "FIXED"
+            },
+            "strokes": [
+              {
+                "type": "SOLID",
+                "color": "#111827",
+                "boundVariable": "color-text",
+                "boundVariableCollection": "semantic"
+              }
+            ]
+          },
+          {
+            "id": "57:171",
+            "parentId": "57:173",
+            "name": "Vector",
+            "type": "VECTOR",
+            "size": { "width": 20, "height": 20 },
+            "position": { "x": 2, "y": 2 },
+            "layout": {
+              "layoutMode": "NONE",
+              "layoutSizingHorizontal": "FIXED",
+              "layoutSizingVertical": "FIXED",
+              "primaryAxisSizingMode": null,
+              "counterAxisSizingMode": null,
+              "vSizing": "FIXED"
+            },
+            "strokes": [
+              {
+                "type": "SOLID",
+                "color": "#111827",
+                "boundVariable": "color-text",
+                "boundVariableCollection": "semantic"
+              }
+            ]
+          },
+          {
+            "id": "57:172",
+            "parentId": "57:173",
+            "name": "Vector",
+            "type": "VECTOR",
+            "size": { "width": 8, "height": 6 },
+            "position": { "x": 8, "y": 9 },
+            "layout": {
+              "layoutMode": "NONE",
+              "layoutSizingHorizontal": "FIXED",
+              "layoutSizingVertical": "FIXED",
+              "primaryAxisSizingMode": null,
+              "counterAxisSizingMode": null,
+              "vSizing": "FIXED"
+            },
+            "strokes": [
+              {
+                "type": "SOLID",
+                "color": "#111827",
+                "boundVariable": "color-text",
+                "boundVariableCollection": "semantic"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "name": "Icon/filter",
+        "width": 24,
+        "height": 24,
+        "layout": {
+          "layoutMode": "NONE",
+          "layoutSizingHorizontal": "FIXED",
+          "layoutSizingVertical": "FIXED",
+          "primaryAxisSizingMode": null,
+          "counterAxisSizingMode": null,
+          "vSizing": "FIXED"
+        },
+        "padding": null,
+        "truncated": false,
+        "nodes": [
+          {
+            "id": "57:177",
+            "parentId": null,
+            "name": "Size=sm",
+            "type": "COMPONENT",
+            "size": { "width": 16, "height": 16 },
+            "position": { "x": 0, "y": 0 },
+            "layout": {
+              "layoutMode": "NONE",
+              "layoutSizingHorizontal": "FIXED",
+              "layoutSizingVertical": "FIXED",
+              "primaryAxisSizingMode": null,
+              "counterAxisSizingMode": null,
+              "vSizing": "FIXED"
+            }
+          },
+          {
+            "id": "57:180",
+            "parentId": null,
+            "name": "Size=md",
+            "type": "COMPONENT",
+            "size": { "width": 20, "height": 20 },
+            "position": { "x": 0, "y": 0 },
+            "layout": {
+              "layoutMode": "NONE",
+              "layoutSizingHorizontal": "FIXED",
+              "layoutSizingVertical": "FIXED",
+              "primaryAxisSizingMode": null,
+              "counterAxisSizingMode": null,
+              "vSizing": "FIXED"
+            }
+          },
+          {
+            "id": "57:183",
+            "parentId": null,
+            "name": "Size=lg",
+            "type": "COMPONENT",
+            "size": { "width": 24, "height": 24 },
+            "position": { "x": 0, "y": 0 },
+            "layout": {
+              "layoutMode": "NONE",
+              "layoutSizingHorizontal": "FIXED",
+              "layoutSizingVertical": "FIXED",
+              "primaryAxisSizingMode": null,
+              "counterAxisSizingMode": null,
+              "vSizing": "FIXED"
+            }
+          },
+          {
+            "id": "57:176",
+            "parentId": "57:177",
+            "name": "Vector",
+            "type": "VECTOR",
+            "size": { "width": 13, "height": 13 },
+            "position": { "x": 1, "y": 2 },
+            "layout": {
+              "layoutMode": "NONE",
+              "layoutSizingHorizontal": "FIXED",
+              "layoutSizingVertical": "FIXED",
+              "primaryAxisSizingMode": null,
+              "counterAxisSizingMode": null,
+              "vSizing": "FIXED"
+            },
+            "strokes": [
+              {
+                "type": "SOLID",
+                "color": "#111827",
+                "boundVariable": "color-text",
+                "boundVariableCollection": "semantic"
+              }
+            ]
+          },
+          {
+            "id": "57:179",
+            "parentId": "57:180",
+            "name": "Vector",
+            "type": "VECTOR",
+            "size": { "width": 17, "height": 16 },
+            "position": { "x": 2, "y": 3 },
+            "layout": {
+              "layoutMode": "NONE",
+              "layoutSizingHorizontal": "FIXED",
+              "layoutSizingVertical": "FIXED",
+              "primaryAxisSizingMode": null,
+              "counterAxisSizingMode": null,
+              "vSizing": "FIXED"
+            },
+            "strokes": [
+              {
+                "type": "SOLID",
+                "color": "#111827",
+                "boundVariable": "color-text",
+                "boundVariableCollection": "semantic"
+              }
+            ]
+          },
+          {
+            "id": "57:182",
+            "parentId": "57:183",
+            "name": "Vector",
+            "type": "VECTOR",
+            "size": { "width": 20, "height": 19 },
+            "position": { "x": 2, "y": 3 },
+            "layout": {
+              "layoutMode": "NONE",
+              "layoutSizingHorizontal": "FIXED",
+              "layoutSizingVertical": "FIXED",
+              "primaryAxisSizingMode": null,
+              "counterAxisSizingMode": null,
+              "vSizing": "FIXED"
+            },
+            "strokes": [
+              {
+                "type": "SOLID",
+                "color": "#111827",
+                "boundVariable": "color-text",
+                "boundVariableCollection": "semantic"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "name": "Icon/arrow-up-down",
+        "width": 24,
+        "height": 24,
+        "layout": {
+          "layoutMode": "NONE",
+          "layoutSizingHorizontal": "FIXED",
+          "layoutSizingVertical": "FIXED",
+          "primaryAxisSizingMode": null,
+          "counterAxisSizingMode": null,
+          "vSizing": "FIXED"
+        },
+        "padding": null,
+        "truncated": false,
+        "nodes": [
+          {
+            "id": "57:190",
+            "parentId": null,
+            "name": "Size=sm",
+            "type": "COMPONENT",
+            "size": { "width": 16, "height": 16 },
+            "position": { "x": 0, "y": 0 },
+            "layout": {
+              "layoutMode": "NONE",
+              "layoutSizingHorizontal": "FIXED",
+              "layoutSizingVertical": "FIXED",
+              "primaryAxisSizingMode": null,
+              "counterAxisSizingMode": null,
+              "vSizing": "FIXED"
+            }
+          },
+          {
+            "id": "57:196",
+            "parentId": null,
+            "name": "Size=md",
+            "type": "COMPONENT",
+            "size": { "width": 20, "height": 20 },
+            "position": { "x": 0, "y": 0 },
+            "layout": {
+              "layoutMode": "NONE",
+              "layoutSizingHorizontal": "FIXED",
+              "layoutSizingVertical": "FIXED",
+              "primaryAxisSizingMode": null,
+              "counterAxisSizingMode": null,
+              "vSizing": "FIXED"
+            }
+          },
+          {
+            "id": "57:202",
+            "parentId": null,
+            "name": "Size=lg",
+            "type": "COMPONENT",
+            "size": { "width": 24, "height": 24 },
+            "position": { "x": 0, "y": 0 },
+            "layout": {
+              "layoutMode": "NONE",
+              "layoutSizingHorizontal": "FIXED",
+              "layoutSizingVertical": "FIXED",
+              "primaryAxisSizingMode": null,
+              "counterAxisSizingMode": null,
+              "vSizing": "FIXED"
+            }
+          },
+          {
+            "id": "57:186",
+            "parentId": "57:190",
+            "name": "Vector",
+            "type": "VECTOR",
+            "size": { "width": 5, "height": 3 },
+            "position": { "x": 9, "y": 11 },
+            "layout": {
+              "layoutMode": "NONE",
+              "layoutSizingHorizontal": "FIXED",
+              "layoutSizingVertical": "FIXED",
+              "primaryAxisSizingMode": null,
+              "counterAxisSizingMode": null,
+              "vSizing": "FIXED"
+            },
+            "strokes": [
+              {
+                "type": "SOLID",
+                "color": "#111827",
+                "boundVariable": "color-text",
+                "boundVariableCollection": "semantic"
+              }
+            ]
+          },
+          {
+            "id": "57:187",
+            "parentId": "57:190",
+            "name": "Vector",
+            "type": "VECTOR",
+            "size": { "width": 0, "height": 11 },
+            "position": { "x": 11, "y": 3 },
+            "layout": {
+              "layoutMode": "NONE",
+              "layoutSizingHorizontal": "FIXED",
+              "layoutSizingVertical": "FIXED",
+              "primaryAxisSizingMode": null,
+              "counterAxisSizingMode": null,
+              "vSizing": "FIXED"
+            },
+            "strokes": [
+              {
+                "type": "SOLID",
+                "color": "#111827",
+                "boundVariable": "color-text",
+                "boundVariableCollection": "semantic"
+              }
+            ]
+          },
+          {
+            "id": "57:188",
+            "parentId": "57:190",
+            "name": "Vector",
+            "type": "VECTOR",
+            "size": { "width": 5, "height": 3 },
+            "position": { "x": 2, "y": 3 },
+            "layout": {
+              "layoutMode": "NONE",
+              "layoutSizingHorizontal": "FIXED",
+              "layoutSizingVertical": "FIXED",
+              "primaryAxisSizingMode": null,
+              "counterAxisSizingMode": null,
+              "vSizing": "FIXED"
+            },
+            "strokes": [
+              {
+                "type": "SOLID",
+                "color": "#111827",
+                "boundVariable": "color-text",
+                "boundVariableCollection": "semantic"
+              }
+            ]
+          },
+          {
+            "id": "57:189",
+            "parentId": "57:190",
+            "name": "Vector",
+            "type": "VECTOR",
+            "size": { "width": 0, "height": 11 },
+            "position": { "x": 5, "y": 3 },
+            "layout": {
+              "layoutMode": "NONE",
+              "layoutSizingHorizontal": "FIXED",
+              "layoutSizingVertical": "FIXED",
+              "primaryAxisSizingMode": null,
+              "counterAxisSizingMode": null,
+              "vSizing": "FIXED"
+            },
+            "strokes": [
+              {
+                "type": "SOLID",
+                "color": "#111827",
+                "boundVariable": "color-text",
+                "boundVariableCollection": "semantic"
+              }
+            ]
+          },
+          {
+            "id": "57:192",
+            "parentId": "57:196",
+            "name": "Vector",
+            "type": "VECTOR",
+            "size": { "width": 7, "height": 3 },
+            "position": { "x": 11, "y": 13 },
+            "layout": {
+              "layoutMode": "NONE",
+              "layoutSizingHorizontal": "FIXED",
+              "layoutSizingVertical": "FIXED",
+              "primaryAxisSizingMode": null,
+              "counterAxisSizingMode": null,
+              "vSizing": "FIXED"
+            },
+            "strokes": [
+              {
+                "type": "SOLID",
+                "color": "#111827",
+                "boundVariable": "color-text",
+                "boundVariableCollection": "semantic"
+              }
+            ]
+          },
+          {
+            "id": "57:193",
+            "parentId": "57:196",
+            "name": "Vector",
+            "type": "VECTOR",
+            "size": { "width": 0, "height": 13 },
+            "position": { "x": 14, "y": 3 },
+            "layout": {
+              "layoutMode": "NONE",
+              "layoutSizingHorizontal": "FIXED",
+              "layoutSizingVertical": "FIXED",
+              "primaryAxisSizingMode": null,
+              "counterAxisSizingMode": null,
+              "vSizing": "FIXED"
+            },
+            "strokes": [
+              {
+                "type": "SOLID",
+                "color": "#111827",
+                "boundVariable": "color-text",
+                "boundVariableCollection": "semantic"
+              }
+            ]
+          },
+          {
+            "id": "57:194",
+            "parentId": "57:196",
+            "name": "Vector",
+            "type": "VECTOR",
+            "size": { "width": 7, "height": 3 },
+            "position": { "x": 3, "y": 3 },
+            "layout": {
+              "layoutMode": "NONE",
+              "layoutSizingHorizontal": "FIXED",
+              "layoutSizingVertical": "FIXED",
+              "primaryAxisSizingMode": null,
+              "counterAxisSizingMode": null,
+              "vSizing": "FIXED"
+            },
+            "strokes": [
+              {
+                "type": "SOLID",
+                "color": "#111827",
+                "boundVariable": "color-text",
+                "boundVariableCollection": "semantic"
+              }
+            ]
+          },
+          {
+            "id": "57:195",
+            "parentId": "57:196",
+            "name": "Vector",
+            "type": "VECTOR",
+            "size": { "width": 0, "height": 13 },
+            "position": { "x": 6, "y": 3 },
+            "layout": {
+              "layoutMode": "NONE",
+              "layoutSizingHorizontal": "FIXED",
+              "layoutSizingVertical": "FIXED",
+              "primaryAxisSizingMode": null,
+              "counterAxisSizingMode": null,
+              "vSizing": "FIXED"
+            },
+            "strokes": [
+              {
+                "type": "SOLID",
+                "color": "#111827",
+                "boundVariable": "color-text",
+                "boundVariableCollection": "semantic"
+              }
+            ]
+          },
+          {
+            "id": "57:198",
+            "parentId": "57:202",
+            "name": "Vector",
+            "type": "VECTOR",
+            "size": { "width": 8, "height": 4 },
+            "position": { "x": 13, "y": 16 },
+            "layout": {
+              "layoutMode": "NONE",
+              "layoutSizingHorizontal": "FIXED",
+              "layoutSizingVertical": "FIXED",
+              "primaryAxisSizingMode": null,
+              "counterAxisSizingMode": null,
+              "vSizing": "FIXED"
+            },
+            "strokes": [
+              {
+                "type": "SOLID",
+                "color": "#111827",
+                "boundVariable": "color-text",
+                "boundVariableCollection": "semantic"
+              }
+            ]
+          },
+          {
+            "id": "57:199",
+            "parentId": "57:202",
+            "name": "Vector",
+            "type": "VECTOR",
+            "size": { "width": 0, "height": 16 },
+            "position": { "x": 17, "y": 4 },
+            "layout": {
+              "layoutMode": "NONE",
+              "layoutSizingHorizontal": "FIXED",
+              "layoutSizingVertical": "FIXED",
+              "primaryAxisSizingMode": null,
+              "counterAxisSizingMode": null,
+              "vSizing": "FIXED"
+            },
+            "strokes": [
+              {
+                "type": "SOLID",
+                "color": "#111827",
+                "boundVariable": "color-text",
+                "boundVariableCollection": "semantic"
+              }
+            ]
+          },
+          {
+            "id": "57:200",
+            "parentId": "57:202",
+            "name": "Vector",
+            "type": "VECTOR",
+            "size": { "width": 8, "height": 4 },
+            "position": { "x": 3, "y": 4 },
+            "layout": {
+              "layoutMode": "NONE",
+              "layoutSizingHorizontal": "FIXED",
+              "layoutSizingVertical": "FIXED",
+              "primaryAxisSizingMode": null,
+              "counterAxisSizingMode": null,
+              "vSizing": "FIXED"
+            },
+            "strokes": [
+              {
+                "type": "SOLID",
+                "color": "#111827",
+                "boundVariable": "color-text",
+                "boundVariableCollection": "semantic"
+              }
+            ]
+          },
+          {
+            "id": "57:201",
+            "parentId": "57:202",
+            "name": "Vector",
+            "type": "VECTOR",
+            "size": { "width": 0, "height": 16 },
+            "position": { "x": 7, "y": 4 },
+            "layout": {
+              "layoutMode": "NONE",
+              "layoutSizingHorizontal": "FIXED",
+              "layoutSizingVertical": "FIXED",
+              "primaryAxisSizingMode": null,
+              "counterAxisSizingMode": null,
+              "vSizing": "FIXED"
+            },
+            "strokes": [
+              {
+                "type": "SOLID",
+                "color": "#111827",
+                "boundVariable": "color-text",
+                "boundVariableCollection": "semantic"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}
