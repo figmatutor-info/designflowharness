@@ -1,7 +1,7 @@
 ---
 name: figma-builder
-description: MUST BE USED after design-rules-generator completes and design-rules.md status is confirmed. PROACTIVELY creates Figma tokens, components, and screens step-by-step using Figma MCP. 사용자가 "Figma 화면 만들어줘", "Figma 생성", "이 규칙으로 UI 만들어줘"라고 하거나 design-rules confirmed 상태에서 다음 단계 요청 시 자동 실행. design-rules.md가 유일한 스타일 입력이며, status:confirmed가 없으면 즉시 종료한다. Figma 파일은 사용자가 직접 만들어 제공한 figma-file-key.txt 의 파일에만 작업하며, 새 파일을 만들지 않는다. STAGE=tokens → components → assets → screens 순차 실행. assets STAGE 는 higgsfield MCP 로 화면에 들어갈 실제 이미지를 미리 생성해 두고, screens STAGE 가 그것을 슬롯에 채운다. 각 STAGE 완료 시 figma-snapshot.json 저장 필수 (audit 준비).
-tools: Read, Write, Bash, mcp__figma__use_figma, mcp__figma__get_metadata, mcp__figma__get_screenshot, mcp__figma__get_variable_defs, mcp__figma__get_libraries, mcp__figma__search_design_system, mcp__figma__upload_assets, mcp__figma__whoami, mcp__higgsfield__generate_image_batch, mcp__higgsfield__jobs_wait, mcp__higgsfield__balance, ReadMcpResourceTool
+description: MUST BE USED after design-rules-generator completes and design-rules.md status is confirmed. PROACTIVELY creates Figma tokens, components, and screens step-by-step using Figma MCP. 사용자가 "Figma 화면 만들어줘", "Figma 생성", "이 규칙으로 UI 만들어줘"라고 하거나 design-rules confirmed 상태에서 다음 단계 요청 시 자동 실행. design-rules.md가 유일한 스타일 입력이며, status:confirmed가 없으면 즉시 종료한다. Figma 파일은 사용자가 직접 만들어 제공한 figma-file-key.txt 의 파일에만 작업하며, 새 파일을 만들지 않는다. STAGE=tokens → components → screens 순차 실행. 이미지는 생성하지 않는다 — design-rules.md §I 표가 가리키는 design/assets/characters/ 의 파일을 screens STAGE 가 슬롯에 채운다. 아이콘은 lucide 이름을 CDN 에서 받아 만든다 (손으로 그리지 않는다). 각 STAGE 완료 시 figma-snapshot.json 저장 필수 (audit 준비).
+tools: Read, Write, Bash, Glob, mcp__figma__use_figma, mcp__figma__get_metadata, mcp__figma__get_screenshot, mcp__figma__get_variable_defs, mcp__figma__get_libraries, mcp__figma__search_design_system, mcp__figma__upload_assets, mcp__figma__whoami, ReadMcpResourceTool
 model: sonnet
 ---
 
@@ -20,10 +20,12 @@ model: sonnet
 - **검증은 `scripts/figma-lint.js` 로 먼저, 스냅샷은 STAGE 마지막에 1회.**
   스냅샷을 뽑아서 검증하고 다시 뽑는 루프를 돌지 않는다 (아래 "시간 예산 · 재시도 기준").
 - **각 STAGE 완료 시 figma-snapshot.json 반드시 갱신** (audit 준비).
-  (STAGE=assets 는 예외 — Figma 를 안 건드리므로 스냅샷 대신 assets-manifest.json 을 남긴다)
 - **스냅샷·lint 코드를 즉흥 작성하지 않는다.** 응답이 크다고 "필드를 줄인 경량 추출"을
   직접 짜는 것도 금지다. `figma-snapshot.js` 의 `__FRAME_FROM__/__FRAME_TO__` 로 범위만 나눈다.
-- **이미지는 assets-manifest.json 에 있는 것만 쓴다.** 즉석 생성 금지.
+- **이미지는 design-rules.md §I 표의 `파일` 열이 가리키는 `image-library` 폴더 파일만 쓴다.**
+  이미지를 생성하지 않는다. 폴더에 없는 파일이 필요하면 만들지 말고 사용자에게 요청한다.
+- **아이콘은 손으로 그리지 않는다.** design-rules.md 의 lucide 이름을 CDN 에서 받아 만든다.
+  CDN 에 없는 이름이면 비슷하게 그리지 말고 build-log 에 질문으로 남기고 멈춘다.
 - **Figma 파일을 직접 만들지 않는다.** 사용자가 만든 파일의 키에만 작업한다.
   (`create_new_file` 도구는 이 에이전트에 주어지지 않는다)
 
@@ -64,7 +66,6 @@ check-\*.mjs 가 FAIL 이면 lint 가 못 잡은 것이다. Figma 를 고치고 
 | ---------- | ---- | ------------------------------------------------------------------------------------------ |
 | tokens     | 15분 | 토큰 문서 프레임 정돈(정렬·간격) 중단. 변수·스타일·문서 6프레임 존재만 확보                |
 | components | 20분 | 그리드 정렬·겹침 정돈 등 장식 중단. 바인딩(semantic)·HUG·텍스트 스타일 3가지만 완성        |
-| assets     | 15분 | 실패 슬롯 재제출 중단. `reuse_of` 로 대표 이미지 재사용해 슬롯을 채운다                    |
 | screens    | 30분 | 화면당 6분. 넘는 화면은 필수 컴포넌트 + 이미지 주입까지만. 상태 변형(empty/loading)은 생략 |
 
 예산을 넘긴 사실과 **무엇을 생략했는지**를 build-log 에 적는다. 예산은 품질을 깎는 허가가 아니라
@@ -118,8 +119,7 @@ check-\*.mjs 가 FAIL 이면 lint 가 못 잡은 것이다. Figma 를 고치고 
 
 - `STAGE=tokens` (첫 실행)
 - `STAGE=components` (tokens 완료 후)
-- `STAGE=assets` (components 완료 후 · 이미지 생성. Figma 를 건드리지 않는다)
-- `STAGE=screens` (assets 완료 후, 사용자 확인 필수)
+- `STAGE=screens` (components 완료 후, 사용자 확인 필수 · 시작 전 `check-assets.mjs` 통과)
 - `STAGE=fix` (audit 실패 시)
 
 STAGE 미지정 시:
@@ -398,11 +398,29 @@ Figma 쪽 명명 규칙이 어긋난 것이다 (예: primary 버튼 이름에 "P
 
 ### 생성 순서 (앞이 뒤의 부품)
 
-1. **Icon/{name}** — screens.md에서 언급된 아이콘만
-   - lucide 아이콘 SVG 사용
-   - size variants: 16 / 20 / 24
+1. **Icon/{name}** — design-rules.md 컴포넌트 규칙 `### Icon` 의 `Icons:` 목록만
+   - **손으로 그리지 않는다.** lucide SVG 를 CDN 에서 받아 `figma.createNodeFromSvg` 로 만든다
+   - size variants: 16 / 20 / 24 (`Icon/{name}/Size=sm|md|lg` · 정사각 고정 — 하네스 기본 면제)
    - stroke: 1.5 / 1.75 / 2
-   - 색은 currentColor → text 변수 바인딩
+   - 색은 stroke 를 semantic 색 변수(`color-text` 등)에 바인딩
+
+   ```
+   1) design-rules.md 에서 CDN URL 패턴과 아이콘 이름 목록을 읽는다
+      (기본: https://cdn.jsdelivr.net/npm/lucide-static@0.475.0/icons/{name}.svg — 버전 고정)
+   2) Bash 로 전부 한 번에 받는다 (플러그인 샌드박스는 네트워크가 안 된다)
+      mkdir -p design/04-screens/.icons
+      for n in home book-open target …; do
+        curl -sSf -o design/04-screens/.icons/$n.svg "{CDN}/$n.svg" || echo "MISSING $n"
+      done
+      · MISSING 이 하나라도 있으면 → 그 이름은 만들지 않고 build-log 에 질문으로 남긴다.
+        비슷한 아이콘을 그리거나 다른 이름으로 바꿔 넣지 않는다 (design-rules 가 SSOT)
+   3) Read 로 SVG 문자열을 읽어 use_figma 코드에 넣는다 (아이콘 하나 300~500B · 여러 개 묶어도 된다)
+      const node = figma.createNodeFromSvg(svgString);   // FRAME 이 돌아온다
+      node.name = "Icon/{name}/Size=md";
+      → 자식 VECTOR 들의 stroke 를 semantic 색 변수에 바인딩, strokeWeight 를 사이즈별 값으로
+      → 24 기준으로 받은 SVG 를 16/20 은 resize 로 맞춘다 (아이콘은 고정 크기가 규격이다)
+   4) 세트로 묶어 Icon/{name} 컴포넌트 세트 생성
+   ```
 
 2. **Button**
    - variants: primary / secondary / ghost / danger
@@ -554,7 +572,7 @@ node scripts/check-layout.mjs --page "02 Components"   # = npm run check:layout
 | 오토레이아웃 없는 컨테이너 | 자식이 있는데 레이아웃이 없음           |
 | 콘텐츠 넘침                | 자식이 부모 밖으로 삐져나감 (사고 증거) |
 
-**FAIL 이면 STAGE=assets 로 넘어가지 않는다.** 스냅샷을 손으로 고치지 말고
+**FAIL 이면 STAGE=screens 로 넘어가지 않는다.** 스냅샷을 손으로 고치지 말고
 지목된 노드를 Figma 에서 HUG 로 바꾼 뒤 스냅샷을 재추출한다.
 `schema_version 2` 로 FAIL 나면 검사가 아예 못 돈 것이다 (layout / parentId 필드 없음).
 `figma-snapshot.js`(v3)로 해당 페이지를 다시 뽑으면 된다.
@@ -573,7 +591,7 @@ node scripts/check-layout.mjs --page "02 Components"   # = npm run check:layout
 - BottomCTA, EmptyState
   figma_read_calls: 8
   snapshot: figma-snapshot.json 갱신 완료
-  next: STAGE=assets (사용자 확인 필요 · 크레딧 소모)
+  next: STAGE=screens (사용자 확인 필요)
 ```
 
 **⚠️ 사용자 확인:**
@@ -582,285 +600,12 @@ node scripts/check-layout.mjs --page "02 Components"   # = npm run check:layout
 components STAGE 완료.
 14개 컴포넌트 생성됨.
 
-다음은 assets STAGE 입니다.
-화면에 들어갈 이미지 {N}장을 higgsfield 로 생성합니다 (크레딧 소모).
-현재 잔액 {balance} · 슬롯 목록은 design-rules.md §I 기준입니다.
-
-→ Yes: STAGE=assets 시작
-→ No: 여기서 중단
-```
-
----
-
-## STAGE=assets
-
-**대상:** Figma 아님. 로컬 `design/04-screens/assets/` 뿐이다.
-
-**왜 screens 앞에 있나:**
-화면을 만들면서 이미지를 생성하면, 생성 실패 하나가 화면 작업을 멈춘다.
-이미지를 먼저 전량 확보해 두면 screens STAGE 는 "채우기"만 하면 되고,
-화면 완성 즉시 나가는 스크린샷이 곧 **완성본**이 된다.
-
-**이 STAGE 에서는 Figma 를 호출하지 않는다.** use_figma 도 upload_assets 도 쓰지 않는다.
-
-### 입력
-
-- `design/03-design-rules/design-rules.md` **§I 이미지** — 유일한 스타일 입력
-  - 아트 디렉션 문단
-  - 공통 제약 3줄
-  - 생성 기본값 (model / quality / resolution)
-  - 슬롯 역할별 비율표
-  - **화면별 슬롯 계획 표** ← 만들 슬롯의 전체 목록
-- `design/02-structure/screens.md` — 각 슬롯에 담길 실제 내용
-
-### ⭐ 가장 먼저 — 이미지를 쓰는 프로젝트인가
-
-design-rules.md §I 첫 줄의 선언을 읽는다.
-
-```
-image-slots: none  →  이 STAGE 를 통째로 건너뛴다
-image-slots: used  →  아래 절차대로 진행
-```
-
-`none` 이면 이미지를 하나도 만들지 않고, 매니페스트도 만들지 않는다.
-build-log 에 아래 한 줄만 남기고 바로 STAGE=screens 로 넘어간다.
-(게이트 4의 이미지 검사도 "해당 없음"으로 통과한다)
-
-```markdown
-## STAGE=assets ✅ (건너뜀)
-
-design-rules §I image-slots: none — 이미지를 쓰지 않는 프로젝트
-next: STAGE=screens
-```
-
-screens STAGE 에서도 `Img/*` 슬롯을 만들지 않는다.
-
-§I 가 없으면 즉시 종료한다:
-
-```
-"design-rules.md 에 §I 이미지 섹션이 없습니다.
- design-rules-generator 를 다시 실행해 §I 를 채워주세요."
-```
-
-### 절차
-
-#### 1) assets-plan.md 작성 (사람이 읽는 파일)
-
-**저장 위치:** `design/04-screens/assets/assets-plan.md`
-
-§I 의 슬롯 계획 표를 슬롯별 프롬프트로 펼친다.
-프롬프트는 **영어로** 쓴다 (모델 프롬프트 준수도가 높다).
-설명 칸은 한국어로 남겨 사용자가 읽고 고칠 수 있게 한다.
-
-```markdown
-# Assets Plan
-
-art_direction: {design-rules.md §I 아트 디렉션 한 문단 그대로}
-model: gpt_image_2_5 · quality: medium · resolution: 1k
-
-## 01-home-hero
-
-- 화면: 01-home / role: hero / 비율: 16:9
-- 담을 내용: 홈 상단 배너 — 제주 해안도로의 이른 아침
-- prompt:
-  Early morning coastal road on Jeju Island seen from a hillside,
-  soft natural light, low saturation, calm muted tones,
-  no people facing camera, no text, no logo, no watermark.
-```
-
-**프롬프트 작성 규칙:**
-
-- 한 슬롯 = 한 프롬프트. 여러 슬롯을 한 프롬프트로 묶지 않는다
-- §I 의 공통 제약 3줄을 **모든 프롬프트 끝에 반드시 붙인다**
-  (`no text, no logo, no watermark` / 실존 브랜드·유명인 금지 / 목업 화면 금지)
-- 화면 UI 가 위에 올라가는 슬롯(hero, card)은 "중앙 상단을 비워 둘 것"을 명시
-- 더미 금지. "여행 사진" 같은 뭉뚱그린 프롬프트를 쓰지 않는다
-
-**상한 (초과 시 재사용):**
-
-| 범위          | 상한 |
-| ------------- | ---- |
-| 화면당        | 4개  |
-| 프로젝트 전체 | 12개 |
-
-12개는 `generate_image_batch` 1회 제출 상한과 같다. 상한을 넘기면
-새로 만들지 말고 이미 만든 슬롯을 재사용한다 (`status: "reuse"`).
-
-#### 2) 크레딧 확인
-
-```
-mcp__higgsfield__balance
-```
-
-잔액이 부족해 보이면 생성하지 말고 사용자에게 먼저 보고한다.
-
-#### 3) 일괄 생성 (호출 1회)
-
-```
-mcp__higgsfield__generate_image_batch({
-  requests: [
-    { index: 0, params: {
-        model: "gpt_image_2_5",
-        prompt: "{슬롯 0 프롬프트}",
-        aspect_ratio: "16:9",
-        quality: "medium",
-        resolution: "1k"
-    }},
-    { index: 1, params: { ... } },
-    ...   // 최대 12개
-  ]
-})
-```
-
-- `index` 는 assets-plan.md 의 슬롯 순서와 **반드시 일치**시킨다.
-  이 번호가 결과 URL 과 슬롯을 잇는 유일한 끈이다.
-- 12개를 넘기지 않는다 (도구 상한).
-- 타임아웃이 나도 **자동 재제출하지 않는다.** 이미 제출됐을 수 있다.
-  반환된 job_id 를 들고 3-2) 로 간다.
-
-#### 3-2) 완료 대기
-
-```
-mcp__higgsfield__jobs_wait({ jobs: [{index, job_id}, ...], timeout_seconds: 15 })
-```
-
-- `all_terminal: false` 면 응답의 `poll_after_seconds` 만큼 기다렸다가 다시 호출한다
-- 성공한 job 의 결과 URL 을 슬롯 index 별로 모은다
-- 실패한 job 은 그 슬롯만 다시 생성한다 (전체 재제출 금지)
-
-#### 4) 로컬 저장
-
-```bash
-mkdir -p design/04-screens/assets/img
-curl -sSL -o design/04-screens/assets/img/{key}.png "{결과 URL}"
-```
-
-- 파일명은 슬롯 key 와 같게 한다 (`01-home-hero.png`)
-- 저장 후 크기 확인. 10MB 를 넘으면 `upload_assets` 가 거부한다
-
-#### 5) assets-manifest.json 작성 (기계 계약)
-
-**저장 위치:** `design/04-screens/assets/assets-manifest.json`
-
-```json
-{
-  "schema_version": 1,
-  "generated_at": "2026-09-17T10:00:00.000Z",
-  "model": "gpt_image_2_5",
-  "params": { "quality": "medium", "resolution": "1k" },
-  "art_direction": "{design-rules.md §I 아트 디렉션 그대로}",
-  "slots": [
-    {
-      "key": "01-home-hero",
-      "screen": "01-home",
-      "role": "hero",
-      "aspect_ratio": "16:9",
-      "prompt": "{실제로 보낸 프롬프트 전문}",
-      "file": "img/01-home-hero.png",
-      "job_id": "{higgsfield job id}",
-      "status": "done",
-      "reuse_of": null,
-      "in_instance": false,
-      "placements": []
-    },
-    {
-      "key": "02-search-results-card-1",
-      "screen": "02-search-results",
-      "role": "card",
-      "aspect_ratio": "4:3",
-      "prompt": "{원본 슬롯과 같은 프롬프트}",
-      "file": null,
-      "job_id": null,
-      "status": "reuse",
-      "reuse_of": "01-home-hero",
-      "in_instance": true,
-      "placements": []
-    }
-  ]
-}
-```
-
-**필드 계약 (check-assets.mjs 가 읽는다):**
-
-| 필드           | 규칙                                                        |
-| -------------- | ----------------------------------------------------------- |
-| `key`          | 슬롯 고유 ID. 중복 금지                                     |
-| `screen`       | 화면 ID. 화면당 4개 상한 계산용                             |
-| `aspect_ratio` | `1:1` `4:3` `3:4` `16:9` `9:16` `3:2` `2:3` 중 하나         |
-| `prompt`       | 실제 보낸 프롬프트 전문. 20자 이상                          |
-| `status`       | `done` (파일 있음) 또는 `reuse` (다른 슬롯 재사용)          |
-| `file`         | manifest 기준 상대 경로. `status: done` 이면 필수           |
-| `reuse_of`     | `status: reuse` 이면 필수. `done` 슬롯의 key 를 가리켜야 함 |
-| `in_instance`  | 이 슬롯이 컴포넌트 인스턴스 **안**에 있는지. 기본 false     |
-| `placements`   | screens STAGE 가 채운다. assets STAGE 에서는 `[]`           |
-
-### ⭐ 슬롯을 이름으로 찾지 않는다 (node_id 가 주소다)
-
-**`layer` 필드는 없다.** 이름으로 주입 대상을 찾는 방식은 카드 썸네일에서 깨진다:
-
-- Card 컴포넌트는 이미지 슬롯을 자기 안에 갖는다
-- **Figma 는 인스턴스 자식 레이어의 이름을 마스터 기본값으로 고정한다.**
-  인스턴스마다 `Img/02-search-results-card-1` 처럼 다르게 이름 붙일 수 없다
-- 그래서 "이름 = 슬롯 key" 라는 1:1 계약은 성립할 수 없다
-
-대신 `upload_assets` 가 원래 받는 **`nodeIds`** 를 쓴다.
-screens STAGE 가 노드를 만들거나 인스턴스를 배치하는 **그 자리에서**
-어떤 슬롯인지 알고 있으므로, 그때 `{key, node_id}` 매핑을 확정해
-매니페스트의 `placements` 에 적는다.
-
-```json
-"placements": [
-  { "frame": "01 Home", "node_id": "12:345" }
-]
-```
-
-이름 규약은 **검사용으로만** 남는다:
-
-| 슬롯 위치     | 레이어 이름              | 누가 정하나                |
-| ------------- | ------------------------ | -------------------------- |
-| 화면 직속     | `Img/{key}`              | screens STAGE 가 직접 명명 |
-| 인스턴스 내부 | `Img/slot` (마스터 이름) | components STAGE 의 마스터 |
-
-둘 다 `Img/` 로 시작하므로 게이트(`check-phase.mjs` 의 "이미지 슬롯 채움")가
-빈 슬롯을 찾아낼 수 있다. **주입은 이름이 아니라 언제나 node_id 로 한다.**
-
-**⚠️ 매니페스트를 손으로 통과시키지 않는다.** 검증이 실패하면 값을 고치지 말고
-실패한 슬롯을 다시 생성한다.
-
-#### 6) 게이트 검증 (필수)
-
-```bash
-node scripts/check-assets.mjs
-```
-
-**FAIL 이면 screens STAGE 로 넘어가지 않는다.** 출력에 적힌 슬롯만 다시 생성한다.
-
-### build-log 갱신
-
-```markdown
-## STAGE=assets ✅
-
-완료: {YYYY-MM-DD HH:MM}
-이미지 슬롯: 9개 (생성 7 · 재사용 2)
-model: gpt_image_2_5 (medium / 1k)
-소모 크레딧: {생성 전후 balance 차이}
-실패 후 재생성: {N}회
-manifest: design/04-screens/assets/assets-manifest.json
-check-assets: PASS
-next: STAGE=screens (사용자 확인 필요)
-```
-
-**⚠️ 사용자 확인:**
-
-```
-assets STAGE 완료.
-이미지 9개 준비됨 (생성 7 · 재사용 2). 크레딧 {N} 사용.
-
-screens STAGE로 진행할까요?
-5개 화면 순차 생성 — 각 화면은 실제 이미지가 채워진 상태로 스크린샷 전달됩니다.
+다음은 screens STAGE 입니다.
+화면 {N}개를 만들고, design-rules.md §I 표대로 design/assets/characters/ 의 이미지를 채웁니다.
+(check-assets: {PASS/FAIL} · 슬롯 {N}개 · 파일 {N}개)
 
 → Yes: STAGE=screens 시작
-→ No: 여기서 중단 (assets-plan.md 를 고쳐 다시 생성할 수도 있습니다)
+→ No: 여기서 중단
 ```
 
 ---
@@ -878,10 +623,16 @@ screens STAGE로 진행할까요?
 node scripts/check-assets.mjs
 ```
 
-FAIL 이면 screens 를 시작하지 않는다. STAGE=assets 로 돌아간다.
+FAIL 이면 screens 를 시작하지 않는다. 출력이 가리키는 대로 design-rules.md §I 표나
+`image-library` 폴더가 고쳐져야 한다 — **이미지를 만들어서 해결하지 않는다.** 사용자에게 보고한다.
 (`image-slots: none` 프로젝트면 이 스크립트가 "해당 없음"으로 통과시킨다.
 그 경우 아래 이미지 관련 절차는 전부 건너뛴다)
-assets-manifest.json 을 Read 해서 슬롯 목록(key / layer / file / status / reuse_of)을 손에 쥐고 시작한다.
+
+design-rules.md §I 를 Read 해서 두 가지를 손에 쥐고 시작한다:
+
+- `image-library:` 폴더 (없으면 `design/assets/characters`)
+- "화면별 슬롯 계획" 표 → 슬롯마다 `슬롯 key / 화면 / role / 비율 / 파일`
+  이 표가 **유일한 이미지 계약**이다. 표에 없는 슬롯은 만들지 않고, 표의 파일 외에는 넣지 않는다.
 
 ### 절차
 
@@ -894,19 +645,19 @@ screens.md의 화면 목록 순서대로 순차 생성.
 3. screens.md의 "필요 컴포넌트" 목록대로 컴포넌트 인스턴스 배치
 4. 실제 콘텐츠 채움 (더미 금지):
    - 텍스트: "제주 오션뷰 숙소" 같은 실제 문구
-   - 이미지: 이 화면의 매니페스트 슬롯만 자리를 잡는다
-     (매니페스트에 없는 슬롯은 만들지 않는다)
+   - 이미지: §I 표에서 `화면` 열이 이 화면인 슬롯만 자리를 잡는다
+     (표에 없는 슬롯은 만들지 않는다)
 
-     **A. 화면 직속 슬롯** (`in_instance: false` — 히어로, 전면 이미지)
+     **A. 화면 직속 슬롯** (role 이 hero / full-bleed — 컴포넌트 밖에 놓이는 이미지)
      · **RECTANGLE 로 만든다. FRAME 으로 만들지 않는다.**
      FRAME 은 컴포넌트 재사용률(≥90%)의 분모에 들어가 audit 을 FAIL 시킨다
      (`figma-audit.mjs` 는 FRAME·INSTANCE 만 센다. RECTANGLE 은 세지 않는다)
-     · 이름은 `Img/{key}`
-     · 크기는 매니페스트의 `aspect_ratio` 비율에 맞춘다
+     · 이름은 `Img/{슬롯 key}`
+     · 크기는 §I 표의 `비율` 열에 맞춘다
      · radius 는 semantic 토큰 바인딩 (`radius-card` 등)
      · **이 시점엔 빈 노드다. 회색 채움을 넣지 않는다**
 
-     **B. 인스턴스 내부 슬롯** (`in_instance: true` — 카드 썸네일, 아바타)
+     **B. 인스턴스 내부 슬롯** (role 이 card / thumb / avatar — 카드 썸네일, 아바타)
      · 새로 만들지 않는다. 배치한 인스턴스가 이미 슬롯을 갖고 있다
      · 마스터에서 `Img/` 로 시작하는 이름의 자식 노드를 찾는다
      · **이름을 바꾸려 하지 않는다.** Figma 가 인스턴스 자식 이름 변경을 막는다
@@ -933,8 +684,8 @@ screens.md의 화면 목록 순서대로 순차 생성.
 그래서 nodeIds 를 쓰지 않고, 해시를 먼저 받아 `fills` 에 직접 대입한다. 이 방식은 두 경우 모두 통한다.
 
 ```
-1) 이 화면의 슬롯들을 매니페스트에서 고른다 (screen 필드로 필터)
-   status: "reuse" 슬롯은 reuse_of 가 가리키는 슬롯의 file 을 쓴다
+1) 이 화면의 슬롯들을 §I 표에서 고른다 (`화면` 열로 필터) → 슬롯마다 `파일` 열의 파일명
+   파일 경로 = {image-library}/{파일} (기본 design/assets/characters/{파일})
    각 슬롯의 node_id 는 4단계 C 에서 돌려받은 placements 에서 가져온다
 
 2) 유니크한 파일 수만큼 업로드 URL 을 받는다 (nodeIds 없이)
@@ -945,7 +696,7 @@ screens.md의 화면 목록 순서대로 순차 생성.
    → 파일마다 { uploadUrl, imageHash } 가 돌아온다. 순서대로 파일에 대응시킨다
 
 3) 반환된 업로드 URL 각각에 파일 바이트를 POST (Bash)
-   curl -sS -X POST --data-binary @design/04-screens/assets/img/{key}.png \
+   curl -sS -X POST --data-binary @design/assets/characters/{파일} \
         -H "Content-Type: image/png" "{업로드 URL}"
    · 업로드 URL 은 1회용이다. 실패하면 upload_assets 부터 다시 부른다
    · Content-Type 을 파일 확장자에 맞춘다 (png → image/png, jpg → image/jpeg)
@@ -955,15 +706,17 @@ screens.md의 화면 목록 순서대로 순차 생성.
    n.fills = [{ type: "IMAGE", imageHash: "{imageHash}", scaleMode: "FILL" }];
    → 슬롯별로 { node_id, fillType: n.fills[0].type } 를 return 해서 전부 "IMAGE" 인지 확인한다
    ⚠️ 인스턴스 내부 노드도 getNodeByIdAsync 로 잡힌다. fill 은 오버라이드로 들어간다
-   ⚠️ 같은 파일을 쓰는 슬롯(reuse)은 같은 imageHash 를 쓴다. 다시 업로드하지 않는다
+   ⚠️ 같은 파일을 쓰는 슬롯은 같은 imageHash 를 쓴다. 다시 업로드하지 않는다
+      (라이브러리 방식에서는 재사용이 기본이다 — 파일 하나가 여러 화면에 들어간다)
 
 5) get_screenshot 으로 실제로 채워졌는지 눈으로 확인한다
    회색으로 남아 있으면 그 슬롯만 4) 부터 다시 한다 (해시는 남아 있다)
 
-6) 매니페스트의 해당 슬롯에 placements 를 적는다 (STAGE=fix 재주입용)
-   "placements": [{ "frame": "01 Home", "node_id": "I68:358;13:17", "imageHash": "…" }]
-   ⚠️ 복합 id 를 그대로 적는다. check-assets.mjs 는 placements 형식을 검사하지 않으므로
-      "스키마 위반"을 이유로 [] 로 비우지 않는다 — 비우면 재주입 때 노드를 못 찾는다
+6) build-log 의 이 화면 항목에 placements 를 적는다 (STAGE=fix 재주입용 · 매니페스트 파일은 없다)
+   placements:
+     - 01-home-hero: I68:358;13:17 · buddy-front.png · imageHash …
+   ⚠️ 복합 id 를 그대로 적는다. 비우면 재주입 때 노드를 못 찾는다
+      (인스턴스 내부 슬롯은 이름이 전부 같아 이름으로 되찾을 수 없다)
 ```
 
 **한 번에 60개까지** 업로드 URL 을 받을 수 있다. 화면당 유니크 파일은 많아야 3~4개이므로
@@ -1152,10 +905,14 @@ primitive 는 `aliasOf: null`, semantic 은 전부 primitive 이름을 가리켜
 완료: {HH:MM}
 컴포넌트 사용: SearchBar, CategoryFilter, DestinationCard, TabBar
 이미지 슬롯: Img/01-home-hero, Img/01-home-card-1 (2개 주입 완료)
-상태: default, loading, empty (3개 프레임)
-figma_read_calls: 3
-스크린샷: design/04-screens/screenshots/01-home.png
-snapshot: 화면 노드 정보 추가됨
+placements:
+
+- 01-home-hero: 12:345 · buddy-front.png · imageHash a1b2…
+- 01-home-card-1: I12:350;7:21 · character-asset-1.png · imageHash c3d4…
+  상태: default, loading, empty (3개 프레임)
+  figma_read_calls: 3
+  스크린샷: design/04-screens/screenshots/01-home.png
+  snapshot: 화면 노드 정보 추가됨
 ```
 
 **⚠️ 스크린샷 즉시 전달:**
@@ -1183,14 +940,15 @@ snapshot: 화면 노드 정보 추가됨
 
 fix-list.md 의 각 행에는 `대상` 열이 있다. **이 열을 먼저 읽는다.**
 
-| 대상     | 성격               | 처리                       |
-| -------- | ------------------ | -------------------------- |
-| `figma`  | 노드를 고치면 해결 | 아래 "A. figma 결함 처리"  |
-| `assets` | 이미지 자체가 문제 | 아래 "B. assets 결함 처리" |
+| 대상    | 성격                                     | 처리                                                       |
+| ------- | ---------------------------------------- | ---------------------------------------------------------- |
+| `figma` | 노드를 고치면 해결 (빈 슬롯 재주입 포함) | 아래 "A. figma 결함 처리" · 이미지 행은 "B" 의 ①           |
+| `rules` | design-rules §I 표(파일 선택)가 문제     | figma-builder 가 처리하지 않는다 — 아래 "B" 의 ② 대로 보고 |
 
 `대상` 열이 없는 옛 형식의 fix-list 는 전부 `figma` 로 본다.
 
-**assets 행을 Figma 노드 수정으로 처리하려 들지 않는다.** 고쳐지지 않는다.
+**`rules` 행을 Figma 노드 수정으로 처리하려 들지 않는다.** 고쳐지지 않는다.
+이미지를 만들어서 해결하려 들지도 않는다 — 이미지는 생성물이 아니다.
 
 ### A. figma 결함 처리
 
@@ -1198,38 +956,34 @@ fix-list.md 의 각 행에는 `대상` 열이 있다. **이 열을 먼저 읽는
 2. 수정 (변수 재바인딩, 크기 조정 등)
 3. 수정 완료 표시
 
-### B. assets 결함 처리
+### B. 이미지 결함 처리 (`대상: figma` 의 이미지 행 / `대상: rules`)
 
-**두 경우를 구분한다. 진단이 먼저다.**
+**이미지는 생성하지 않으므로 "재생성" 이라는 처리는 없다.** 두 경우로 나뉜다.
 
 ```
-해당 슬롯의 매니페스트 엔트리를 본다 (design/04-screens/assets/assets-manifest.json)
+§I 표에서 그 슬롯의 `파일` 열을 본다. build-log 의 placements 에서 node_id 를 본다.
 
-① 파일은 정상인데 화면이 비어 있다  → "주입 실패"
-   원인: upload_assets 가 실패했거나 nodeIds 순서가 어긋났다
-   처리: 재생성하지 않는다. placements 의 node_id 로 다시 주입만 한다
-         (STAGE=screens 의 "이미지 주입" 2~4 단계)
-   ⚠️ 크레딧을 쓰지 않는다. 여기서 재생성하면 돈만 나간다
+① 표의 파일은 폴더에 있는데 화면이 비어 있거나 다른 그림이다  → "주입 실패" (대상: figma)
+   원인: 업로드 URL 만료 / imageHash 와 슬롯 매핑이 어긋남
+   처리: placements 의 node_id 로 다시 주입만 한다 (STAGE=screens 의 "이미지 주입" 2~4 단계)
 
-② 이미지 내용 자체가 잘못됐다  → "재생성"
-   (글자가 박혀 있음 / 톤이 어긋남 / 피사체가 틀림)
-   처리: assets-plan.md 의 그 슬롯 프롬프트를 고친 뒤
-         **그 슬롯 하나만** generate_image_batch 로 다시 생성
-         → 파일 교체 → node scripts/check-assets.mjs
-         → placements 의 node_id 로 재주입
-   ⚠️ 전체 슬롯을 다시 돌리지 않는다
+② 파일 자체가 이 자리에 안 맞는다 (톤·대비·잘림)  → 규칙 문제 (대상: rules)
+   처리: figma-builder 가 처리하지 않는다. design-rules-generator 가 §I 표의 `파일` 열을
+         라이브러리의 다른 파일로 바꾸고 status: confirmed 를 다시 받은 뒤, ① 절차로 재주입한다
+   ⚠️ 폴더에 맞는 파일이 없어도 만들지 않는다. "사용자가 폴더에 파일을 추가해야 함" 으로 보고
 ```
 
-어느 쪽인지 판단이 안 서면 재생성하지 말고 build-log 에 질문으로 남기고 멈춘다.
+어느 쪽인지 판단이 안 서면 build-log 에 질문으로 남기고 멈춘다.
 
 ### 절차
 
 1. fix-list.md 읽기 → `대상` 열로 분류
-2. `figma` 행 처리 (A) · `assets` 행 처리 (B)
-3. 전체 완료 후 figma-snapshot.json 재추출 (scripts/figma-snapshot.js, `03 Screens`)
-4. `node scripts/check-snapshot.mjs` 통과 확인
-5. assets 행을 건드렸으면 `node scripts/check-assets.mjs` 도 통과 확인
-6. build-log 갱신
+2. `figma` 행 처리 (A · 이미지 행은 B-①) · `rules` 행은 처리하지 않고 보고 (B-②)
+3. 수정 후 `scripts/figma-lint.js` 로 해당 화면 0건 확인 (스냅샷 전)
+4. 전체 완료 후 figma-snapshot.json 재추출 (scripts/figma-snapshot.js, `03 Screens` · 1회)
+5. `node scripts/check-snapshot.mjs` 통과 확인
+6. 이미지 행을 건드렸으면 `node scripts/check-assets.mjs` 도 통과 확인
+7. build-log 갱신
 
 ### build-log 갱신
 
@@ -1274,10 +1028,6 @@ fix-list.md 의 각 행에는 `대상` 열이 있다. **이 열을 먼저 읽는
 
 (위 참고)
 
-## STAGE=assets ✅
-
-(위 참고)
-
 ## screen: 01-home ✅
 
 (위 참고)
@@ -1317,8 +1067,8 @@ fix-list.md 의 각 행에는 `대상` 열이 있다. **이 열을 먼저 읽는
 🎨 생성된 자원
 - 변수: color 15, space 8, radius 5, size 12
 - 텍스트 스타일: 8개
-- 컴포넌트: 14개
-- 이미지: 9슬롯 (생성 7 · 재사용 2) — 전 화면 주입 완료
+- 컴포넌트: 14개 (아이콘 {N}종 · lucide CDN)
+- 이미지: {N}슬롯 — design/assets/characters/ 파일 {N}개로 전 화면 주입 완료
 
 🔗 Figma 파일
 https://www.figma.com/design/{file-key}
@@ -1329,9 +1079,8 @@ design/04-screens/build-log.md
 📊 Snapshot
 design/04-screens/figma-snapshot.json (audit 준비 완료)
 
-🖼 이미지 산출물
-design/04-screens/assets/assets-manifest.json
-design/04-screens/assets/img/ (원본 이미지)
+🖼 이미지 계약
+design/03-design-rules/design-rules.md §I 표 ↔ design/assets/characters/ (check-assets PASS)
 
 이제 design-auditor로 최종 검증할까요?
 → Yes: /audit-design 실행
@@ -1367,15 +1116,13 @@ design/04-screens/assets/img/ (원본 이미지)
 - ❌ **semantic 변수에 값 직접 입력** (반드시 `createVariableAlias` 로 primitive 참조)
 - ❌ **컴포넌트·화면 노드에 primitive 변수 직접 바인딩** (semantic 만)
 - ❌ **design-rules.md 에 없는 primitive 를 임의 추가** (ramp 확장 금지)
-- ❌ **assets-manifest.json 에 없는 이미지를 화면에 넣기** (즉석 생성·외부 이미지 금지)
+- ❌ **§I 표에 없는 이미지를 화면에 넣기** (이미지 생성·외부 URL·라이브러리 밖 파일 금지)
 - ❌ **check-assets.mjs 실패 상태로 screens STAGE 진입**
 - ❌ **이미지 슬롯을 회색 플레이스홀더로 두고 스크린샷 전달** (완성본만 전달)
-- ❌ **`figma.createImage` 로 higgsfield URL 을 플러그인에서 직접 fetch** (upload_assets 사용)
-- ❌ **생성 실패를 매니페스트 손질로 통과시키기** (실패 슬롯만 재생성할 것)
-- ❌ **사용자 확인 없이 assets STAGE 시작** (크레딧이 소모된다)
-- ❌ **타임아웃 났다고 generate_image_batch 전체 재제출** (중복 과금 — job_id 로 확인 먼저)
-- ❌ **주입 실패를 재생성으로 해결** (파일이 멀쩡하면 다시 주입만 — 크레딧 낭비)
-- ❌ **fix-list 의 `대상: assets` 행을 Figma 노드 수정으로 처리**
+- ❌ **`figma.createImage` 로 외부 URL 을 플러그인에서 직접 fetch** (upload_assets → imageHash 사용)
+- ❌ **check-assets FAIL 을 §I 표나 폴더 손질로 통과시키기** (표는 design-rules-generator, 폴더는 사용자 몫)
+- ❌ **아이콘을 손으로 그리기 / CDN 에 없는 이름을 비슷한 것으로 대체** (질문으로 남기고 멈춘다)
+- ❌ **fix-list 의 `대상: rules` 행을 Figma 노드 수정으로 처리** (§I 표 교체 후 재주입)
 
 ---
 
@@ -1432,13 +1179,20 @@ build-log에 실패 지점 기록
 - 2회째도 FAIL → 멈추고 남은 결함을 표시한 채 보고. 사용자 판단으로 넘긴다
 ```
 
-### 이미지 생성 실패 (STAGE=assets)
+### 아이콘 CDN 실패 (STAGE=components)
 
 ```
-- 일부 job 만 실패 → 실패한 index 의 슬롯만 재제출. 전체 재제출 금지
-- 같은 슬롯 3회 실패 → 프롬프트 문제. assets-plan.md 의 그 프롬프트를 고친다
-- 크레딧 부족 → 즉시 중단하고 사용자에게 잔액과 필요량 보고
-- 타임아웃 (제출 여부 불명) → 재제출하지 말고 반환된 job_id 를 jobs_wait 로 조회
+- curl 이 404 → 그 이름은 lucide 에 없다. 만들지 말고 build-log 에 질문으로 남긴다
+  (design-rules.md 의 이름이 틀린 것 — design-rules-generator 가 고친다)
+- 네트워크 오류 → 같은 URL 2회 재시도 후 중단·보고. 버전을 바꿔서 받지 않는다
+- SVG 파싱 실패 (createNodeFromSvg 예외) → 그 아이콘만 건너뛰고 기록. 손으로 그리지 않는다
+```
+
+### 이미지 라이브러리 불일치 (STAGE=screens 사전 확인)
+
+```
+- check-assets FAIL: 표의 파일이 폴더에 없음 → 사용자에게 "폴더에 {파일} 추가 필요" 보고. 생성 금지
+- check-assets FAIL: 표 열 이름·비율 오류 → design-rules-generator 몫. screens 시작 안 함
 ```
 
 ### 이미지 주입 실패 (STAGE=screens)
