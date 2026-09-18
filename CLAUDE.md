@@ -123,7 +123,8 @@ design/
 - **게이트 실패 시 다음 Phase 진입 금지**
 - **design/03-design-rules/design-rules.md 는 유일한 규칙 SSOT**
 - **Figma 파일은 사용자가 만든 것만 사용한다** (에이전트가 새 파일 생성 금지)
-- **snapshot 은 scripts/figma-snapshot.js 로만 추출한다** (추출 코드 즉흥 작성 금지)
+- **snapshot 은 scripts/figma-snapshot.js 로만 추출한다** (추출 코드 즉흥 작성 금지 · 경량화는 스크립트의 `__PROFILE__=docs` 만)
+- **snapshot 추출은 snapshot-runner 가 백그라운드로 한다.** figma-builder 는 lint 0건이면 요청만 남기고 다음 STAGE 로 간다. audit 전에는 세 페이지 스냅샷 전부 PASS 필수
 - **토큰 문서 프레임은 scripts/figma-token-docs.js 로만 그린다** (규격은 docs/token-docs-spec.md · 즉흥 작성 금지)
 - **컨테이너는 내용을 감싼다 (세로 HUG).** 고정 높이는 design-rules.md 에 `Height: fixed` 로 선언된 것만 허용 (check-layout.mjs 가 검사)
 - **화면 이미지는 design-rules.md §I 표가 가리키는 `design/assets/characters/` 파일만 쓴다** (이미지 생성·외부 URL 금지)
@@ -149,7 +150,8 @@ design/
 
 Phase 4 의 STAGE 별 예산과 재시도 상한은 `.claude/agents/figma-builder.md` 의
 "시간 예산 · 재시도 기준" 에 있다 (tokens 15 · components 20 · screens 30분).
-검증은 `scripts/figma-lint.js` 로 먼저 하고, 스냅샷은 STAGE 마지막에 1회만 뽑는다.
+검증은 `scripts/figma-lint.js` 로 먼저 하고, 스냅샷은 STAGE 마지막에 `snapshot-runner` 에 위임한다
+(백그라운드 · builder 는 기다리지 않는다 · runner 예산은 `.claude/agents/snapshot-runner.md`).
 
 ---
 
@@ -186,7 +188,8 @@ node scripts/check-phase.mjs
 - `npm run check:layout` 으로 어느 노드인지 먼저 확인
 - 원인 대부분은 오토레이아웃 프레임에 `resize(w, h)` 를 불러 sizing 이 FIXED 로 풀린 것
 - 의도적 고정이면 design-rules.md 컴포넌트 항목에 `- Height: fixed(토큰)` 을 선언한다
-- `schema_version 2` 경고가 뜨면 고정 높이 검사가 건너뛰어진 것 — 스냅샷을 v3 로 재추출
+- `schema_version 2` 경고가 뜨면 고정 높이 검사가 건너뛰어진 것 — 스냅샷을 v4 로 재추출
+- `profile=docs` 로 검사가 건너뛰어졌다는 경고가 뜨면 컴포넌트·화면 페이지를 docs 로 뽑은 것 — `profile=full` 로 재요청
 
 **"figma-builder가 시작 안 됨"**
 
@@ -197,8 +200,10 @@ node scripts/check-phase.mjs
 
 - 원인 대부분은 스냅샷으로 검증하고 → 고치고 → 다시 뽑는 루프 (한 번 뽑는 데 1분+)
 - 생성 직후 `scripts/figma-lint.js` 를 use_figma 로 돌려 위반만 받아 고친다 (수 초)
-- 스냅샷은 lint 0건 이후 STAGE 당 1회. 응답이 잘리면 `__FRAME_FROM__/__FRAME_TO__` 로 범위만 나눈다
-  ("경량 추출" 코드를 직접 짜지 않는다 — check-\* 가 조용히 오판한다)
+- 스냅샷은 lint 0건 이후 STAGE 당 1회 **요청**만 하고 다음 STAGE 로 간다. 추출은 snapshot-runner 가 한다
+- runner 에서 응답이 잘리면 `__FRAME_FROM__/__FRAME_TO__` → `__NODE_FROM__/__NODE_TO__` 로 범위만 나눈다
+  ("경량 추출" 코드를 직접 짜지 않는다 — check-\* 가 조용히 오판한다).
+  01 Tokens 는 `__PROFILE__=docs`(스크립트 내장) 로 프레임당 1배치면 끝난다 — 이 페이지를 full 로 뽑고 있으면 그게 원인이다
 
 **"MCP 인증 오류"**
 
@@ -213,5 +218,6 @@ node scripts/check-phase.mjs
 - 토큰 문서 규격: docs/token-docs-spec.md
 - 각 에이전트 상세: .claude/agents/*.md
 - 검증 스크립트: scripts/*.mjs (로컬 · 스냅샷 기반)
-- Figma 안에서 돌리는 스크립트: scripts/figma-snapshot.js (추출) · scripts/figma-lint.js (즉시 검증) · scripts/figma-token-docs.js (토큰 문서)
+- Figma 안에서 돌리는 스크립트: scripts/figma-snapshot.js (추출 · v4 프로필 docs/full) · scripts/figma-lint.js (즉시 검증) · scripts/figma-token-docs.js (토큰 문서)
+- 스냅샷 전담 에이전트: .claude/agents/snapshot-runner.md (figma-builder 가 STAGE 를 끝낼 때마다 코디네이터가 백그라운드로 띄운다)
 - 기본 토큰: scripts/default-tokens.md

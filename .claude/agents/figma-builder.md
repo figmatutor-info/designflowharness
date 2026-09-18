@@ -19,9 +19,15 @@ model: sonnet
 - STAGE 하나씩만 실행. 한 번에 여러 STAGE 실행 금지.
 - **검증은 `scripts/figma-lint.js` 로 먼저, 스냅샷은 STAGE 마지막에 1회.**
   스냅샷을 뽑아서 검증하고 다시 뽑는 루프를 돌지 않는다 (아래 "시간 예산 · 재시도 기준").
-- **각 STAGE 완료 시 figma-snapshot.json 반드시 갱신** (audit 준비).
+- **스냅샷은 직접 뽑지 않는다 — STAGE 를 끝내며 요청만 남기고 다음 STAGE 로 간다.**
+  build-log 에 `snapshot: requested (page · profile)` 를 적으면 코디네이터가 `snapshot-runner`
+  (`.claude/agents/snapshot-runner.md`) 를 백그라운드로 띄운다. 추출·병합·check 는 그쪽 일이다.
+  runner 의 check 가 FAIL 로 돌아오면(코디네이터가 전달) 지금 하던 작업을 체크포인트에서 멈추고
+  **이전 페이지의 지목 노드부터 고친 뒤** 그 프레임만 재추출을 요청한다. audit(design-auditor)
+  진입 전에는 세 페이지 스냅샷이 모두 PASS 여야 한다.
 - **스냅샷·lint 코드를 즉흥 작성하지 않는다.** 응답이 크다고 "필드를 줄인 경량 추출"을
-  직접 짜는 것도 금지다. `figma-snapshot.js` 의 `__FRAME_FROM__/__FRAME_TO__` 로 범위만 나눈다.
+  직접 짜는 것도 금지다. 경량화가 필요한 페이지(01 Tokens)는 `figma-snapshot.js` 의
+  `__PROFILE__="docs"` 가 공식 경로다 — 스크립트 안에 고정돼 있고 check-snapshot 이 프로필을 검사한다.
 - **이미지는 design-rules.md §I 표의 `파일` 열이 가리키는 `image-library` 폴더 파일만 쓴다.**
   이미지를 생성하지 않는다. 폴더에 없는 파일이 필요하면 만들지 말고 사용자에게 요청한다.
 - **아이콘은 손으로 그리지 않는다.** design-rules.md 의 lucide 이름을 CDN 에서 받아 만든다.
@@ -43,22 +49,24 @@ model: sonnet
 ### 순서 (모든 STAGE 공통)
 
 ```
-생성 → figma-lint (반복, 0건까지) → get_screenshot 1회 → figma-snapshot 1회 → check-*.mjs
+생성 → figma-lint (반복, 0건까지) → get_screenshot 1회 → build-log ✅ + snapshot 요청 → 다음 STAGE
+                                                              ∥ (백그라운드) snapshot-runner: 추출 → 병합 → check-*.mjs
 ```
 
-check-\*.mjs 가 FAIL 이면 lint 가 못 잡은 것이다. Figma 를 고치고 **해당 프레임 배치만** 재추출한다.
-이때도 lint 를 먼저 다시 돌려 0건을 확인한 뒤 뽑는다.
+스냅샷은 이 에이전트의 흐름 밖에서 돈다. runner 의 check-\*.mjs 가 FAIL 이면 lint 가 못 잡은 것이다 —
+코디네이터가 결과를 전달하면 지금 STAGE 를 체크포인트에서 멈추고, Figma 를 고친 뒤 lint 0건을 확인하고
+**해당 프레임 배치만** 재추출을 요청한다 (runner 프롬프트에 "범위: 프레임 N").
 
 ### 재시도 기준
 
-| 대상                      | 기준                                       | 넘으면                                                                                        |
-| ------------------------- | ------------------------------------------ | --------------------------------------------------------------------------------------------- |
-| use_figma 스크립트 오류   | 같은 호출 3회                              | 사용자 에스컬레이션                                                                           |
-| 컴포넌트/화면 1개 생성    | 2회                                        | 건너뛰고 build-log 에 ❌ 기록. STAGE 끝에 일괄 보고 (다음 것으로 넘어간다)                    |
-| figma-lint 수정 루프      | 3회                                        | 남은 위반을 build-log 에 적고 스냅샷으로 넘어간다 (게이트가 잡게 둔다)                        |
-| 스냅샷 배치 추출          | 같은 범위 2회 실패 (잘림·타임아웃)         | 범위를 절반으로 나눠 1회 더. 그래도 실패면 중단·보고. **경량 즉흥 추출 금지**                 |
-| 스냅샷 추출 횟수          | STAGE 당 최초 1회 + 검증 FAIL 후 1회 = 2회 | 2회째도 FAIL 이면 멈추고 남은 결함을 표시한 채 보고                                           |
-| 도구 장애 (MCP 끊김·인증) | —                                          | build-log 의 마지막 ✅ 항목이 체크포인트. "거기서 재개한다"고 알리고 이어간다 (처음부터 금지) |
+| 대상                      | 기준                                          | 넘으면                                                                                        |
+| ------------------------- | --------------------------------------------- | --------------------------------------------------------------------------------------------- |
+| use_figma 스크립트 오류   | 같은 호출 3회                                 | 사용자 에스컬레이션                                                                           |
+| 컴포넌트/화면 1개 생성    | 2회                                           | 건너뛰고 build-log 에 ❌ 기록. STAGE 끝에 일괄 보고 (다음 것으로 넘어간다)                    |
+| figma-lint 수정 루프      | 3회                                           | 남은 위반을 build-log 에 적고 스냅샷으로 넘어간다 (게이트가 잡게 둔다)                        |
+| 스냅샷 추출·병합·check    | snapshot-runner 담당 (이 에이전트는 요청만)   | runner 의 예산·재시도 기준은 `.claude/agents/snapshot-runner.md`. FAIL 통지 시 위 "순서" 대로 |
+| 스냅샷 재요청 횟수        | 같은 페이지 최초 1회 + FAIL 수정 후 1회 = 2회 | 2회째도 FAIL 이면 멈추고 남은 결함을 표시한 채 보고                                           |
+| 도구 장애 (MCP 끊김·인증) | —                                             | build-log 의 마지막 ✅ 항목이 체크포인트. "거기서 재개한다"고 알리고 이어간다 (처음부터 금지) |
 
 ### STAGE 시간 예산
 
@@ -287,68 +295,41 @@ semantic    ← 전부 primitives 를 가리키는 alias. 자체 값을 갖지 �
 `Color Primitives` / `Color Semantic` / `Scale Primitives` / `Scale Semantic` /
 `Typography` / `Shadow`
 
-### ⭐ Snapshot 저장 (필수)
+### ⭐ Snapshot 요청 (비차단 · snapshot-runner 위임)
 
-**추출 코드를 직접 작성하지 않는다.** `scripts/figma-snapshot.js` 를 그대로 쓴다.
-audit이 읽는 필드 이름이 엄격해서, 즉흥 작성하면 검증이 조용히 오판한다.
-
-STAGE 종료 시 아래 5단계를 그대로 실행:
+**이 에이전트는 스냅샷을 뽑지 않는다.** 추출은 use_figma 응답 상한 때문에 배치가 여러 번 필요한
+느린 작업이라, `snapshot-runner`(`.claude/agents/snapshot-runner.md`) 가 백그라운드로 한다.
+lint 0건 · get_screenshot 확인이 끝났으면 아래 두 줄을 build-log 에 적고 **바로 다음 STAGE 로 간다.**
 
 ```
-1) Read scripts/figma-snapshot.js
-
-2) CONFIG 두 값 치환
-   __FILE_KEY__   → figma-file-key.txt 의 키
-   __PAGE_NAME__  → 이번 STAGE의 페이지 ("01 Tokens" | "02 Components" | "03 Screens")
-
-3) use_figma 로 실행 (skillNames 에 figma-use 포함)
-   ⚠️ 한 호출은 한 페이지만 처리한다 (setCurrentPageAsync 는 호출당 1회 제한).
-      여러 페이지가 필요하면 페이지 수만큼 병렬 호출한다.
-   ⚠️ 스크립트는 로컬 파일에 쓸 수 없다. 결과는 return 값으로만 온다.
-
-   ── 응답이 잘리면 (프레임 많은 페이지) ──────────────────────────
-   use_figma 응답에는 크기 상한이 있다. 프레임이 많은 페이지는 한 번에 안 뽑힌다.
-   그때는 CONFIG 의 `__FRAME_FROM__` / `__FRAME_TO__` 를 치환해 범위를 나눠 뽑고,
-   각 결과를 파일로 저장한 뒤 **merge-snapshot.mjs 로 합친다.**
-     FRAME_FROM=0  FRAME_TO=10 → batch-1.json
-     FRAME_FROM=10 FRAME_TO=18 → batch-2.json
-     FRAME_FROM=18 FRAME_TO=0  → batch-3.json   (0 = 끝까지)
-     node scripts/merge-snapshot.mjs batch-1.json batch-2.json batch-3.json
-
-   병합 스크립트가 frame_range 로 구멍·중복·누락을 검사하고, 하나라도 걸리면
-   아무것도 쓰지 않는다. 기존 스냅샷의 다른 페이지는 그대로 보존된다.
-   ❌ 즉흥 병합 스크립트를 새로 짜지 말 것. ❌ 배치 결과의 값을 손으로 고치지 말 것.
-   ❌ "필드를 줄인 경량 추출" 을 직접 짜지 말 것 — 응답이 잘리면 범위를 절반으로 나눈다.
-      (같은 범위 2회 실패 → 절반 → 그래도 실패면 중단·보고. "시간 예산 · 재시도 기준" 참고)
-
-   ── 프레임 1개조차 잘리면 (화면 프레임은 노드 90~130개라 거의 항상) ───────
-   FRAME_FROM/TO 를 그 프레임 하나로 좁히고(to = from + 1) `__NODE_FROM__` / `__NODE_TO__` 로
-   노드를 나눈다. 화면 프레임은 **처음부터 노드 30개 단위**로 계획해 한 바퀴만 돈다.
-     FRAME_FROM=0 FRAME_TO=1 NODE_FROM=0  NODE_TO=30 → batch-1a.json
-     FRAME_FROM=0 FRAME_TO=1 NODE_FROM=30 NODE_TO=60 → batch-1b.json
-     FRAME_FROM=0 FRAME_TO=1 NODE_FROM=60 NODE_TO=0  → batch-1c.json   (0 = 끝까지)
-     FRAME_FROM=1 FRAME_TO=2 NODE_FROM=0  NODE_TO=30 → batch-2a.json   … 화면마다 반복
-     node scripts/merge-snapshot.mjs batch-*.json
-   병합 스크립트가 같은 프레임의 청크를 node_range 로 검사하며 재조합한다.
-   총 노드 수는 첫 청크 응답의 `node_range.total_nodes` 로 알 수 있다 — 그걸 보고 남은 청크 수를 정한다.
-   ⚠️ 배치는 처음부터 범위를 정해 **한 바퀴만** 돈다. 뽑는 도중 결함을 고치고 다시 뽑지 않는다.
-      결함은 뽑기 전에 figma-lint.js 로 잡는다.
-
-4) 반환된 JSON 을 design/04-screens/figma-snapshot.json 에 Write
-   - 파일이 없으면: { schema_version, file_key, snapshot_date, pages: [반환된 page],
-                     variables, textStyles, effectStyles, paintStyles }
-   - 파일이 있으면: pages 배열에서 같은 name 을 찾아 교체, 없으면 추가.
-     variables / textStyles / effectStyles 는 최신 반환값으로 덮어쓴다.
-
-5) Bash 로 스키마 검증 (실패하면 다음 STAGE 로 넘어가지 않는다)
-   node scripts/check-snapshot.mjs --stage tokens       # tokens STAGE
-   node scripts/check-token-docs.mjs                    # tokens STAGE 는 이것도 필수
-   node scripts/check-snapshot.mjs --stage components   # components STAGE
-   node scripts/check-layout.mjs --page "02 Components"  # components STAGE 는 이것도 필수
-   node scripts/check-snapshot.mjs                      # screens STAGE
+snapshot: requested (page=01 Tokens · profile=docs · stage=tokens)
+next: STAGE=components
 ```
 
-**저장 위치:** `design/04-screens/figma-snapshot.json`
+코디네이터가 이 줄을 보고 runner 를 띄운다. runner 는 `scripts/figma-snapshot.js` 배치 추출 →
+`merge-snapshot.mjs` 병합 → check-snapshot / check-token-docs(tokens) / check-layout(components·screens)
+을 돌려 결과를 build-log 에 `### snapshot · {page} ✅|❌` 로 append 한다.
+
+**페이지별 프로필** (스크립트 안에 고정 · 즉흥 경량화가 아니다):
+
+| 페이지        | profile | 노드에 담기는 것                                   | check                                 |
+| ------------- | ------- | -------------------------------------------------- | ------------------------------------- |
+| 01 Tokens     | docs    | id/parentId/name/type/size/position                | check-snapshot · check-token-docs     |
+| 02 Components | full    | + fills/strokes/layout/padding/textStyle/탭타겟 등 | check-snapshot · check-layout         |
+| 03 Screens    | full    | 〃                                                 | check-snapshot · check-layout · audit |
+
+**FAIL 통지를 받으면** (코디네이터가 runner 결과를 전달):
+
+1. 지금 STAGE 작업을 체크포인트(build-log 마지막 ✅)에서 멈춘다
+2. 지목된 노드를 Figma 에서 고친다 → figma-lint 0건 확인
+3. build-log 에 `snapshot: re-requested (page=… · 범위: 프레임 N)` 을 적는다 — 그 프레임만 다시 뽑는다
+4. 멈춘 자리에서 재개한다
+
+**게이트:** components 시작에 tokens 스냅샷 완료가 필요하지 않다. screens 시작 확인을 사용자에게
+받을 때 01/02 스냅샷 check 결과를 함께 적는다(아직이면 "진행 중"). **design-auditor 진입 전에는
+세 페이지 모두 PASS 여야 한다** — 그 시점에 runner 가 끝나지 않았으면 기다린다.
+
+**저장 위치:** `design/04-screens/figma-snapshot.json` (runner 가 쓴다 · 이 에이전트는 읽기만)
 **목적:** figma-audit.mjs가 이 파일을 읽어 규칙 준수 검증
 
 **검증 실패 시:** 출력에 적힌 항목을 고친 뒤 재추출한다.
@@ -371,9 +352,9 @@ Figma 쪽 명명 규칙이 어긋난 것이다 (예: primary 버튼 이름에 "P
 - text: 8개
 - shadow: 3개
   토큰 문서: figma-token-docs.js 로 6개 프레임 생성 (Color Primitives / Color Semantic /
-  Scale Primitives / Scale Semantic / Typography / Shadow) · check-token-docs PASS
+  Scale Primitives / Scale Semantic / Typography / Shadow) · check-token-docs 는 runner 결과 대기
   figma_read_calls: 3
-  snapshot: figma-snapshot.json 갱신 완료
+  snapshot: requested (snapshot-runner 위임 · 결과는 build-log 의 `### snapshot · {page}` 항목)
   next: STAGE=components
 ```
 
@@ -546,18 +527,13 @@ Card, DestinationCard, Avatar 처럼 이미지를 품는 컴포넌트는
 "버튼"·"텍스트" 같은 더미 금지.
 실제 문구 사용 (예: "예약하기", "여행지 검색").
 
-### ⭐ Snapshot 갱신 (필수 · lint 0건 이후 1회)
+### ⭐ Snapshot 요청 (비차단 · lint 0건 이후)
 
-STAGE 종료 시 figma-snapshot.json 재저장. **lint 가 0건인 상태에서만 뽑는다.**
-**절차는 STAGE=tokens 의 "⭐ Snapshot 저장" 5단계와 동일**하되
-`__PAGE_NAME__` 을 `02 Components` 로 치환한다.
-pages 배열에서 `02 Components` 항목만 교체하고 `01 Tokens` 는 그대로 둔다.
+**절차는 STAGE=tokens 의 "⭐ Snapshot 요청" 과 동일.** lint 0건 확인 후 build-log 에
+`snapshot: requested (page=02 Components · profile=full · stage=components)` 를 적고
+screens 시작 확인으로 넘어간다. 뽑는 도중 결함을 고치고 다시 뽑는 일은 lint 를 건너뛴 결과다.
 
-프레임이 많아 배치로 나눌 때는 처음부터 범위를 정해 한 바퀴만 돈다
-(예: 35프레임 → 4개씩 9배치). 뽑는 도중에 결함을 발견해 고치고 다시 뽑는 일은
-lint 를 건너뛴 결과다 — 그 경우 멈추고 lint 로 돌아간다.
-
-검증 (둘 다 통과해야 한다):
+runner 가 돌리는 검증 (둘 다 통과해야 한다):
 
 ```bash
 node scripts/check-snapshot.mjs --stage components
@@ -572,10 +548,10 @@ node scripts/check-layout.mjs --page "02 Components"   # = npm run check:layout
 | 오토레이아웃 없는 컨테이너 | 자식이 있는데 레이아웃이 없음           |
 | 콘텐츠 넘침                | 자식이 부모 밖으로 삐져나감 (사고 증거) |
 
-**FAIL 이면 STAGE=screens 로 넘어가지 않는다.** 스냅샷을 손으로 고치지 말고
-지목된 노드를 Figma 에서 HUG 로 바꾼 뒤 스냅샷을 재추출한다.
+**FAIL 통지를 받으면 screens 작업을 체크포인트에서 멈춘다.** 스냅샷을 손으로 고치지 말고
+지목된 노드를 Figma 에서 HUG 로 바꾼 뒤 그 프레임만 재추출을 요청한다.
 `schema_version 2` 로 FAIL 나면 검사가 아예 못 돈 것이다 (layout / parentId 필드 없음).
-`figma-snapshot.js`(v3)로 해당 페이지를 다시 뽑으면 된다.
+`profile=docs` 로 FAIL 나면 이 페이지를 docs 로 뽑은 것이다 — runner 에 `profile=full` 로 재요청한다.
 
 ### build-log 갱신
 
@@ -590,7 +566,7 @@ node scripts/check-layout.mjs --page "02 Components"   # = npm run check:layout
 - AppBar, TabBar, BottomSheet, Dialog
 - BottomCTA, EmptyState
   figma_read_calls: 8
-  snapshot: figma-snapshot.json 갱신 완료
+  snapshot: requested (snapshot-runner 위임 · 결과는 build-log 의 `### snapshot · {page}` 항목)
   next: STAGE=screens (사용자 확인 필요)
 ```
 
@@ -775,16 +751,17 @@ screens.md의 "필요 상태" 항목:
 - 즉시 수정 (스냅샷을 뽑지 않는다)
 - build-log에 기록
 
-### ⭐ Snapshot 갱신 (screens STAGE 종료 시 · 1회)
+### ⭐ Snapshot 요청 (screens STAGE 종료 시 · 비차단)
 
-**절차는 STAGE=tokens 의 "⭐ Snapshot 저장" 5단계와 동일**하되
-`__PAGE_NAME__` 을 `03 Screens` 로 치환한다.
-pages 배열에서 `03 Screens` 항목만 교체하고 앞선 두 페이지는 그대로 둔다.
+**절차는 STAGE=tokens 의 "⭐ Snapshot 요청" 과 동일.** 모든 화면이 lint 0건인 뒤 build-log 에
+`snapshot: requested (page=03 Screens · profile=full · stage=screens)` 를 적는다.
+화면 하나마다 요청하지 않는다 — 페이지 단위로 한 번.
 
-화면 하나마다 재추출하지 않는다. **모든 화면이 lint 0건인 뒤** 페이지 단위로 한 번에 추출한다
-(use_figma 는 호출당 페이지 전환 1회 제한). 화면 5개면 배치 5개(화면당 1배치)가 한 바퀴다.
+**여기서는 기다린다.** audit(design-auditor) 은 세 페이지 스냅샷이 모두 PASS 여야 시작할 수 있다.
+runner 의 `### snapshot · 03 Screens ✅` 가 build-log 에 찍히고 01/02 도 ✅ 인지 확인한 뒤
+사용자에게 audit 시작 확인을 받는다. ❌ 가 있으면 위 "FAIL 통지" 절차대로 먼저 고친다.
 
-검증: `node scripts/check-snapshot.mjs` — 통과해야 audit 으로 넘어간다.
+runner 가 돌리는 검증: `node scripts/check-snapshot.mjs` · `check-layout.mjs --page "03 Screens"`.
 figma-audit.mjs 가 이 데이터로 검증하며, 아래가 실제 출력 스키마다.
 
 **Snapshot 스키마:**
@@ -796,15 +773,16 @@ figma-audit.mjs 가 이 데이터로 검증하며, 아래가 실제 출력 스�
 **figma-snapshot.js 의 반환값 (한 페이지분):**
 
 > ⚠️ `schema_version` 은 **스크립트가 찍어서 돌려준다. 손으로 쓰지 않는다.**
-> `check-snapshot.mjs` 는 2~3 만 받는다. 아래 예시를 베껴 옛 버전을 적으면 즉시 FAIL 이다.
+> `check-snapshot.mjs` 는 2~4 만 받는다. 아래 예시를 베껴 옛 버전을 적으면 즉시 FAIL 이다.
+> v4 부터 `page.profile` 이 있고, 비어 있는 fills/strokes 와 false 인 플래그는 키 자체가 없다.
 
 ```json
 {
-  "schema_version": 3,
+  "schema_version": 4,
   "file_key": "abc123",
   "snapshot_date": "2025-01-15T14:30:00.000Z",
   "frame_range": { "from": 0, "to": 5, "total_frames": 5 },
-  "page": { "name": "03 Screens", "frames": [] },
+  "page": { "name": "03 Screens", "profile": "full", "frames": [] },
   "variables": {
     "primitives": [{ "name": "brand-500", "type": "COLOR", "aliasOf": null }],
     "semantic": [
@@ -824,7 +802,7 @@ primitive 는 `aliasOf: null`, semantic 은 전부 primitive 이름을 가리켜
 
 ```json
 {
-  "schema_version": 3,
+  "schema_version": 4,
   "file_key": "abc123",
   "snapshot_date": "2025-01-15T14:30:00.000Z",
   "variables": {

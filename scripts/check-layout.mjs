@@ -167,6 +167,14 @@ let truncatedFrames = 0;
 for (const page of snap.pages || []) {
   if (!page || SKIP_PAGES.has(page.name)) continue;
   if (onlyPage && page.name !== onlyPage) continue;
+  // v4 docs 프로필은 layout/parentId 가 없다. 조용히 0건 PASS 가 되지 않도록 대상에서 뺀다.
+  if (page.profile === "docs") {
+    log(
+      `  ⚠ "${page.name}" 은 docs 프로필 — 레이아웃 검사 대상 아님 (건너뜀)`,
+      "yellow",
+    );
+    continue;
+  }
   pagesChecked.push(page.name);
 
   for (const frame of page.frames || []) {

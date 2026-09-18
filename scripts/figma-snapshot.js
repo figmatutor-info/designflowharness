@@ -34,6 +34,15 @@
  *         FRAME_FROM=0 FRAME_TO=1 NODE_FROM=60 NODE_TO=0  → batch-1c.json (0 = 끝까지)
  *   merge-snapshot.mjs 가 frame.node_range 로 검사하며 한 프레임으로 재조합한다.
  *   ❌ 필드를 줄인 "경량 추출"을 직접 짜지 않는다. 범위만 나눈다.
+ *
+ *   ── 프로필 (schema_version 4) ───────────────────────────────────────
+ *   __PROFILE__ → "docs" | "full". 치환하지 않으면 "01 Tokens" 는 docs, 나머지는 full.
+ *     docs : 토큰 문서 페이지용. 노드당 id/parentId/name/type/size/position 만 담는다
+ *            (check-token-docs.mjs 가 읽는 전부). 응답이 5~8배 작아져 프레임당 1회로 끝난다.
+ *     full : 컴포넌트·화면용. 색/레이아웃/탭타겟까지 전부 담는다 (audit 입력).
+ *   ❌ 화면·컴포넌트 페이지를 docs 로 뽑지 않는다 — check-snapshot 이 profile 을 보고 거부한다.
+ *   변수·스타일은 첫 배치(FRAME_FROM=0, NODE_FROM=0)에만 실린다. 변수를 바꿨으면 그 배치를
+ *   다시 뽑거나 __WITH_STYLES__ 를 "1" 로 치환해 아무 배치에나 실어 보낸다.
  *   3. use_figma 로 실행 (skillNames 에 figma-use 포함)
  *   4. 반환된 JSON 의 page 를 기존 figma-snapshot.json 의 pages 배열에
  *      같은 name 이 있으면 교체, 없으면 추가 → Write
@@ -59,6 +68,16 @@
  *   2) node.parentId — 넘침(자식이 부모 밖으로 삐져나감) 계산의 근거
  *   3) node.textAutoResize — 텍스트가 잘리는지 판정
  *   4) frame.layout / frame.padding — 프레임 루트 자신의 거동
+ *
+ * ── schema_version 4 (프로필 · 압축) ────────────────────────────────────
+ *   v3 대비 바뀐 것:
+ *   1) page.profile = "docs" | "full". docs 노드는 id/parentId/name/type/size/position 만.
+ *   2) full 노드에서 비어 있는 값은 키를 생략한다: fills/strokes 가 [] 이면 없음,
+ *      padding/mainComponent 가 null 이면 없음, isTapTarget/isPrimary/isInstance 가 false 면 없음.
+ *      TEXT 노드의 textStyle/textAutoResize 는 null 이어도 남긴다 (스타일 미적용 = 위반 판정 근거).
+ *      읽는 쪽은 전부 `node.fills || []`, `if (node.isTapTarget)` 처럼 없는 키를 기본값으로 취급한다.
+ *   3) variables/textStyles/effectStyles/paintStyles 는 첫 배치에만 실린다 (그 외 배치는 키 없음).
+ *      merge-snapshot.mjs 가 실린 배치의 값을 채택한다.
  *
  * ── schema_version 2 (토큰 2계층) ──────────────────────────────────────
  *   v1 대비 바뀐 것:
@@ -95,7 +114,23 @@ const NODE_FROM = Number("__NODE_FROM__") || 0;
 const NODE_TO = Number("__NODE_TO__") || 0; // 0 = 끝까지
 const NODE_SLICING = NODE_FROM > 0 || NODE_TO > 0;
 
-const SCHEMA_VERSION = 3;
+// 추출 프로필. "docs" 는 토큰 문서 페이지 전용 경량 노드, "full" 은 audit 입력용 전체 노드.
+// 치환하지 않으면 페이지 이름으로 정한다 — 01 Tokens 만 docs.
+const PROFILE_RAW = "__PROFILE__";
+const PROFILE =
+  PROFILE_RAW === "docs" || PROFILE_RAW === "full"
+    ? PROFILE_RAW
+    : PAGE_NAME === "01 Tokens"
+      ? "docs"
+      : "full";
+
+// 변수·스타일은 파일 단위 정보라 배치마다 반복할 이유가 없다. 첫 배치에만 싣는다.
+// "1" 로 치환하면 이 배치에 강제로 싣는다 (변수만 바꾸고 문서 프레임은 그대로일 때).
+const WITH_STYLES_RAW = "__WITH_STYLES__";
+const INCLUDE_STYLES =
+  WITH_STYLES_RAW === "1" || (FRAME_FROM === 0 && NODE_FROM === 0);
+
+const SCHEMA_VERSION = 4;
 const MAX_NODES_PER_FRAME = 2000; // 폭주 방지
 
 // ==================== 유틸 ====================
@@ -328,6 +363,18 @@ async function extractNode(node, frameOrigin, parentId) {
     height: Math.round(node.height ?? box?.height ?? 0),
   };
 
+  // docs 프로필: 문서 검사(check-token-docs)가 읽는 필드만. paint/variable 조회를 아예 하지 않는다.
+  if (PROFILE === "docs") {
+    return {
+      id: node.id,
+      parentId: parentId ?? null,
+      name: node.name,
+      type: node.type,
+      size,
+      position,
+    };
+  }
+
   let mainName = null;
   if (node.type === "INSTANCE") {
     try {
@@ -345,18 +392,19 @@ async function extractNode(node, frameOrigin, parentId) {
     parentId: parentId ?? null,
     name: node.name,
     type: node.type,
-    fills: await paints(node.fills),
-    strokes: await paints(node.strokes),
-    textStyle: null,
-    padding: autoLayoutPadding(node),
     size,
     position,
     layout: layoutInfo(node),
-    textAutoResize: node.type === "TEXT" ? (node.textAutoResize ?? null) : null,
-    isTapTarget: isTapTarget(node, mainName),
-    isPrimary: isPrimary(node, mainName),
-    isInstance: node.type === "INSTANCE",
   };
+
+  // 비어 있으면 키를 생략한다 (v4). 읽는 쪽은 `|| []` / truthy 로 기본값 처리한다.
+  const fills = await paints(node.fills);
+  const strokes = await paints(node.strokes);
+  if (fills.length > 0) out.fills = fills;
+  if (strokes.length > 0) out.strokes = strokes;
+
+  const padding = autoLayoutPadding(node);
+  if (padding) out.padding = padding;
 
   if (node.layoutMode && node.layoutMode !== "NONE") {
     out.itemSpacing = node.itemSpacing ?? 0;
@@ -364,10 +412,15 @@ async function extractNode(node, frameOrigin, parentId) {
 
   if (node.type === "TEXT") {
     const id = node.textStyleId;
-    // figma.mixed = 한 텍스트에 여러 스타일 → 스타일 미적용으로 간주(위반)
+    // figma.mixed = 한 텍스트에 여러 스타일 → 스타일 미적용으로 간주(위반).
+    // null 이어도 키를 남긴다 — audit 이 "스타일 없음" 을 이 키로 판정한다.
     out.textStyle = id === figma.mixed ? null : await styleName(id);
+    out.textAutoResize = node.textAutoResize ?? null;
   }
 
+  if (isTapTarget(node, mainName)) out.isTapTarget = true;
+  if (isPrimary(node, mainName)) out.isPrimary = true;
+  if (node.type === "INSTANCE") out.isInstance = true;
   if (mainName) out.mainComponent = mainName;
 
   return out;
@@ -507,9 +560,7 @@ for (const child of targets.slice(from, to)) {
   frames.push(await extractFrame(child, NODE_FROM, NODE_TO));
 }
 
-const styles = await extractStyles();
-
-return {
+const result = {
   schema_version: SCHEMA_VERSION,
   file_key: FILE_KEY,
   snapshot_date: new Date().toISOString(),
@@ -518,10 +569,18 @@ return {
   frame_range: { from, to, total_frames: targets.length },
   page: {
     name: page.name,
+    profile: PROFILE,
     frames,
   },
-  variables: await extractVariables(),
-  textStyles: styles.text,
-  effectStyles: styles.effect,
-  paintStyles: styles.paint,
 };
+
+// 파일 단위 정보는 첫 배치에만 싣는다 (배치마다 반복하면 응답 상한을 그만큼 갉아먹는다).
+if (INCLUDE_STYLES) {
+  const styles = await extractStyles();
+  result.variables = await extractVariables();
+  result.textStyles = styles.text;
+  result.effectStyles = styles.effect;
+  result.paintStyles = styles.paint;
+}
+
+return result;

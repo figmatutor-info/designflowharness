@@ -64,21 +64,19 @@ const fileKeyPath = getArg(
 const stage = getArg("--stage", "screens");
 const minFrames = parseInt(getArg("--min-frames", "5"), 10);
 
-// 최신 계약. 3 부터 레이아웃 거동(node.layout / parentId)이 들어있다.
-const SCHEMA_VERSION = 3;
+// 최신 계약. 3 부터 레이아웃 거동(node.layout / parentId), 4 부터 프로필(docs/full)과
+// 빈 값 키 생략(fills/strokes 가 비면 키 없음)이 들어있다.
+const SCHEMA_VERSION = 4;
 // 2 도 통과시킨다 (기존 산출물 보호). 단 레이아웃 검사는 못 돌린다고 경고한다.
 const MIN_SCHEMA_VERSION = 2;
 
-// figma-audit.mjs 가 각 노드에서 읽는 필드
-const REQUIRED_NODE_FIELDS = [
-  "id",
-  "name",
-  "type",
-  "fills",
-  "strokes",
-  "size",
-  "position",
-];
+// figma-audit.mjs 가 각 노드에서 반드시 읽는 필드.
+// fills/strokes 는 v4 부터 비어 있으면 키가 없으므로 필수에서 뺐다 (audit 은 `|| []` 로 읽는다).
+const REQUIRED_NODE_FIELDS = ["id", "name", "type", "size", "position"];
+
+// 프로필별 허용 stage. docs 는 토큰 문서 페이지에서만 허용된다 —
+// 컴포넌트·화면을 docs 로 뽑으면 색·레이아웃·탭타겟이 전부 빠져 audit 이 허위 PASS 한다.
+const DOCS_ALLOWED_STAGES = new Set(["tokens"]);
 
 const STAGE_PAGE = {
   tokens: "01 Tokens",
@@ -189,6 +187,19 @@ function checkPages(snap) {
       ? "있음"
       : `없음 (수집된 페이지: ${pages.map((p) => p?.name).join(", ") || "없음"})`,
   );
+
+  // v4 프로필. docs 는 tokens 페이지에서만. v3 이하는 profile 이 없고 전부 full 로 간주한다.
+  if (page) {
+    const profile = page.profile ?? "full";
+    const ok = profile === "full" || DOCS_ALLOWED_STAGES.has(stage);
+    add(
+      "페이지 프로필 허용",
+      ok,
+      ok
+        ? `profile=${profile}`
+        : `profile=${profile} — stage=${stage} 는 full 로 뽑아야 한다 (__PROFILE__ → "full" 로 재추출)`,
+    );
+  }
 
   return page || null;
 }

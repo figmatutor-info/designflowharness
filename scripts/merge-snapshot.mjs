@@ -127,6 +127,11 @@ for (const { path, data } of batches) {
     problems.push(
       `page.name 불일치: ${path} (${data.page?.name} ≠ ${pageName}) — 한 번에 한 페이지만 병합한다`,
     );
+  // v4: 같은 페이지의 배치는 프로필(docs/full)도 같아야 한다. 섞이면 노드 필드가 들쭉날쭉해진다.
+  if ((data.page?.profile ?? null) !== (first.page?.profile ?? null))
+    problems.push(
+      `page.profile 불일치: ${path} (${data.page?.profile ?? "없음"} ≠ ${first.page?.profile ?? "없음"}) — 같은 __PROFILE__ 로 다시 뽑을 것`,
+    );
   if (!data.frame_range)
     problems.push(
       `frame_range 없음: ${path} — 구버전 figma-snapshot.js 로 뽑았다. 다시 추출할 것`,
@@ -289,12 +294,16 @@ if (problems.length > 0) {
 // frames 를 순서대로 이어 붙이기만 한다. 값은 건드리지 않는다.
 const mergedFrames = sorted.flatMap(({ data }) => data.page.frames);
 
-// 파일 단위 정보(변수/스타일)는 어느 배치에나 같은 값이 들어 있다. 마지막 추출본을 쓴다.
-const latest = [...batches]
-  .sort((a, b) =>
-    String(a.data.snapshot_date).localeCompare(String(b.data.snapshot_date)),
-  )
-  .at(-1).data;
+const byDate = [...batches].sort((a, b) =>
+  String(a.data.snapshot_date).localeCompare(String(b.data.snapshot_date)),
+);
+const latest = byDate.at(-1).data;
+
+// 파일 단위 정보(변수/스타일). v3 까지는 모든 배치에 있었고, v4 부터는 첫 배치에만 실린다.
+// 실려 있는 배치 중 가장 최근 것을 쓴다. 하나도 없으면 기존 스냅샷의 값을 유지한다.
+const withStyles = byDate
+  .filter((b) => b.data.variables !== undefined)
+  .at(-1)?.data;
 
 let out;
 if (existsSync(outPath)) {
@@ -312,16 +321,25 @@ if (existsSync(outPath)) {
   };
 }
 
+if (!withStyles && out.variables === undefined)
+  die(
+    "변수·스타일이 실린 배치가 없고 기존 스냅샷에도 없다",
+    'FRAME_FROM=0 NODE_FROM=0 배치를 포함하거나 __WITH_STYLES__ 를 "1" 로 치환해 한 배치에 실을 것',
+  );
+
 out.schema_version = latest.schema_version;
 out.file_key = latest.file_key;
 out.snapshot_date = latest.snapshot_date;
-out.variables = latest.variables;
-out.textStyles = latest.textStyles;
-out.effectStyles = latest.effectStyles;
-out.paintStyles = latest.paintStyles;
+if (withStyles) {
+  out.variables = withStyles.variables;
+  out.textStyles = withStyles.textStyles;
+  out.effectStyles = withStyles.effectStyles;
+  out.paintStyles = withStyles.paintStyles;
+}
 if (!Array.isArray(out.pages)) out.pages = [];
 
 const newPage = { name: pageName, frames: mergedFrames };
+if (first.page?.profile) newPage.profile = first.page.profile;
 const idx = out.pages.findIndex((p) => p?.name === pageName);
 const replaced = idx >= 0;
 if (replaced) out.pages[idx] = newPage;
