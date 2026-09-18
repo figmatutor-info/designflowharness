@@ -167,8 +167,9 @@ design-flow-harness/
 
 ```
 /create-figma
-→ STAGE=tokens → components → assets → screens 순차
-→ assets: design-rules §I 기준으로 higgsfield 이미지 일괄 생성 (최대 12장)
+→ STAGE=tokens → components → screens 순차
+→ 이미지는 생성하지 않는다: design-rules §I 표가 가리키는 design/assets/characters/ 파일을 슬롯에 주입
+→ 아이콘은 lucide 이름으로 CDN 에서 받는다 (손으로 그리지 않음)
 → 각 화면 완성 즉시 스크린샷 전달 (이미지까지 채워진 완성본)
 
 /audit-design

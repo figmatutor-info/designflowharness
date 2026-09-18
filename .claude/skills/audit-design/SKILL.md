@@ -71,7 +71,7 @@ design/04-screens/
 3가지로 분류:
 
 1. **국소 결함** → `/create-figma STAGE=fix` 실행
-2. **이미지 결함** → `/create-figma STAGE=assets` 재생성 (빈 슬롯이면 재주입)
+2. **이미지 결함** → 빈 슬롯·잘못된 파일은 `/create-figma STAGE=fix` 재주입 / 톤·대비 문제는 `/generate-rules` 로 §I 표의 `파일` 열 교체 (생성하지 않는다)
 3. **방향 오류** → `/generate-rules` 재검토
 4. **반복 실패** (3회) → 사용자 에스컬레이션
 

@@ -22,7 +22,9 @@ figma-builder가 절대 실행되지 않는다. 이 파일이 규칙 SSOT다.
 
 규칙 안의 토큰은 primitive(값) → semantic(의도) 2계층으로 적는다.
 색상·간격·radius·size 가 대상이며, 타이포는 role 기반 텍스트 스타일을 쓴다.
-화면에 들어갈 이미지의 톤·비율·슬롯도 §I 에 적는다. 거기 없는 이미지는 만들지 않는다.
+화면에 들어갈 이미지는 §I 표에 "어느 슬롯에 라이브러리의 어느 파일"로 적는다.
+이미지는 생성하지 않는다 — `design/assets/characters/` 에 있는 파일만 쓴다.
+아이콘도 그리지 않는다 — lucide 이름을 적고 CDN 에서 받는다.
 
 ### 3. 각 단계 게이트를 통과해야 다음으로
 
@@ -59,7 +61,7 @@ Phase 1 · 레퍼런스     → 게이트 1 →
 Phase 2 · 화면 구조    → 게이트 2 →
 Phase 3 · 디자인 규칙  → 게이트 3 →
 Phase 4 · Figma 생성   → 게이트 4 → 🎉 완료
-           (tokens → components → assets → screens)
+           (tokens → components → screens)
 ```
 
 각 게이트 통과 없이는 다음 Phase 진입 불가.
@@ -68,15 +70,14 @@ Phase 4 · Figma 생성   → 게이트 4 → 🎉 완료
 
 ## 에이전트 라우팅
 
-| 요청 유형     | 자연어 예시                        | 에이전트               | 슬래시 명령                |
-| ------------- | ---------------------------------- | ---------------------- | -------------------------- |
-| 레퍼런스 수집 | "레퍼런스 뽑아줘", "경쟁사 분석"   | reference-collector    | /collect-references        |
-| 레퍼런스 분석 | "분석해줘", "패턴 뽑아줘"          | reference-analyzer     | /analyze-references        |
-| 화면 구조     | "화면 구조 짜줘", "화면 목록"      | structure-builder      | /build-structure           |
-| 디자인 규칙   | "규칙 만들어줘", "디자인 시스템"   | design-rules-generator | /generate-rules            |
-| Figma 생성    | "Figma 화면 만들어줘"              | figma-builder          | /create-figma              |
-| 화면 이미지   | "이미지 채워줘", "이미지 만들어줘" | figma-builder (assets) | /create-figma STAGE=assets |
-| 최종 검증     | "검증해줘", "audit"                | design-auditor         | /audit-design              |
+| 요청 유형     | 자연어 예시                      | 에이전트               | 슬래시 명령         |
+| ------------- | -------------------------------- | ---------------------- | ------------------- |
+| 레퍼런스 수집 | "레퍼런스 뽑아줘", "경쟁사 분석" | reference-collector    | /collect-references |
+| 레퍼런스 분석 | "분석해줘", "패턴 뽑아줘"        | reference-analyzer     | /analyze-references |
+| 화면 구조     | "화면 구조 짜줘", "화면 목록"    | structure-builder      | /build-structure    |
+| 디자인 규칙   | "규칙 만들어줘", "디자인 시스템" | design-rules-generator | /generate-rules     |
+| Figma 생성    | "Figma 화면 만들어줘"            | figma-builder          | /create-figma       |
+| 최종 검증     | "검증해줘", "audit"              | design-auditor         | /audit-design       |
 
 ---
 
@@ -98,18 +99,17 @@ design/
 │   ├── components.md
 │   └── preview.html
 │
-└── 04-screens/            ← Phase 4
-    ├── figma-file-key.txt      (사용자가 만든 Figma 파일 키)
-    ├── figma-snapshot.json     (audit 입력 · figma-snapshot.js 로만 추출)
-    ├── build-log.md
-    ├── assets/                 (STAGE=assets · higgsfield 이미지)
-    │   ├── assets-plan.md          (슬롯별 프롬프트)
-    │   ├── assets-manifest.json    (슬롯 계약 · check-assets.mjs 가 검증)
-    │   └── img/                    (생성된 원본 이미지)
-    ├── audit-report.md
-    ├── audit-structural.json   (figma-audit.mjs 출력)
-    ├── fix-list.md             (audit FAIL 시만 생성)
-    └── screenshots/            (이미지까지 채워진 완성본)
+├── 04-screens/            ← Phase 4
+│   ├── figma-file-key.txt      (사용자가 만든 Figma 파일 키)
+│   ├── figma-snapshot.json     (audit 입력 · figma-snapshot.js 로만 추출)
+│   ├── build-log.md
+│   ├── audit-report.md
+│   ├── audit-structural.json   (figma-audit.mjs 출력)
+│   ├── fix-list.md             (audit FAIL 시만 생성)
+│   └── screenshots/            (이미지까지 채워진 완성본)
+│
+└── assets/                ← 이미지 라이브러리 (사람이 채운다 · 에이전트 생성 금지)
+    └── characters/        (§I 표의 `파일` 열이 가리키는 곳 · check-assets.mjs 가 대조)
 ```
 
 ---
@@ -126,7 +126,8 @@ design/
 - **snapshot 은 scripts/figma-snapshot.js 로만 추출한다** (추출 코드 즉흥 작성 금지)
 - **토큰 문서 프레임은 scripts/figma-token-docs.js 로만 그린다** (규격은 docs/token-docs-spec.md · 즉흥 작성 금지)
 - **컨테이너는 내용을 감싼다 (세로 HUG).** 고정 높이는 design-rules.md 에 `Height: fixed` 로 선언된 것만 허용 (check-layout.mjs 가 검사)
-- **화면 이미지는 assets-manifest.json 에 있는 것만 쓴다** (즉석 생성·외부 이미지 금지)
+- **화면 이미지는 design-rules.md §I 표가 가리키는 `design/assets/characters/` 파일만 쓴다** (이미지 생성·외부 URL 금지)
+- **아이콘은 lucide 이름으로 적고 CDN 에서 받는다** (손으로 그리지 않는다 · 버전 고정)
 - **이미지 슬롯을 빈 채로 두고 Phase 4 를 끝내지 않는다** (게이트 4에서 FAIL)
 - **각 에이전트는 자기 담당 폴더 외 편집 금지**
 - **사용자 승인 없이 다음 Phase로 자동 진행 금지**
@@ -147,7 +148,7 @@ design/
 | 어느 단계든 도구 장애 | 실행 재개             | 준비된 체크포인트(build-log 마지막 ✅)로 전환했다고 알리고 진행 |
 
 Phase 4 의 STAGE 별 예산과 재시도 상한은 `.claude/agents/figma-builder.md` 의
-"시간 예산 · 재시도 기준" 에 있다 (tokens 15 · components 20 · assets 15 · screens 30분).
+"시간 예산 · 재시도 기준" 에 있다 (tokens 15 · components 20 · screens 30분).
 검증은 `scripts/figma-lint.js` 로 먼저 하고, 스냅샷은 STAGE 마지막에 1회만 뽑는다.
 
 ---
@@ -175,9 +176,10 @@ node scripts/check-phase.mjs
 
 **"화면에 이미지가 회색 박스로 남음"**
 
-- `npm run check:assets` 로 매니페스트부터 확인
+- `npm run check:assets` 로 design-rules §I 표와 `design/assets/characters/` 가 맞는지부터 확인
+- 표의 `파일` 열에 적힌 파일이 폴더에 실제로 있는지 확인 (없으면 사람이 넣는다 — 생성하지 않는다)
 - 슬롯 레이어 이름이 `Img/{key}` 인지 확인 (이름이 곧 주입 주소)
-- `/create-figma STAGE=assets` 로 이미지를 먼저 확보한 뒤 화면을 다시 만든다
+- `/create-figma STAGE=screens` 로 해당 화면을 다시 만든다
 
 **"컨테이너가 내부 콘텐츠를 감싸지 못함 / 텍스트가 카드 밖으로 넘침"**
 
