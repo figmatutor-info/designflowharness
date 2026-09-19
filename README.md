@@ -233,6 +233,10 @@ npm run verify:strict  # 경고도 실패 처리
 # Figma 파일 검증
 npm run audit
 npm run audit:json  # JSON 출력
+
+# 검증 스크립트 자체의 회귀 테스트 (scripts/*.mjs 를 고쳤으면 반드시)
+# 실제 추출물 정답지(tests/fixtures/)로 PASS·FAIL 앵커 + 결함 주입 변이 + figma-lint 미러 동기화 확인
+npm test
 ```
 
 ## 📚 문서

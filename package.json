@@ -19,7 +19,8 @@
     "verify": "node scripts/verify-design-rules.mjs",
     "verify:strict": "node scripts/verify-design-rules.mjs --strict",
     "audit": "node scripts/figma-audit.mjs",
-    "audit:json": "node scripts/figma-audit.mjs --json"
+    "audit:json": "node scripts/figma-audit.mjs --json",
+    "test": "node --test --test-reporter=spec 'tests/**/*.test.mjs'"
   },
   "keywords": [
     "design-system",
