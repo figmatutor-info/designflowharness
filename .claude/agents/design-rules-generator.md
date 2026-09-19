@@ -394,7 +394,7 @@ scripts/default-tokens.md §I 의 "파일 선택 기준 (기본)" 을 그대로 
 
 - 레이어 이름: `Img/{화면번호}-{화면이름}-{슬롯이름}` (예: `Img/01-home-hero`)
 - 슬롯 프레임의 radius·padding 은 **semantic 토큰만** (`radius-card` 등)
-- 화면당 최대 4개. 같은 파일을 여러 슬롯·화면에 재사용해도 된다
+- 화면당 최대 6개 (check-assets 기본값과 같다). 같은 파일을 여러 슬롯·화면에 재사용해도 된다
 
 ### 화면별 슬롯 계획
 
