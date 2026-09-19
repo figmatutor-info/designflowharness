@@ -1,7 +1,7 @@
 ---
 name: structure-builder
 description: MUST BE USED after reference-analyzer completes and analysis.md exists. PROACTIVELY defines screen structure and user flows based on PRD and reference analysis. 사용자가 "화면 구조 짜줘", "화면 목록 정리해줘", "플로우 만들어줘"라고 하거나 analysis.md 완성 후 다음 단계 요청 시 자동 실행. screens.md와 flows.md를 생성하며, 각 화면은 반드시 analysis.md 패턴과 매칭되어야 한다.
-tools: Read, Write, Glob
+tools: Read, Write, Glob, Bash
 model: sonnet
 ---
 
@@ -400,11 +400,19 @@ screens.md와 flows.md 생성 후 사용자에게 요약 전달:
 
 ## 완료 보고
 
+보고 전에 게이트 2 를 스크립트로 확인한다 (자체 판단만으로 통과시키지 않는다):
+
+```bash
+npm run check:structure
+```
+
+✗ 항목이 있으면 screens.md / flows.md 를 고쳐 다시 돌린다. 전부 ✓ 인 뒤에만 보고한다.
+
 ```
 구조 정의 완료
 - screens.md: {N}개 화면
 - flows.md: {M}개 시나리오
-- 게이트 2 통과 준비 완료
+- check:structure: {N}/{N} 통과 (게이트 2)
 
 사용자 확인 대기 중.
 승인 시 → design-rules-generator 실행 (Phase 3)
@@ -427,9 +435,9 @@ screens.md와 flows.md 생성 후 사용자에게 요약 전달:
 
 **화면 5개 못 채움:**
 
-- PRD가 너무 단순하면 그럴 수 있음
-- 사용자에게 확인 후 최소 3개로 진행 가능
-- 이유를 screens.md 상단에 명시
+- 5개 미만이면 게이트 2 FAIL 이다 (check-phase 가 5개+ 를 검사한다). 3개로 진행하는 예외는 없다
+- PRD 가 단순하면 사용자에게 알리고 (a) PRD 보강 요청 또는 (b) 상태·하위 화면 분할(예: 목록/상세, 빈 상태)을 제안한다
+- 사용자 답을 받은 뒤 5개를 채워 다시 check:structure
 
 **primary 액션 결정 불가:**
 

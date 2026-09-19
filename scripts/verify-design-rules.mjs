@@ -24,40 +24,16 @@
  */
 
 import { readFileSync, existsSync } from "node:fs";
+import { getArg, hasFlag, createLog } from "./lib/cli.mjs";
 
 // ==================== 유틸 ====================
 
-const COLORS = {
-  reset: "\x1b[0m",
-  red: "\x1b[31m",
-  green: "\x1b[32m",
-  yellow: "\x1b[33m",
-  cyan: "\x1b[36m",
-  bold: "\x1b[1m",
-};
-
-const args = process.argv.slice(2);
-const isJson = args.includes("--json");
-const isStrict = args.includes("--strict");
-// --name 의 값을 읽는다.
-// ⚠️ `args[args.indexOf(name) + 1] || fallback` 패턴을 쓰지 말 것.
-//    플래그가 없으면 indexOf 가 -1 이고 -1+1=0 이라 args[0] 이 값으로 잡힌다.
-//    그래서 `--json` / `--strict` / `--stage` 같은 첫 플래그가 파일 경로로 읽혀
-//    "파일 없음" 으로 죽거나(심하면 --json 이라 로그까지 막혀 무음 실패) 한다.
-function getArg(name, fallback) {
-  const i = args.indexOf(name);
-  if (i === -1) return fallback;
-  const v = args[i + 1];
-  if (v === undefined || v.startsWith("--")) return fallback;
-  return v;
-}
+const isJson = hasFlag("--json");
+const isStrict = hasFlag("--strict");
 
 const rulesPath = getArg("--path", "design/03-design-rules/design-rules.md");
 
-function log(msg, color = "reset") {
-  if (isJson) return;
-  console.log(`${COLORS[color]}${msg}${COLORS.reset}`);
-}
+const log = createLog(isJson);
 
 // ==================== 파싱 ====================
 

@@ -70,14 +70,18 @@ Phase 4 · Figma 생성   → 게이트 4 → 🎉 완료
 
 ## 에이전트 라우팅
 
-| 요청 유형     | 자연어 예시                      | 에이전트               | 슬래시 명령         |
-| ------------- | -------------------------------- | ---------------------- | ------------------- |
-| 레퍼런스 수집 | "레퍼런스 뽑아줘", "경쟁사 분석" | reference-collector    | /collect-references |
-| 레퍼런스 분석 | "분석해줘", "패턴 뽑아줘"        | reference-analyzer     | /analyze-references |
-| 화면 구조     | "화면 구조 짜줘", "화면 목록"    | structure-builder      | /build-structure    |
-| 디자인 규칙   | "규칙 만들어줘", "디자인 시스템" | design-rules-generator | /generate-rules     |
-| Figma 생성    | "Figma 화면 만들어줘"            | figma-builder          | /create-figma       |
-| 최종 검증     | "검증해줘", "audit"              | design-auditor         | /audit-design       |
+| 요청 유형     | 자연어 예시                                  | 에이전트               | 슬래시 명령         |
+| ------------- | -------------------------------------------- | ---------------------- | ------------------- |
+| 레퍼런스 수집 | "레퍼런스 뽑아줘", "경쟁사 분석"             | reference-collector    | /collect-references |
+| 레퍼런스 분석 | "분석해줘", "패턴 뽑아줘"                    | reference-analyzer     | /analyze-references |
+| 화면 구조     | "화면 구조 짜줘", "화면 목록"                | structure-builder      | /build-structure    |
+| 디자인 규칙   | "규칙 만들어줘", "디자인 시스템"             | design-rules-generator | /generate-rules     |
+| Figma 생성    | "Figma 화면 만들어줘"                        | figma-builder          | /create-figma       |
+| 최종 검증     | "검증해줘", "audit"                          | design-auditor         | /audit-design       |
+| 스냅샷 추출   | (자연어 없음 · 코디네이터가 백그라운드 기동) | snapshot-runner        | (없음)              |
+
+snapshot-runner 는 사용자가 직접 부르는 에이전트가 아니다. figma-builder 가 build-log 에
+`snapshot: requested` 를 남기면 코디네이터가 띄운다.
 
 ---
 
@@ -140,16 +144,18 @@ design/
 하네스는 "언제 멈추고 무엇을 포기할지"를 미리 정한다. 지연됐을 때 탐색을 더 하는 게 아니라
 기본값을 적용하고 필수 콘텐츠에 집중한다. 누적 시점 기준.
 
-| 시점                  | 목표                  | 지연됐을 때                                                     |
-| --------------------- | --------------------- | --------------------------------------------------------------- |
-| 15분                  | 분석 · 구조 확정      | 추가 탐색을 중단하고 채택 패턴 확정                             |
-| 25분                  | 규칙 · 대표 시안 확정 | 미결정 스타일에 기본값(default-tokens) 적용                     |
-| 45분                  | Figma 화면 생성       | 장식 개선 중단, 필수 콘텐츠 완성에 집중                         |
-| 52분                  | 검수 · 수정 종료      | 남은 결함을 표시하고 결과 설명                                  |
-| 어느 단계든 도구 장애 | 실행 재개             | 준비된 체크포인트(build-log 마지막 ✅)로 전환했다고 알리고 진행 |
+| 시점                  | 목표                                   | 지연됐을 때                                                     |
+| --------------------- | -------------------------------------- | --------------------------------------------------------------- |
+| 15분                  | 분석 · 구조 확정                       | 추가 탐색을 중단하고 채택 패턴 확정                             |
+| 25분                  | 규칙 · 대표 시안 확정                  | 미결정 스타일에 기본값(default-tokens) 적용                     |
+| 40분                  | Figma 토큰 (STAGE=tokens 15분)         | 토큰 문서 정돈 중단, 변수·스타일·문서 6프레임 존재만 확보       |
+| 60분                  | Figma 컴포넌트 (STAGE=components 20분) | 장식 중단, semantic 바인딩·HUG·텍스트 스타일만 완성             |
+| 90분                  | Figma 화면 (STAGE=screens 30분)        | 장식 개선 중단, 필수 콘텐츠 + 이미지 주입 완성에 집중           |
+| 100분                 | 검수 · 수정 종료                       | 남은 결함을 표시하고 결과 설명                                  |
+| 어느 단계든 도구 장애 | 실행 재개                              | 준비된 체크포인트(build-log 마지막 ✅)로 전환했다고 알리고 진행 |
 
 Phase 4 의 STAGE 별 예산과 재시도 상한은 `.claude/agents/figma-builder.md` 의
-"시간 예산 · 재시도 기준" 에 있다 (tokens 15 · components 20 · screens 30분).
+"시간 예산 · 재시도 기준" 에 있다 (tokens 15 · components 20 · screens 30분 = 65분 · 위 표의 누적치와 같다).
 검증은 `scripts/figma-lint.js` 로 먼저 하고, 스냅샷은 STAGE 마지막에 `snapshot-runner` 에 위임한다
 (백그라운드 · builder 는 기다리지 않는다 · runner 예산은 `.claude/agents/snapshot-runner.md`).
 

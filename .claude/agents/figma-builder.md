@@ -1,7 +1,7 @@
 ---
 name: figma-builder
 description: MUST BE USED after design-rules-generator completes and design-rules.md status is confirmed. PROACTIVELY creates Figma tokens, components, and screens step-by-step using Figma MCP. 사용자가 "Figma 화면 만들어줘", "Figma 생성", "이 규칙으로 UI 만들어줘"라고 하거나 design-rules confirmed 상태에서 다음 단계 요청 시 자동 실행. design-rules.md가 유일한 스타일 입력이며, status:confirmed가 없으면 즉시 종료한다. Figma 파일은 사용자가 직접 만들어 제공한 figma-file-key.txt 의 파일에만 작업하며, 새 파일을 만들지 않는다. STAGE=tokens → components → screens 순차 실행. 이미지는 생성하지 않는다 — design-rules.md §I 표가 가리키는 design/assets/characters/ 의 파일을 screens STAGE 가 슬롯에 채운다. 아이콘은 lucide 이름을 CDN 에서 받아 만든다 (손으로 그리지 않는다). 각 STAGE 완료 시 figma-snapshot.json 저장 필수 (audit 준비).
-tools: Read, Write, Bash, Glob, mcp__figma__use_figma, mcp__figma__get_metadata, mcp__figma__get_screenshot, mcp__figma__get_variable_defs, mcp__figma__get_libraries, mcp__figma__search_design_system, mcp__figma__upload_assets, mcp__figma__whoami, ReadMcpResourceTool
+tools: Read, Write, Bash, Glob, mcp__figma__use_figma, mcp__figma__get_metadata, mcp__figma__get_screenshot, mcp__figma__upload_assets, mcp__figma__whoami, ReadMcpResourceTool
 model: sonnet
 ---
 
@@ -463,7 +463,7 @@ Figma 쪽 명명 규칙이 어긋난 것이다 (예: primary 버튼 이름에 "P
    __PAGE_NAME__    → "02 Components"
    __FIXED_ALLOW__  → design-rules.md 컴포넌트 규칙에서 `- Height: fixed(` 로 선언된 이름들
                       (예: "Button,Input,AppBar,TabBar,BottomActionBar,DeviceFrame")
-                      → Grep "Height: fixed" design/03-design-rules/design-rules.md 로 뽑는다
+                      → Bash `grep -n "Height: fixed" design/03-design-rules/design-rules.md` 로 뽑는다
    __FRAME_NAMES__  → 비움 (페이지 전체) / 특정 것만 다시 볼 땐 프레임 이름을 쉼표로
 3) use_figma 로 실행 → findings 만 돌아온다 (수 KB, 잘리지 않는다)
 4) findings 의 rule 별로 Figma 를 고친다:
@@ -958,10 +958,10 @@ fix-list.md 의 각 행에는 `대상` 열이 있다. **이 열을 먼저 읽는
 1. fix-list.md 읽기 → `대상` 열로 분류
 2. `figma` 행 처리 (A · 이미지 행은 B-①) · `rules` 행은 처리하지 않고 보고 (B-②)
 3. 수정 후 `scripts/figma-lint.js` 로 해당 화면 0건 확인 (스냅샷 전)
-4. 전체 완료 후 figma-snapshot.json 재추출 (scripts/figma-snapshot.js, `03 Screens` · 1회)
-5. `node scripts/check-snapshot.mjs` 통과 확인
-6. 이미지 행을 건드렸으면 `node scripts/check-assets.mjs` 도 통과 확인
-7. build-log 갱신
+4. 전체 완료 후 build-log 에 `snapshot: requested (page=03 Screens · profile=full · stage=fix)` 를 적는다
+   — 다른 STAGE 와 똑같이 추출은 snapshot-runner 가 한다. fix 라고 해서 직접 뽑지 않는다
+5. 이미지 행을 건드렸으면 `node scripts/check-assets.mjs` 통과 확인
+6. build-log 갱신 (runner 의 check-snapshot 결과는 코디네이터가 전달한다 · 그 뒤 design-auditor 재실행)
 
 ### build-log 갱신
 
@@ -974,7 +974,7 @@ fix-list.md 의 각 행에는 `대상` 열이 있다. **이 열을 먼저 읽는
 - [figma] screen 03-detail: primary button 색상 변수 미바인딩 → 수정
 - [figma] screen 05-mypage: safe-area-bottom 침범 → 수정
 - [assets] screen 01-home / Img/01-home-hero: 주입 실패 → 재주입 (재생성 없음)
-- [assets] screen 02-search-results / card-1: 이미지에 글자 → 프롬프트 수정 후 1장 재생성
+- [rules] screen 02-search-results / card-1: 이미지에 글자 → §I 표 `파일` 열 교체 필요 (design-rules-generator 에 보고 · 여기서 처리 안 함)
   figma_read_calls: 4
   snapshot: 갱신 완료
   next: design-auditor 재실행
@@ -1215,7 +1215,7 @@ build-log에 실패 지점 기록
    - "snapshot이 다음 단계 audit의 입력이 됩니다"
 
 5. **대기 시간 활용**
-   - STAGE=components 15-20분 대기 (생성 10분 + lint·스냅샷 5-10분)
-   - STAGE=screens 25-30분 대기 (화면당 5-6분)
+   - STAGE=components 예산 20분 대기 (생성 + lint · 스냅샷은 runner 가 백그라운드로)
+   - STAGE=screens 예산 30분 대기 (화면당 6분)
    - 이 시간에 하네스 설계 사고법 리캡 — 특히 "검증은 lint 로 먼저, 스냅샷은 마지막 1회"
      (46분 걸린 실제 사례와 왜 그랬는지가 좋은 소재다)

@@ -79,12 +79,13 @@ design-flow-harness/
 ├── README.md                  ← 이 파일
 │
 ├── .claude/
-│   ├── agents/                ← 에이전트 6개
+│   ├── agents/                ← 에이전트 7개
 │   │   ├── reference-collector.md
 │   │   ├── reference-analyzer.md
 │   │   ├── structure-builder.md
 │   │   ├── design-rules-generator.md
 │   │   ├── figma-builder.md
+│   │   ├── snapshot-runner.md     (백그라운드 · 스냅샷 추출 전담 · 슬래시 없음)
 │   │   └── design-auditor.md
 │   │
 │   └── skills/                ← 슬래시 명령 6개
@@ -97,13 +98,20 @@ design-flow-harness/
 │
 ├── scripts/                   ← 검증 코드
 │   ├── default-tokens.md      (기본 토큰 세트)
+│   ├── lib/                   (공통 유틸 · cli.mjs / layout-rules.mjs)
 │   ├── check-phase.mjs        (통합 게이트 체커)
 │   ├── verify-design-rules.mjs (규칙 세부 검증)
-│   ├── figma-snapshot.js      (Figma 추출기 · use_figma 주입용, Node 실행 X)
+│   ├── check-assets.mjs       (이미지 매니페스트 검증)
 │   ├── merge-snapshot.mjs     (배치 추출 결과 병합)
 │   ├── check-snapshot.mjs     (snapshot 스키마 검증)
-│   ├── figma-audit.mjs        (Figma 파일 검증)
-│   └── check-assets.mjs       (이미지 매니페스트 검증)
+│   ├── check-layout.mjs       (컨테이너 HUG · 넘침 검증)
+│   ├── check-token-docs.mjs   (01 Tokens 문서 프레임 규격 검증)
+│   ├── figma-audit.mjs        (게이트 4 구조 검증 9항목)
+│   │
+│   │   ── 아래 3개는 Figma 안에서 use_figma 로 실행 (Node 실행 X) ──
+│   ├── figma-snapshot.js      (스냅샷 추출기 · v4 · profile docs/full)
+│   ├── figma-lint.js          (생성 직후 즉시 위반 검사 · 스냅샷 없이)
+│   └── figma-token-docs.js    (01 Tokens 문서 프레임 6종 렌더)
 │
 └── design/                    ← 산출물 (자동 생성)
     ├── 01-references/         (Phase 1)
@@ -184,7 +192,10 @@ design-flow-harness/
 - 미바인딩 0개, 4배수 위반 0개
 - **primitive 직접 바인딩 0개** (화면은 semantic 변수만 사용)
 - **이미지 슬롯 빈 곳 0개** (`Img/*` 노드가 전부 IMAGE fill)
-- audit PASS (8개 항목) + 사용자 완료 승인
+- **레이아웃 거동 0건** (오토레이아웃 컨테이너 세로 HUG · 콘텐츠 넘침 없음 — `check:layout`)
+- **토큰 문서 규격 PASS** (`check:token-docs`)
+- audit PASS (9개 항목) — 결과가 **현재 스냅샷을 읽은 것**이어야 한다 (`snapshot_date` 일치)
+- 사용자 완료 승인
 
 ## 🛠️ 검증 명령어
 
@@ -208,6 +219,13 @@ npm run check:snapshot:tokens
 # 이미지 매니페스트 검증 (screens STAGE 전 필수)
 npm run check:assets
 
+# 레이아웃 거동 (컨테이너 HUG · 넘침 · 고정 높이 선언 대조)
+npm run check:layout
+npm run check:layout -- --page "02 Components"
+
+# 01 Tokens 문서 프레임 규격 (docs/token-docs-spec.md)
+npm run check:token-docs
+
 # design-rules 상세 검증
 npm run verify
 npm run verify:strict  # 경고도 실패 처리
@@ -220,8 +238,10 @@ npm run audit:json  # JSON 출력
 ## 📚 문서
 
 - **CLAUDE.md** — 하네스 원칙 및 워크플로 (헌법)
+- **docs/harness-principles.md** — 하네스 설계 원칙
+- **docs/token-docs-spec.md** — 01 Tokens 문서 프레임 규격
 - **scripts/default-tokens.md** — 기본 토큰 세트
-- **.claude/agents/\*.md** — 각 에이전트 상세
+- **.claude/agents/\*.md** — 각 에이전트 상세 (snapshot-runner 포함 7개)
 
 ## ⚙️ 커스터마이징
 
@@ -272,6 +292,23 @@ npm run check:snapshot   # 어떤 항목이 깨졌는지 확인
 - figma-builder가 STAGE 완료 시 use_figma 반환값을 Write
 - `isPrimary`/`isTapTarget`이 0개면 Figma 노드 **이름 규칙**이 어긋난 것.
   JSON을 고치지 말고 Figma를 고친 뒤 재추출
+
+**"컨테이너가 내부 콘텐츠를 감싸지 못함 / 텍스트가 카드 밖으로 넘침"**
+
+```bash
+npm run check:layout     # 어느 노드인지 먼저 확인
+```
+
+- 원인 대부분은 오토레이아웃 프레임에 `resize(w, h)` 를 불러 sizing 이 FIXED 로 풀린 것
+- 의도적 고정이면 design-rules.md 컴포넌트 항목에 `- Height: fixed(토큰)` 을 선언한다
+- `schema_version 2` 경고 → 스냅샷을 v4 로 재추출 / `profile=docs` 경고 → 컴포넌트·화면 페이지를 full 로 재요청
+
+**"STAGE 가 예산보다 오래 걸림 / 스냅샷을 계속 다시 뽑음"**
+
+- 원인 대부분은 스냅샷으로 검증 → 고치고 → 다시 뽑는 루프 (한 번에 1분+)
+- 생성 직후 `scripts/figma-lint.js` 를 use_figma 로 돌려 위반만 받아 고친다 (수 초)
+- 스냅샷은 lint 0건 이후 STAGE 당 1회 **요청**만 남기고 다음 STAGE 로 간다. 추출은 snapshot-runner 가 한다
+- 01 Tokens 는 `__PROFILE__=docs` 로 프레임당 1배치면 끝난다 — 이 페이지를 full 로 뽑고 있으면 그게 원인
 
 ## 📖 원칙 (CLAUDE.md 요약)
 

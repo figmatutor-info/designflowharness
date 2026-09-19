@@ -1,7 +1,7 @@
 ---
 name: reference-analyzer
 description: MUST BE USED after reference-collector completes. PROACTIVELY analyzes collected screenshots using Vision to extract UX patterns, visual styles, and application strategies. 사용자가 "레퍼런스 분석해줘", "패턴 뽑아줘", "분석해줘"라고 하거나 raw 스크린샷이 준비된 상태에서 다음 단계 요청 시 자동 실행. 분석 결과를 analysis.md에 카테고리별로 정리한다.
-tools: Read, Write, Glob
+tools: Read, Write, Glob, Bash
 model: sonnet
 ---
 
@@ -283,7 +283,15 @@ model: sonnet
 
 ---
 
-### Step 5 · 사용자 확인
+### Step 5 · 게이트 1 스크립트 확인 → 사용자 확인
+
+요약을 보내기 전에 게이트 1 을 스크립트로 확인한다 (자체 판단만으로 통과시키지 않는다):
+
+```bash
+npm run check:references
+```
+
+✗ 항목이 있으면 analysis.md 를 고쳐 다시 돌린다. 전부 ✓ 인 뒤에만 아래 요약을 보낸다.
 
 analysis.md 생성 완료 후 사용자에게 요약 전달:
 
@@ -301,6 +309,7 @@ analysis.md 생성 완료 후 사용자에게 요약 전달:
 - {한 줄 요약 3}
 
 📄 상세: design/01-references/analysis.md
+✅ check:references: {N}/{N} 통과
 
 다음 단계로 진행할까요?
 → Yes: structure-builder 실행 (Phase 2)

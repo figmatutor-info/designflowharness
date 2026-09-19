@@ -59,15 +59,15 @@ design/04-screens/
 
 ## 진행 리듬
 
-1. **STAGE=tokens** (자동 진행) — 2-3분
+1. **STAGE=tokens** (자동 진행) — 예산 15분
    - 색 15개, space 8개, radius 5개, size 12개, text 8개, shadow 3개
-   - 끝나면 `snapshot-runner` 를 백그라운드로 띄운다 (page=01 Tokens · profile=docs) — 기다리지 않는다
-2. **STAGE=components** (자동 진행) — 15-20분
+   - 끝나면 build-log 에 `snapshot: requested (page=01 Tokens · profile=docs)` 를 남긴다 → 코디네이터가 `snapshot-runner` 를 백그라운드로 띄운다. builder 는 기다리지 않는다
+2. **STAGE=components** (자동 진행) — 예산 20분
    - Icon(lucide CDN), Button, Card, Input, TabBar 등
-   - 끝나면 `snapshot-runner` (page=02 Components · profile=full). tokens runner 가 FAIL 로 돌아왔으면 먼저 고친다
-3. **STAGE=screens** (사용자 확인 후 시작) — 25-30분
+   - 끝나면 `snapshot: requested (page=02 Components · profile=full)`. tokens runner 가 FAIL 로 돌아왔으면 먼저 고친다
+3. **STAGE=screens** (사용자 확인 후 시작) — 예산 30분
    - 확인 요청 시 01/02 스냅샷 check 결과를 함께 보고한다
-   - 끝나면 `snapshot-runner` (page=03 Screens · profile=full). **audit 전 세 페이지 모두 PASS 대기**
+   - 끝나면 `snapshot: requested (page=03 Screens · profile=full)`. **audit 전 세 페이지 모두 PASS 대기**
    - 시작 전 `check-assets.mjs` 통과 필수 (§I 표 ↔ `design/assets/characters/`)
    - 화면당 완성 즉시 스크린샷 전달 (**이미지 채워진 완성본**)
 4. **STAGE=fix** (필요 시) — audit 실패 fix-list 처리

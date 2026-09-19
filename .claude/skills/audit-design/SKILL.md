@@ -28,25 +28,27 @@ background: false
 - `design/04-screens/figma-file-key.txt` 존재
 - `scripts/figma-audit.mjs` 존재
 - Figma MCP 인증
+- `npm run check:snapshot` PASS · `npm run check:assets` PASS (A단계 사전 검사 — 둘 중 하나라도 FAIL 이면 audit 을 돌리지 않는다)
 
 없거나 미완료 시 종료.
 
 ## 검증 방식
 
-**A단계 · 구조 검증 (스크립트 자동)**
+**B단계 · 구조 검증 (스크립트)**
 
-`scripts/figma-audit.mjs` 실행. 8개 항목:
+`scripts/figma-audit.mjs` 실행. 9개 항목 (`audit-structural.json` 의 `results` 키와 1:1):
 
-| 항목              | 통과 기준                      |
-| ----------------- | ------------------------------ |
-| 팔레트 일관성     | 미바인딩 SOLID fill/stroke 0개 |
-| 타이포 재사용     | 미적용 텍스트 스타일 0개       |
-| spacing 그리드    | 4배수 아닌 값 0개              |
-| 탭 영역           | 44×44 미만 0개                 |
-| 세이프 에어리어   | 침범 0개                       |
-| primary 개수      | 화면당 정확히 1개              |
-| 컴포넌트 재사용률 | ≥ 90%                          |
-| 토큰 계층         | primitive 직접 바인딩 0개      |
+| 항목              | 통과 기준                                                                      |
+| ----------------- | ------------------------------------------------------------------------------ |
+| 팔레트 일관성     | 미바인딩 SOLID fill/stroke 0개                                                 |
+| 타이포 재사용     | 미적용 텍스트 스타일 0개                                                       |
+| spacing 그리드    | 4배수 아닌 값 0개                                                              |
+| 탭 영역           | 44×44 미만 0개                                                                 |
+| 세이프 에어리어   | 침범 0개                                                                       |
+| primary 개수      | 화면당 정확히 1개                                                              |
+| 컴포넌트 재사용률 | ≥ 90% (손으로 만든 로컬 프레임 대비 · 인스턴스 내부·레이아웃 전용 프레임 제외) |
+| 토큰 계층         | primitive 직접 바인딩 0개                                                      |
+| 레이아웃 거동     | 세로 FIXED 컨테이너 0개 · 콘텐츠 넘침 0건 (HUG)                                |
 
 **C단계 · 시각적 검증 (LLM)**
 
@@ -68,7 +70,7 @@ design/04-screens/
 
 ## 진단 (실패 시)
 
-3가지로 분류:
+4가지로 분류:
 
 1. **국소 결함** → `/create-figma STAGE=fix` 실행
 2. **이미지 결함** → 빈 슬롯·잘못된 파일은 `/create-figma STAGE=fix` 재주입 / 톤·대비 문제는 `/generate-rules` 로 §I 표의 `파일` 열 교체 (생성하지 않는다)

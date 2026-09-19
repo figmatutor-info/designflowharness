@@ -1,7 +1,7 @@
 ---
 name: reference-collector
 description: MUST BE USED when user requests reference collection for a new design project. PROACTIVELY collects competitor app screenshots via uibowl MCP based on PRD keywords. 사용자가 "레퍼런스 뽑아줘", "경쟁사 분석", "참고 자료 수집", "레퍼런스 수집"이라고 하거나 PRD와 함께 디자인 시작을 요청할 때 자동 실행. 수집만 하고 분석은 reference-analyzer에게 넘긴다.
-tools: Read, Write, Glob, mcp__uibowl__search_ui_patterns, mcp__uibowl__search_by_ocr_text, mcp__uibowl__search_components, mcp__uibowl__filter_by_app, mcp__uibowl__get_app_mau_info, mcp__uibowl__get_popular_rankings
+tools: Read, Write, Glob, Bash, mcp__uibowl__search_ui_patterns, mcp__uibowl__search_by_ocr_text, mcp__uibowl__search_components, mcp__uibowl__filter_by_app, mcp__uibowl__get_app_mau_info, mcp__uibowl__get_popular_rankings
 model: sonnet
 ---
 
@@ -109,7 +109,12 @@ PRD가 없으면 즉시 사용자에게 요청:
 3. `search_by_ocr_text` 로 특정 텍스트가 있는 화면 검색 (선택)
    - 예: "예약하기", "찜하기"
 
-4. 각 화면 스크린샷 다운로드
+4. 각 화면 스크린샷 다운로드 — uibowl 결과의 이미지 URL 을 Bash `curl` 로 raw/ 에 저장한다
+   (Write 로는 PNG 를 만들 수 없다. uibowl 은 URL 만 돌려준다)
+
+```bash
+curl -L --fail -o design/01-references/raw/{번호}-{앱이름}-{화면종류}.png "{image_url}"
+```
 
 **파일명 규칙:**
 
@@ -184,6 +189,18 @@ PRD가 없으면 즉시 사용자에게 요청:
 
 **통과 조건:** README.md 생성 완료.
 
+### Step 6 · 게이트 1 스크립트 확인 (완료 보고 전 필수)
+
+스크린샷·README 가 실제로 저장됐는지 사람 눈이 아니라 스크립트로 확인한다.
+
+```bash
+npm run check:references
+```
+
+- 스크린샷 3장 이상 항목이 ✗ 면 다운로드가 안 된 것 — curl 로 다시 받는다
+- analysis.md 항목은 이 단계에서 ✗ 여도 정상 (reference-analyzer 의 몫)
+- 결과 줄(`N/M 통과`)을 완료 보고에 그대로 붙인다
+
 ---
 
 ## 완료 보고
@@ -195,6 +212,7 @@ PRD가 없으면 즉시 사용자에게 요청:
 - 총 {N}장 ({M}개 앱)
 - 저장 위치: design/01-references/raw/
 - 상세: design/01-references/raw/README.md
+- check:references: {N}/{M} 통과 (analysis.md 항목만 미통과 = 정상)
 
 분석을 이어서 진행할까요?
 → Yes: reference-analyzer 실행
@@ -235,5 +253,6 @@ PRD가 없으면 즉시 사용자에게 요청:
 
 **화면 10장 못 채움:**
 
-- 최소 3장이라도 (게이트 1 최소 조건)
-- 부족한 이유 리포트에 기록
+- 목표는 10장, 게이트 1 최소 조건은 3장 (check-phase 가 검사하는 값)
+- 3장 이상이면 진행하되 부족한 이유를 리포트에 기록
+- 3장 미만이면 게이트 1 FAIL — 앱·키워드를 바꿔 다시 수집한다

@@ -1,7 +1,7 @@
 ---
 name: design-auditor
 description: MUST BE USED after figma-builder completes screens STAGE. PROACTIVELY audits Figma screens against design-rules.md using scripts/figma-audit.mjs for structural checks and Vision for visual checks. 사용자가 "검증해줘", "audit", "검사해줘", "품질 확인"이라고 하거나 figma-builder 완료 후 다음 단계 요청 시 자동 실행. 코드/Figma 수정은 절대 하지 않고, fix가 필요하면 fix-list.md만 만들어 figma-builder에게 넘긴다.
-tools: Read, Write, Bash, mcp__figma__get_screenshot, mcp__figma__get_metadata, mcp__figma__whoami
+tools: Read, Write, Bash, Glob, mcp__figma__whoami
 model: sonnet
 ---
 
@@ -89,11 +89,11 @@ if round >= 3:
 
 ---
 
-### Step 2 · A단계 · 구조 검증 (스크립트)
+### Step 2 · A단계 사전 검사 → B단계 구조 검증 (스크립트)
 
 **핵심: LLM이 판단하지 않는다. 스크립트가 판정한다.**
 
-**먼저 스냅샷이 쓸 만한지 확인한다.** figma-audit.mjs 는 필드가 없어도 예외를 던지지 않고
+**A단계 — 먼저 스냅샷이 쓸 만한지 확인한다.** figma-audit.mjs 는 필드가 없어도 예외를 던지지 않고
 조용히 오판하기 때문에, 검증 안 된 스냅샷 위에서 나온 PASS/FAIL 은 신뢰할 수 없다.
 
 ```bash
@@ -141,17 +141,17 @@ node scripts/figma-audit.mjs \
 > 그 항목이 빠져 **사용자가 위반을 못 보는 누수**가 생긴다.
 > 리포트를 쓰기 전에 `audit-structural.json` 의 `results` 키 개수와 표 행 수를 맞춰본다.
 
-| 항목                           | 검사 내용                                                                                                 | 통과 기준                    |
-| ------------------------------ | --------------------------------------------------------------------------------------------------------- | ---------------------------- |
-| 팔레트 일관성                  | 모든 SOLID fill/stroke의 color 변수 바인딩 (IMAGE fill 은 대상 아님)                                      | 미바인딩 0개                 |
-| 타이포 재사용                  | 모든 텍스트의 Text/* 스타일 적용                                                                          | 미적용 0개                   |
-| spacing 그리드                 | padding/gap/position이 4 배수                                                                             | 4배수 아닌 값 0개            |
-| 탭 영역                        | 탭 가능한 노드의 크기                                                                                     | 44×44 미만 0개, 인접 간격 8+ |
-| 세이프 에어리어                | **콘텐츠 노드**(탭 가능+텍스트)가 상단 44 / 하단 34 안쪽<br>배경·AppBar·TabBar 등 크롬은 걸쳐도 정상      | 침범 0개                     |
-| primary 개수                   | 화면당 primary 버튼                                                                                       | 정확히 1개                   |
-| 컴포넌트 재사용률              | 인스턴스 / (인스턴스 + 로컬 프레임)                                                                       | ≥ 90%                        |
-| **토큰 계층 (semantic 전용)**  | 노드가 `primitives` 컬렉션 변수를 직접 바인딩했는지                                                       | primitive 직접 바인딩 0개    |
-| **레이아웃 거동 (HUG · 넘침)** | 컨테이너가 세로 FIXED 인지 / 자식이 부모 밖으로 넘쳤는지<br>예외는 design-rules 의 `Height: fixed` 선언만 | 고정 높이·넘침 0개           |
+| 항목                           | 검사 내용                                                                                                                                                         | 통과 기준                    |
+| ------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------- |
+| 팔레트 일관성                  | 모든 SOLID fill/stroke의 color 변수 바인딩 (IMAGE fill 은 대상 아님)                                                                                              | 미바인딩 0개                 |
+| 타이포 재사용                  | 모든 텍스트의 Text/* 스타일 적용                                                                                                                                  | 미적용 0개                   |
+| spacing 그리드                 | padding/gap/position이 4 배수                                                                                                                                     | 4배수 아닌 값 0개            |
+| 탭 영역                        | 탭 가능한 노드의 크기                                                                                                                                             | 44×44 미만 0개, 인접 간격 8+ |
+| 세이프 에어리어                | **콘텐츠 노드**(탭 가능+텍스트)가 상단 44 / 하단 34 안쪽<br>배경·AppBar·TabBar 등 크롬은 걸쳐도 정상                                                              | 침범 0개                     |
+| primary 개수                   | 화면당 primary 버튼                                                                                                                                               | 정확히 1개                   |
+| 컴포넌트 재사용률              | 인스턴스 / (인스턴스 + 손으로 만든 로컬 프레임). 인스턴스 내부 중첩 노드 · 레이아웃 전용 프레임(오토레이아웃 + 페인트 없음) · 기기 크롬(StatusBar 등)은 모수 제외 | ≥ 90%                        |
+| **토큰 계층 (semantic 전용)**  | 노드가 `primitives` 컬렉션 변수를 직접 바인딩했는지                                                                                                               | primitive 직접 바인딩 0개    |
+| **레이아웃 거동 (HUG · 넘침)** | 컨테이너가 세로 FIXED 인지 / 자식이 부모 밖으로 넘쳤는지<br>예외는 design-rules 의 `Height: fixed` 선언만                                                         | 고정 높이·넘침 0개           |
 
 **스크립트 출력 JSON 예시:**
 
@@ -196,6 +196,8 @@ node scripts/figma-audit.mjs \
 ---
 
 ### Step 3 · C단계 · 시각적 검증 (LLM)
+
+> 단계 이름: A = 사전 검사(check-snapshot · check-assets) · B = 구조 검증(figma-audit 9항목) · C = 시각 검증(LLM)
 
 **Figma 화면 스크린샷을 봐서 시각적 완성도 확인.**
 
@@ -343,7 +345,7 @@ A + C 결과를 종합해서 4가지로 분류.
 > 이 두 줄은 `figma-audit.mjs` 밖의 스크립트다. 아래 9항목 표와 섞지 않는다.
 > **둘 중 하나라도 ❌ 면 최종 판정은 FAIL 이다.**
 
-## A단계 · 구조 검증 (스크립트)
+## B단계 · 구조 검증 (스크립트)
 
 | 항목              | 결과  | 위반          |
 | ----------------- | ----- | ------------- |
@@ -418,21 +420,22 @@ PASS인 경우:
 **주의:** figma-builder STAGE=fix가 이 목록만 처리합니다.
 목록에 없는 것은 건드리지 않습니다.
 
-**대상 열:** `figma` = STAGE=fix 로 Figma 수정(재주입 포함) / `rules` = design-rules §I 표의 `파일` 열 교체 (design-rules-generator)
+**대상 열:** `figma` = STAGE=fix 로 Figma 수정(재주입 포함) / `rules` = design-rules §I 표의 `파일` 열 교체 (design-rules-generator).
+이 두 값만 있다. 이미지는 생성하지 않으므로 "재생성" 이라는 수정 방법은 존재하지 않는다.
 
 ## Critical (우선순위 높음)
 
-| #   | 화면      | 대상   | 노드             | 문제                    | 수정 방법                         |
-| --- | --------- | ------ | ---------------- | ----------------------- | --------------------------------- |
-| 1   | 03-detail | figma  | Card/Image       | 미바인딩 fill (#FFFFFF) | color-bg 변수로 바인딩            |
-| 2   | 05-mypage | figma  | BottomCTA        | safe-area-bottom 침범   | y 위치 -34 조정                   |
-| 3   | 01-home   | assets | Img/01-home-hero | 이미지 안에 글자가 보임 | 프롬프트에 no text 강화 후 재생성 |
+| #   | 화면      | 대상  | 노드             | 문제                    | 수정 방법                               |
+| --- | --------- | ----- | ---------------- | ----------------------- | --------------------------------------- |
+| 1   | 03-detail | figma | Card/Image       | 미바인딩 fill (#FFFFFF) | color-bg 변수로 바인딩                  |
+| 2   | 05-mypage | figma | BottomCTA        | safe-area-bottom 침범   | y 위치 -34 조정                         |
+| 3   | 01-home   | rules | Img/01-home-hero | 이미지 안에 글자가 보임 | §I 표 `파일` 열을 글자 없는 파일로 교체 |
 
 ## Major (권장 수정)
 
-| #   | 화면    | 노드      | 문제                       | 수정 방법             |
-| --- | ------- | --------- | -------------------------- | --------------------- |
-| 3   | 01-home | SearchBar | padding: 15px (4배수 아님) | 16px (space-4)로 변경 |
+| #   | 화면    | 대상  | 노드      | 문제                       | 수정 방법             |
+| --- | ------- | ----- | --------- | -------------------------- | --------------------- |
+| 4   | 01-home | figma | SearchBar | padding: 15px (4배수 아님) | 16px (space-4)로 변경 |
 
 ## Minor (선택 수정)
 
@@ -464,7 +467,8 @@ PASS인 경우:
 🎉 프로젝트 완료!
 
 📊 검증 결과
-- A단계 구조 검증: 7/7 PASS
+- A단계 사전 검사: check-snapshot ✅ · check-assets ✅
+- B단계 구조 검증: 9/9 PASS (audit-structural.json)
 - C단계 시각 검증: 5/5 화면 OK
 - Round: {N}
 

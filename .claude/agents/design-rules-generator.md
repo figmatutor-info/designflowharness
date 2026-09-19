@@ -1,7 +1,7 @@
 ---
 name: design-rules-generator
 description: MUST BE USED after structure-builder completes. PROACTIVELY generates design-rules.md (the SSOT for figma-builder) by combining default-tokens.md with user's brand color and Phase 1-2 outputs. 사용자가 "규칙 만들어줘", "디자인 시스템 정리", "디자인 규칙 확정"이라고 하거나 structure-builder 완료 후 다음 단계 요청 시 자동 실행. status: confirmed 마킹은 사용자 승인 후에만 진행한다. 이 에이전트가 만드는 design-rules.md 없이는 figma-builder가 절대 실행되지 않는다.
-tools: Read, Write, Glob
+tools: Read, Write, Glob, Bash
 model: sonnet
 ---
 
@@ -325,6 +325,17 @@ based_on:
 
 ## H. Z-Index (default)
 
+| 토큰       | 값  | 용도            |
+| ---------- | --- | --------------- |
+| z-base     | 0   | 기본 콘텐츠     |
+| z-sticky   | 100 | 스티키 헤더     |
+| z-app-bar  | 200 | 상단 앱바       |
+| z-tab-bar  | 200 | 하단 탭바       |
+| z-overlay  | 300 | 오버레이 (딤)   |
+| z-sheet    | 400 | 바텀시트        |
+| z-dialog   | 500 | 다이얼로그      |
+| z-snackbar | 600 | 스낵바 (최상위) |
+
 ---
 
 ## I. 이미지
@@ -390,7 +401,8 @@ scripts/default-tokens.md §I 의 "파일 선택 기준 (기본)" 을 그대로 
 > screens.md 의 화면 목록을 그대로 훑어 이미지가 필요한 자리만 적는다.
 > 여기 없는 슬롯은 figma-builder 가 만들지 않는다.
 > `파일` 열은 `image-library` 폴더에 **실제로 있는 파일명**만 (경로 없이 파일명).
-> 열 이름(`슬롯 key` · `화면` · `role` · `비율` · `파일`)은 check-assets.mjs 가 읽는 계약이다 — 바꾸지 않는다.
+> check-assets.mjs 가 읽는 필수 열은 `슬롯 key` · `화면` · `비율` · `파일` 4개다 — 이름을 바꾸지 않는다.
+> `role` · `담을 내용` 은 사람이 읽는 참고 열이다 (있어야 하지만 스크립트는 보지 않는다).
 
 | 슬롯 key     | 화면    | role | 비율   | 파일              | 담을 내용         |
 | ------------ | ------- | ---- | ------ | ----------------- | ----------------- |
@@ -772,6 +784,22 @@ design-rules.md의 컴포넌트 섹션 상세.
 
 ---
 
+### Step 5.5 · 게이트 3 스크립트 확인 (프리뷰 전달 전 필수)
+
+초안을 사용자에게 보이기 전에 스크립트로 먼저 확인한다. 사람이 승인한 뒤 스크립트가 깨지면
+다시 승인을 받아야 하므로, 순서는 스크립트 → 사용자다.
+
+```bash
+npm run verify:strict     # design-rules.md 세부 (프론트매터 · A~I · 4배수 · 2계층)
+npm run check:assets      # §I 표 ↔ image-library 폴더 (파일 실재 · 비율 · 슬롯 수)
+npm run check:rules       # 게이트 3 통합 (status 항목은 draft 라 ✗ 여도 정상)
+```
+
+✗ 가 있으면 산출물을 고쳐 다시 돌린다. `check:assets` 가 "파일 없음" 이면 사람이 폴더에
+넣어야 하는 것이다 — 표의 `파일` 열을 있는 파일로 바꾸거나 사용자에게 요청한다 (생성하지 않는다).
+
+---
+
 ### Step 6 · 사용자 승인 & status: confirmed 마킹
 
 **⚠️ 이 단계가 가장 중요합니다.**
@@ -829,10 +857,19 @@ based_on:
 **figma-builder의 유일한 입력이며, 확정 후 임의 수정 금지.**
 ```
 
-2. 사용자에게 확인:
+2. 상세 문서의 초안 표시도 함께 걷어낸다 (남겨두면 confirmed 인데 draft 라고 적힌 문서가 생긴다):
+   - `tokens.md` 상단 **상태** 줄 → `design-rules.md 가 status: confirmed (v{version}, {날짜}) 로 확정됨. 이 문서는 그 상세다.`
+     가정값 문구("승인 전 가정값")는 삭제
+   - `preview.html` 의 `<title>` 에서 `(draft)` 제거, `.draft-flag` 요소의 문구를
+     `STATUS: CONFIRMED · {날짜}` 로 변경
+
+3. `npm run check:rules` 를 다시 돌려 게이트 3 이 전부 ✓ 인지 확인한다.
+
+4. 사용자에게 확인:
 
 ```
 ✅ status: confirmed 마킹 완료
+✅ check:rules: {N}/{N} 통과 (게이트 3)
 
 이제 이 파일이 프로젝트의 규칙 SSOT입니다.
 figma-builder가 실행 가능한 상태가 되었습니다.

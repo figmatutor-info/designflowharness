@@ -39,28 +39,20 @@
  */
 
 import { readFileSync, existsSync } from "node:fs";
+import { getArg, hasFlag, createLog } from "./lib/cli.mjs";
+import {
+  BUILTIN_EXEMPT,
+  CONTAINER_TYPES,
+  TOLERANCE,
+  LAYOUT_MIN_SCHEMA,
+  parseHeightDecl,
+  componentNameOf,
+  overflowOf,
+  describeOverflow,
+} from "./lib/layout-rules.mjs";
 
-const COLORS = {
-  reset: "\x1b[0m",
-  red: "\x1b[31m",
-  green: "\x1b[32m",
-  yellow: "\x1b[33m",
-  cyan: "\x1b[36m",
-  dim: "\x1b[2m",
-};
-
-const args = process.argv.slice(2);
-const isJson = args.includes("--json");
-const warnOnly = args.includes("--warn-only");
-
-// --name 의 값을 읽는다. (check-snapshot.mjs 와 같은 이유로 indexOf+1 관용구를 쓰지 않는다)
-function getArg(name, fallback) {
-  const i = args.indexOf(name);
-  if (i === -1) return fallback;
-  const v = args[i + 1];
-  if (v === undefined || v.startsWith("--")) return fallback;
-  return v;
-}
+const isJson = hasFlag("--json");
+const warnOnly = hasFlag("--warn-only");
 
 const snapshotPath = getArg(
   "--snapshot",
@@ -72,24 +64,14 @@ const onlyPage = getArg("--page", null);
 // 토큰 문서 페이지는 제품 UI 가 아니다 (문서 카드는 고정 크기가 규격이다)
 const SKIP_PAGES = new Set(["01 Tokens"]);
 
-// 넘침 허용 오차(px). 1px 반올림과 스트로크 때문에 0 으로 두면 오탐이 난다.
-const TOLERANCE = 1;
+// 컴포넌트 세트 직속 variant 면제를 적용하는 페이지. 스냅샷 프레임에는 type 이 없어서
+// "프레임 직속(parentId 없음)" 만으로는 세트인지 화면인지 구분할 수 없다 — 화면 페이지에서
+// 이 면제가 켜지면 DeviceFrame 직속 노드 전체가 새어 나간다.
+const COMPONENT_SET_PAGES = new Set(["02 Components"]);
 
-// 하네스가 늘 면제하는 것들. 프로젝트별 예외는 여기 말고 design-rules.md 에 적는다.
-//   · DeviceFrame/상태바/홈 인디케이터: 기기 물리 치수
-//   · Img/ 슬롯: 이미지 비율이 곧 높이
-//   · Icon/: 아이콘은 정사각 고정
-//   · Divider/Spacer/Track: 선·여백·바 자체가 높이다
-const BUILTIN_EXEMPT =
-  /^(DeviceFrame|Status ?Bar|Home ?Indicator|Safe ?Area|Divider|Spacer|Track|Img\/|Icon\/)/i;
+// TOLERANCE · BUILTIN_EXEMPT · CONTAINER_TYPES 는 figma-audit.mjs 와 공유 (scripts/lib/layout-rules.mjs)
 
-// 컨테이너로 볼 타입 (고정 높이 검사 대상)
-const CONTAINER_TYPES = new Set(["FRAME", "COMPONENT", "COMPONENT_SET"]);
-
-function log(msg, color = "reset") {
-  if (isJson) return;
-  console.log(`${COLORS[color]}${msg}${COLORS.reset}`);
-}
+const log = createLog(isJson);
 
 // ==================== 로드 ====================
 
@@ -108,56 +90,26 @@ try {
 
 const schemaVersion = snap.schema_version ?? 0;
 // layout(고정 높이)도 parentId(넘침)도 v3 부터 들어온다. v2 면 아무것도 판정할 수 없다.
-const canCheck = schemaVersion >= 3;
+const canCheck = schemaVersion >= LAYOUT_MIN_SCHEMA;
 
 // ==================== design-rules 의 예외 선언 파싱 ====================
 
-// { 컴포넌트명: "hug" | "fixed" }
-function parseHeightDeclarations(path) {
-  const map = new Map();
-  if (!existsSync(path)) return map;
+// { 컴포넌트명: "hug" | "fixed" } — 파서는 figma-audit.mjs 와 공유한다
+const heightDecl = parseHeightDecl(
+  existsSync(rulesPath) ? readFileSync(rulesPath, "utf-8") : "",
+);
 
-  let current = null;
-  for (const line of readFileSync(path, "utf-8").split("\n")) {
-    const heading = line.match(/^###\s+(.+?)\s*(?:\(|$)/);
-    if (heading) {
-      // "SearchBar / FilterChip / Tab" 처럼 한 헤딩에 여러 개를 적는 경우가 있다
-      current = heading[1]
-        .split("/")
-        .map((s) => s.trim())
-        .filter(Boolean);
-      continue;
-    }
-    if (!current) continue;
-
-    const m = line.match(/^[-*]\s*Height\s*:\s*(hug|fixed)/i);
-    if (m) {
-      for (const name of current) map.set(name, m[1].toLowerCase());
-    }
-  }
-  return map;
-}
-
-const heightDecl = parseHeightDeclarations(rulesPath);
-
-// 노드 이름에서 컴포넌트 이름을 뽑는다.
-//   "MarketCard"                  → MarketCard
-//   "Button/Variant=primary"      → Button
-//   "MissionCard · 제목"          → MissionCard
-function componentNameOf(node) {
-  const base = String(node.mainComponent || node.name || "");
-  return base.split(/[/·,]/)[0].trim();
-}
-
-function isExempt(node, frame) {
+function isExempt(node, frame, pageName) {
   const name = String(node.name || "");
   if (BUILTIN_EXEMPT.test(name)) return "하네스 기본 면제";
   if (heightDecl.get(componentNameOf(node)) === "fixed")
     return "design-rules 가 fixed 로 선언";
   // 컴포넌트 세트 안의 variant 는 이름이 "Variant=primary, Size=sm, …" 라 컴포넌트명이 안 나온다.
   // 세트 직속(parentId 없음)이면 세트(프레임) 이름으로 선언을 찾는다.
+  // 컴포넌트 페이지에서만 — 화면 페이지의 프레임 직속 노드에도 parentId 가 없기 때문.
   if (
     frame &&
+    COMPONENT_SET_PAGES.has(pageName) &&
     node.parentId == null &&
     heightDecl.get(componentNameOf(frame)) === "fixed"
   )
@@ -203,7 +155,7 @@ for (const page of snap.pages || []) {
         node.layout.layoutMode !== "NONE" &&
         node.layout.vSizing === "FIXED"
       ) {
-        const exempt = isExempt(node, frame);
+        const exempt = isExempt(node, frame, page.name);
         if (!exempt) {
           findings.push({
             rule: "fixed-height",
@@ -223,7 +175,7 @@ for (const page of snap.pages || []) {
         node.layout &&
         node.layout.layoutMode === "NONE" &&
         nodes.some((n) => n.parentId === node.id) &&
-        !isExempt(node, frame)
+        !isExempt(node, frame, page.name)
       ) {
         findings.push({
           rule: "no-auto-layout",
@@ -236,32 +188,17 @@ for (const page of snap.pages || []) {
       }
 
       // ── 2) 콘텐츠 넘침 ────────────────────────────────────────────────
-      if (!node.parentId || !node.position || !node.size) continue;
+      if (!node.parentId) continue;
       const parent = byId.get(node.parentId);
-      if (!parent || !parent.position || !parent.size) continue;
-
-      const pad = parent.padding || { bottom: 0, right: 0 };
-      const childBottom = node.position.y + node.size.height;
-      const parentBottom =
-        parent.position.y + parent.size.height - (pad.bottom || 0);
-      const childRight = node.position.x + node.size.width;
-      const parentRight =
-        parent.position.x + parent.size.width - (pad.right || 0);
-
-      const overBottom = Math.round(childBottom - parentBottom);
-      const overRight = Math.round(childRight - parentRight);
-
-      if (overBottom > TOLERANCE || overRight > TOLERANCE) {
-        const parts = [];
-        if (overBottom > TOLERANCE) parts.push(`아래로 ${overBottom}px`);
-        if (overRight > TOLERANCE) parts.push(`오른쪽으로 ${overRight}px`);
+      const over = overflowOf(node, parent);
+      if (over && over.exceeded) {
         findings.push({
           rule: "content-overflow",
           page: page.name,
           frame: frame.name,
           node: node.name,
           id: node.id,
-          detail: `"${parent.name}"(${parent.size.width}×${parent.size.height}) 밖으로 ${parts.join(" / ")} 넘침`,
+          detail: `"${parent.name}"(${parent.size.width}×${parent.size.height}) 밖으로 ${describeOverflow(over)} 넘침`,
         });
       }
     }

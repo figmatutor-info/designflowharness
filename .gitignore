@@ -17,6 +17,8 @@ yarn-error.log*
 design/**/figma-snapshot.json
 # 매번 갱신되는 검증 결과
 design/**/audit-structural.json
+# 스냅샷 배치 원본 (merge-snapshot.mjs 의 입력 · 병합 후에는 figma-snapshot.json 이 결과다)
+design/**/snapshot-batches/
 design/**/*.tmp
 
 # OS

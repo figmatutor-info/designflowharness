@@ -62,32 +62,20 @@
  */
 
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
+import { getArg, hasFlag, createLog } from "./lib/cli.mjs";
+import {
+  BUILTIN_EXEMPT,
+  CONTAINER_TYPES,
+  LAYOUT_MIN_SCHEMA,
+  parseHeightDecl,
+  fixedComponentsOf,
+  overflowOf,
+  describeOverflow,
+} from "./lib/layout-rules.mjs";
 
 // ==================== 유틸 ====================
 
-const COLORS = {
-  reset: "\x1b[0m",
-  red: "\x1b[31m",
-  green: "\x1b[32m",
-  yellow: "\x1b[33m",
-  cyan: "\x1b[36m",
-  bold: "\x1b[1m",
-};
-
-const args = process.argv.slice(2);
-const isJson = args.includes("--json");
-// --name 의 값을 읽는다.
-// ⚠️ `args[args.indexOf(name) + 1] || fallback` 패턴을 쓰지 말 것.
-//    플래그가 없으면 indexOf 가 -1 이고 -1+1=0 이라 args[0] 이 값으로 잡힌다.
-//    그래서 `--json` / `--strict` / `--stage` 같은 첫 플래그가 파일 경로로 읽혀
-//    "파일 없음" 으로 죽거나(심하면 --json 이라 로그까지 막혀 무음 실패) 한다.
-function getArg(name, fallback) {
-  const i = args.indexOf(name);
-  if (i === -1) return fallback;
-  const v = args[i + 1];
-  if (v === undefined || v.startsWith("--")) return fallback;
-  return v;
-}
+const isJson = hasFlag("--json");
 
 const snapshotPath = getArg(
   "--snapshot",
@@ -99,10 +87,11 @@ const outputPath = getArg(
   "design/04-screens/audit-structural.json",
 );
 
-function log(msg, color = "reset") {
-  if (isJson) return;
-  console.log(`${COLORS[color]}${msg}${COLORS.reset}`);
-}
+const log = createLog(isJson);
+
+// 감사 대상 페이지. 다른 페이지로 대체하지 않는다 (01 Tokens 는 docs 프로필이라 fills/textStyle 이 없어
+// 팔레트는 허위 PASS, 나머지는 전부 FAIL 로 나온다 — 그런 결과는 감사가 아니다).
+const SCREENS_PAGE = "03 Screens";
 
 // ==================== 규칙 로드 ====================
 
@@ -128,24 +117,6 @@ function loadRules() {
     process.exit(1);
   }
 
-  // 색상 토큰 추출
-  const colorSection =
-    content.match(/## A\. 색상[\s\S]*?(?=^## |^---|(?![\s\S]))/m)?.[0] || "";
-  const validColorTokens = [
-    ...new Set(colorSection.match(/color-[\w-]+/g) || []),
-  ];
-
-  // 텍스트 스타일 추출
-  const typoSection =
-    content.match(/## C\. 타이포[\s\S]*?(?=^## |^---|(?![\s\S]))/m)?.[0] || "";
-  const validTextStyles = [
-    ...new Set(
-      typoSection
-        .match(/^\|\s*(\w+)\s*\|\s*[\d/]+/gm)
-        ?.map((m) => m.match(/^\|\s*(\w+)/)?.[1]) || [],
-    ),
-  ].filter(Boolean);
-
   // 모바일 값
   const mobileSection =
     content.match(/## G\. 모바일 특화[\s\S]*?(?=^## |^---|(?![\s\S]))/m)?.[0] ||
@@ -159,9 +130,6 @@ function loadRules() {
   const tapMin = parseInt(
     mobileSection.match(/tap-min[^\n]*?(\d+)/)?.[1] || "44",
   );
-  const deviceWidth = parseInt(
-    mobileSection.match(/device-frame[^\n]*?(\d+)/)?.[1] || "390",
-  );
   // 기기 높이는 규칙이 아니라 각 프레임의 실제 height 를 쓴다.
   // 스크롤 화면(844보다 긴 프레임)에서 전 노드가 위반으로 잡히는 문제 때문.
   const deviceHeightFallback = 844;
@@ -169,31 +137,13 @@ function loadRules() {
   // 의도적 고정 높이 컴포넌트 (레이아웃 검사의 예외 SSOT).
   // 컴포넌트 규칙의 `### 이름` 아래 `- Height: fixed(...)` 로 선언된 것만 면제된다.
   // 선언이 없으면 HUG 가 기본이다 — 예외는 반드시 규칙 파일에 적어야 한다.
-  const fixedHeightComponents = [];
-  {
-    let current = [];
-    for (const line of content.split("\n")) {
-      const heading = line.match(/^###\s+(.+?)\s*(?:\(|$)/);
-      if (heading) {
-        current = heading[1]
-          .split("/")
-          .map((t) => t.trim())
-          .filter(Boolean);
-        continue;
-      }
-      if (current.length && /^[-*]\s*Height\s*:\s*fixed/i.test(line)) {
-        fixedHeightComponents.push(...current);
-      }
-    }
-  }
+  // 파서는 check-layout.mjs 와 공유한다 (scripts/lib/layout-rules.mjs).
+  const fixedHeightComponents = fixedComponentsOf(parseHeightDecl(content));
 
   return {
-    validColorTokens,
-    validTextStyles,
     safeAreaTop,
     safeAreaBottom,
     tapMin,
-    deviceWidth,
     deviceHeightFallback,
     fixed_height_components: [...new Set(fixedHeightComponents)],
   };
@@ -208,20 +158,45 @@ function loadSnapshot() {
     process.exit(1);
   }
 
+  let snapshot;
   try {
-    return JSON.parse(readFileSync(snapshotPath, "utf-8"));
+    snapshot = JSON.parse(readFileSync(snapshotPath, "utf-8"));
   } catch (err) {
     log(`\n❌ snapshot 파싱 실패: ${err.message}`, "red");
     process.exit(1);
   }
+
+  // 감사 대상 페이지가 없거나 docs 프로필이면 감사 자체가 성립하지 않는다.
+  // 다른 페이지로 폴백하지 않고 여기서 멈춘다 (허위 PASS/FAIL 방지).
+  const page = snapshot.pages?.find((p) => p.name === SCREENS_PAGE);
+  if (!page) {
+    log(
+      `\n❌ 스냅샷에 "${SCREENS_PAGE}" 페이지가 없음: ${snapshotPath}`,
+      "red",
+    );
+    log(
+      `snapshot-runner 로 ${SCREENS_PAGE} 를 profile=full 로 추출해 merge 한 뒤 다시 실행할 것`,
+      "yellow",
+    );
+    process.exit(1);
+  }
+  if (page.profile && page.profile !== "full") {
+    log(
+      `\n❌ "${SCREENS_PAGE}" 가 profile=${page.profile} 로 추출됨 — fills/textStyle/isPrimary 가 없어 감사 불가`,
+      "red",
+    );
+    log(`profile=full 로 재추출할 것 (__PROFILE__=full)`, "yellow");
+    process.exit(1);
+  }
+
+  return snapshot;
 }
 
 // ==================== 검증 ====================
 
 function getScreensPage(snapshot) {
-  return (
-    snapshot.pages?.find((p) => p.name === "03 Screens") || snapshot.pages?.[0]
-  );
+  // loadSnapshot 이 존재·프로필을 이미 보장했다. 폴백 없음.
+  return snapshot.pages?.find((p) => p.name === SCREENS_PAGE);
 }
 
 function getAllNodes(frame) {
@@ -344,7 +319,17 @@ function checkTapTargets(snapshot, rules) {
   screensPage.frames.forEach((frame) => {
     getAllNodes(frame).forEach((node) => {
       if (node.isTapTarget) {
-        const { width, height } = node.size || {};
+        // size 가 없으면 "통과" 가 아니라 "판정 불가" 다 — 위반으로 남겨 재추출을 요구한다.
+        if (!node.size) {
+          violations.push({
+            screen: frame.name,
+            node: `${node.name} (${node.id})`,
+            issue: "탭 영역 크기 정보 없음 (node.size 누락)",
+            expected: "profile=full 스냅샷으로 재추출",
+          });
+          return;
+        }
+        const { width, height } = node.size;
         if (width < rules.tapMin || height < rules.tapMin) {
           violations.push({
             screen: frame.name,
@@ -452,19 +437,47 @@ function checkPrimaryCount(snapshot) {
 }
 
 // 7. 컴포넌트 재사용률
+// 재사용률 = 인스턴스 / (인스턴스 + 손으로 만든 로컬 프레임).
+//
+// 모수에서 빼는 것 (2026-09-19 · 사용자 결정):
+//   · 인스턴스 안에 중첩된 노드 (id 가 "I…;…" 형태) — 컴포넌트 마스터의 내부 구조는 화면 작성자가
+//     손으로 만든 게 아니다. 마스터 품질은 02 Components 단계(check-layout)가 본다
+//   · 레이아웃 전용 프레임 — 오토레이아웃이 켜져 있고 fill/stroke 가 없는 프레임(ContentStack · Row ·
+//     Section 류)은 컴포넌트가 될 대상이 아니라 컴포넌트를 배치하는 그릇이다
+//   · 하네스 기본 면제 (StatusBar · HomeIndicator 등 기기 크롬)
+// 남는 로컬 프레임은 "페인트가 있거나 오토레이아웃이 없는 손그림 UI" 다 — 이것이 컴포넌트로
+// 승격해야 할 후보이며, 이 비율이 낮을수록 화면이 컴포넌트가 아닌 프레임으로 조립된 것이다.
+function isNestedInInstance(node) {
+  return /^I[^;]*;/.test(String(node.id || ""));
+}
+
+function isLayoutOnlyFrame(node) {
+  const mode = node.layout?.layoutMode;
+  const painted = Boolean(node.fills || node.strokes);
+  return Boolean(mode && mode !== "NONE") && !painted;
+}
+
 function checkComponentReuseRate(snapshot) {
   const screensPage = getScreensPage(snapshot);
   if (!screensPage) return { status: "FAIL", violations: [], rate: 0 };
 
   let totalNodes = 0;
   let instanceNodes = 0;
+  const handmade = [];
 
   screensPage.frames.forEach((frame) => {
     getAllNodes(frame).forEach((node) => {
-      if (node.type === "FRAME" || node.type === "INSTANCE") {
+      if (isNestedInInstance(node)) return;
+      if (node.type === "INSTANCE" || node.isInstance) {
         totalNodes++;
-        if (node.isInstance) instanceNodes++;
+        instanceNodes++;
+        return;
       }
+      if (node.type !== "FRAME") return;
+      if (BUILTIN_EXEMPT.test(String(node.name || ""))) return;
+      if (isLayoutOnlyFrame(node)) return;
+      totalNodes++;
+      handmade.push(`${frame.name} / ${node.name} (${node.id})`);
     });
   });
 
@@ -472,7 +485,13 @@ function checkComponentReuseRate(snapshot) {
     totalNodes > 0 ? Math.round((instanceNodes / totalNodes) * 100) : 0;
   const violations =
     rate < 90
-      ? [{ issue: `재사용률 ${rate}% (기준 90%)`, expected: "90% 이상" }]
+      ? [
+          {
+            issue: `재사용률 ${rate}% (기준 90%) — 손으로 만든 프레임 ${handmade.length}개`,
+            expected: "90% 이상 · 아래 프레임을 컴포넌트 인스턴스로 교체",
+            handmade,
+          },
+        ]
       : [];
 
   return {
@@ -480,6 +499,8 @@ function checkComponentReuseRate(snapshot) {
     violations,
     count: violations.length,
     rate,
+    instances: instanceNodes,
+    handmade_frames: handmade.length,
   };
 }
 
@@ -550,10 +571,7 @@ function checkTokenLayering(snapshot) {
 // 판정 근거는 스냅샷 schema_version 3 의 node.layout / node.parentId 다.
 // v2 스냅샷에는 둘 다 없어서 아무것도 판정할 수 없다 — "위반 0건"이 아니라 "검사 불가"이므로
 // 조용히 PASS 시키지 않고 FAIL 로 돌려 재추출을 요구한다.
-const LAYOUT_EXEMPT_RE =
-  /^(DeviceFrame|Status ?Bar|Home ?Indicator|Safe ?Area|Divider|Spacer|Track|Img\/|Icon\/)/i;
-const LAYOUT_CONTAINER_TYPES = new Set(["FRAME", "COMPONENT", "COMPONENT_SET"]);
-const LAYOUT_TOLERANCE = 1;
+// 면제 정규식·컨테이너 타입·넘침 계산은 check-layout.mjs 와 공유 (scripts/lib/layout-rules.mjs)
 
 function checkLayoutHug(snapshot, rules) {
   const violations = [];
@@ -562,7 +580,7 @@ function checkLayoutHug(snapshot, rules) {
 
   // design-rules 가 fixed 로 선언한 컴포넌트는 면제한다 (예외의 SSOT 는 규칙 파일)
   const fixedByRule = new Set((rules && rules.fixed_height_components) || []);
-  const canCheck = (snapshot.schema_version ?? 0) >= 3;
+  const canCheck = (snapshot.schema_version ?? 0) >= LAYOUT_MIN_SCHEMA;
   if (!canCheck) {
     return {
       status: "FAIL",
@@ -581,7 +599,7 @@ function checkLayoutHug(snapshot, rules) {
   }
 
   const exempt = (node) => {
-    if (LAYOUT_EXEMPT_RE.test(String(node.name || ""))) return true;
+    if (BUILTIN_EXEMPT.test(String(node.name || ""))) return true;
     const base = String(node.mainComponent || node.name || "")
       .split(/[/·,]/)[0]
       .trim();
@@ -595,7 +613,7 @@ function checkLayoutHug(snapshot, rules) {
     nodes.forEach((node) => {
       // 고정 높이 컨테이너
       if (
-        LAYOUT_CONTAINER_TYPES.has(node.type) &&
+        CONTAINER_TYPES.has(node.type) &&
         node.layout &&
         node.layout.layoutMode &&
         node.layout.layoutMode !== "NONE" &&
@@ -612,30 +630,14 @@ function checkLayoutHug(snapshot, rules) {
       }
 
       // 콘텐츠 넘침
-      if (!node.parentId || !node.position || !node.size) return;
+      if (!node.parentId) return;
       const parent = byId.get(node.parentId);
-      if (!parent || !parent.position || !parent.size) return;
-
-      const pad = parent.padding || { bottom: 0, right: 0 };
-      const overBottom = Math.round(
-        node.position.y +
-          node.size.height -
-          (parent.position.y + parent.size.height - (pad.bottom || 0)),
-      );
-      const overRight = Math.round(
-        node.position.x +
-          node.size.width -
-          (parent.position.x + parent.size.width - (pad.right || 0)),
-      );
-
-      if (overBottom > LAYOUT_TOLERANCE || overRight > LAYOUT_TOLERANCE) {
-        const parts = [];
-        if (overBottom > LAYOUT_TOLERANCE) parts.push(`아래 ${overBottom}px`);
-        if (overRight > LAYOUT_TOLERANCE) parts.push(`오른쪽 ${overRight}px`);
+      const over = overflowOf(node, parent);
+      if (over && over.exceeded) {
         violations.push({
           screen: frame.name,
           node: `${node.name} (${node.id})`,
-          issue: `"${parent.name}" 밖으로 ${parts.join(" / ")} 넘침`,
+          issue: `"${parent.name}" 밖으로 ${describeOverflow(over, { suffix: "" })} 넘침`,
           expected: "부모가 내용을 감싸도록 HUG 로 바꿀 것",
         });
       }
@@ -674,6 +676,8 @@ function runAudit() {
 
   return {
     audit_date: new Date().toISOString(),
+    // 어느 스냅샷을 감사했는지. check-phase 가 현재 스냅샷과 일치하는지로 신선도를 판정한다.
+    snapshot_date: snapshot.snapshot_date ?? null,
     file_key: snapshot.file_key,
     passed: overallPassed,
     results,

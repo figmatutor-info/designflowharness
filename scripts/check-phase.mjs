@@ -28,46 +28,23 @@
  *   1: FAIL
  */
 
-import { readFileSync, existsSync, readdirSync, statSync } from "node:fs";
+import { readFileSync, existsSync, readdirSync } from "node:fs";
+import { getArg, hasFlag, createLog } from "./lib/cli.mjs";
+import { parseImageSlots } from "./lib/layout-rules.mjs";
 import { join } from "node:path";
 import { execFileSync } from "node:child_process";
 
 // ==================== 유틸 ====================
 
-const COLORS = {
-  reset: "\x1b[0m",
-  red: "\x1b[31m",
-  green: "\x1b[32m",
-  yellow: "\x1b[33m",
-  cyan: "\x1b[36m",
-  bold: "\x1b[1m",
-};
-
-const args = process.argv.slice(2);
-const isJson = args.includes("--json");
-const isQuiet = args.includes("--quiet");
+const isJson = hasFlag("--json");
+const isQuiet = hasFlag("--quiet");
 // 하위 검증기를 실제로 실행하지 않고, 파일 존재 확인만 한다 (디버깅용).
 // 기본값은 실행한다 — "게이트 통과 = npm run check" 가 사실이어야 하기 때문.
-const isShallow = args.includes("--shallow");
-// --name 의 값을 읽는다.
-// ⚠️ `args[args.indexOf(name) + 1] || fallback` 패턴을 쓰지 말 것.
-//    플래그가 없으면 indexOf 가 -1 이고 -1+1=0 이라 args[0] 이 값으로 잡힌다.
-//    그래서 `--json` / `--strict` / `--stage` 같은 첫 플래그가 파일 경로로 읽혀
-//    "파일 없음" 으로 죽거나(심하면 --json 이라 로그까지 막혀 무음 실패) 한다.
-function getArg(name, fallback) {
-  const i = args.indexOf(name);
-  if (i === -1) return fallback;
-  const v = args[i + 1];
-  if (v === undefined || v.startsWith("--")) return fallback;
-  return v;
-}
+const isShallow = hasFlag("--shallow");
 
 const phase = getArg("--phase", "all");
 
-function log(msg, color = "reset") {
-  if (isJson) return;
-  console.log(`${COLORS[color]}${msg}${COLORS.reset}`);
-}
+const log = createLog(isJson);
 
 function fileExists(path) {
   return existsSync(path);
@@ -554,19 +531,16 @@ function checkComponentCatalog(rulesContent, componentsPath) {
 // "none" 이면 이 프로젝트는 이미지를 쓰지 않는다고 선언한 것이므로
 // 이미지 라이브러리·슬롯 검사를 "해당 없음"으로 통과시킨다.
 // (가계부·설정·계산기처럼 사진이 정당하게 없는 앱을 게이트가 막지 않게 한다)
+// 파서·기본값은 check-assets.mjs 와 공유한다 (scripts/lib/layout-rules.mjs parseImageSlots).
 function readImagePolicy() {
-  const content = readFile("design/03-design-rules/design-rules.md");
-  if (!content) return "used";
-  const m = content.match(/^\s*image-slots:\s*(used|none)\s*$/m);
-  return m ? m[1] : "used";
+  return parseImageSlots(readFile("design/03-design-rules/design-rules.md"))
+    .policy;
 }
 
-// design-rules.md §I 의 `image-library:` 선언 (이미지를 고르는 유일한 폴더).
-// 없으면 기본 경로. check-assets.mjs 와 같은 기본값을 써야 한다.
+// design-rules.md §I 의 `image-library:` 선언 (이미지를 고르는 유일한 폴더). 없으면 기본 경로.
 function readImageLibrary() {
-  const content = readFile("design/03-design-rules/design-rules.md");
-  const m = content?.match(/^\s*image-library:\s*(\S+)\s*$/m);
-  return m ? m[1].replace(/`/g, "") : "design/assets/characters";
+  return parseImageSlots(readFile("design/03-design-rules/design-rules.md"))
+    .library;
 }
 
 // ==================== 게이트 4: Figma 화면 ====================
@@ -793,22 +767,25 @@ function checkScreens() {
       if (audit.passed !== true) {
         detail = `FAIL — ${passedChecks ?? "?"}/${totalChecks ?? "?"} 항목 통과, 위반 ${violations}건`;
       } else {
-        // 신선도: 화면을 고치고 스냅샷만 다시 뽑은 뒤 예전 audit 결과로 통과하는
-        // 경로를 막는다. audit 은 스냅샷을 입력으로 받으므로 항상 더 나중이어야 한다.
-        const snapDate = Date.parse(
-          (() => {
-            try {
-              return JSON.parse(readFile(snapshotPath))?.snapshot_date;
-            } catch {
-              return null;
-            }
-          })(),
-        );
-        const auditDate = Date.parse(audit.audit_date);
+        // 신선도: audit 이 "지금 이 스냅샷" 을 읽었는지 본다.
+        // figma-audit.mjs 가 결과에 입력 스냅샷의 snapshot_date 를 적어 두므로 그 값이 현재
+        // figma-snapshot.json 의 snapshot_date 와 같아야 한다. 날짜 선후 비교만 하면 다른 스냅샷
+        // 파일로 감사한 결과도 "더 최신" 이라는 이유로 통과한다.
+        const currentSnapDate = (() => {
+          try {
+            return JSON.parse(readFile(snapshotPath))?.snapshot_date ?? null;
+          } catch {
+            return null;
+          }
+        })();
+        const auditedSnapDate = audit.snapshot_date ?? null;
 
-        if (!isNaN(snapDate) && !isNaN(auditDate) && auditDate < snapDate) {
+        if (!auditedSnapDate) {
           pass = false;
-          detail = `audit 결과가 스냅샷보다 오래됨 (audit ${audit.audit_date} < snapshot) — npm run audit 재실행 필요`;
+          detail = `audit 결과에 snapshot_date 없음 (구버전 figma-audit 출력) — npm run audit 재실행 필요`;
+        } else if (currentSnapDate && auditedSnapDate !== currentSnapDate) {
+          pass = false;
+          detail = `audit 이 다른 스냅샷을 읽음 (audit: ${auditedSnapDate} / 현재: ${currentSnapDate}) — npm run audit 재실행 필요`;
         } else {
           pass = true;
           detail = `PASS (${passedChecks}/${totalChecks} 항목, 위반 0건)`;

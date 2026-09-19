@@ -2,8 +2,8 @@
 
 design-rules.md의 A~H 섹션 상세 정보. (§I 이미지는 design-rules.md 에만 둔다)
 
-**상태:** design-rules.md 가 `status: draft` 인 동안 이 문서도 초안이다.
-브랜드 컬러(`brand-500`)와 이미지 슬롯 배경(`sky-100`)은 아직 사용자 승인 전 가정값이다.
+**상태:** design-rules.md 가 `status: confirmed` (v1.0, 2026-09-18) 로 확정됨. 이 문서는 그 상세다.
+브랜드 컬러(`brand-500`)와 이미지 슬롯 배경(`sky-100`)은 확정값이다.
 
 ---
 

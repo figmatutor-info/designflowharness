@@ -36,28 +36,10 @@
  */
 
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
+import { getArg, hasFlag, createLog, args } from "./lib/cli.mjs";
 
-const COLORS = {
-  reset: "\x1b[0m",
-  red: "\x1b[31m",
-  green: "\x1b[32m",
-  yellow: "\x1b[33m",
-  cyan: "\x1b[36m",
-};
-
-const args = process.argv.slice(2);
-const isJson = args.includes("--json");
-const isDryRun = args.includes("--dry-run");
-
-// --name 의 값을 읽는다. (다른 스크립트와 동일한 헬퍼 —
-//  `args[indexOf(name)+1] || fallback` 은 플래그가 없을 때 args[0] 을 값으로 잡는다)
-function getArg(name, fallback) {
-  const i = args.indexOf(name);
-  if (i === -1) return fallback;
-  const v = args[i + 1];
-  if (v === undefined || v.startsWith("--")) return fallback;
-  return v;
-}
+const isJson = hasFlag("--json");
+const isDryRun = hasFlag("--dry-run");
 
 const outPath = getArg("--out", "design/04-screens/figma-snapshot.json");
 
@@ -65,10 +47,7 @@ const outPath = getArg("--out", "design/04-screens/figma-snapshot.json");
 const outValue = getArg("--out", null);
 const batchPaths = args.filter((a) => !a.startsWith("--") && a !== outValue);
 
-function log(msg, color = "reset") {
-  if (isJson) return;
-  console.log(`${COLORS[color]}${msg}${COLORS.reset}`);
-}
+const log = createLog(isJson);
 
 function die(msg, detail) {
   if (isJson) {

@@ -26,26 +26,9 @@
  */
 
 import { readFileSync, existsSync } from "node:fs";
+import { getArg, hasFlag, createLog } from "./lib/cli.mjs";
 
-const COLORS = {
-  reset: "\x1b[0m",
-  red: "\x1b[31m",
-  green: "\x1b[32m",
-  yellow: "\x1b[33m",
-  cyan: "\x1b[36m",
-};
-
-const args = process.argv.slice(2);
-const isJson = args.includes("--json");
-
-// --name 의 값을 읽는다. (check-snapshot.mjs 와 같은 이유로 indexOf+1 관용구를 쓰지 않는다)
-function getArg(name, fallback) {
-  const i = args.indexOf(name);
-  if (i === -1) return fallback;
-  const v = args[i + 1];
-  if (v === undefined || v.startsWith("--")) return fallback;
-  return v;
-}
+const isJson = hasFlag("--json");
 
 const snapshotPath = getArg(
   "--snapshot",
@@ -78,10 +61,7 @@ function varNames(snap, collection, type) {
 
 const results = [];
 
-function log(msg, color = "reset") {
-  if (isJson) return;
-  console.log(`${COLORS[color]}${msg}${COLORS.reset}`);
-}
+const log = createLog(isJson);
 
 function add(name, pass, detail) {
   results.push({ name, pass, detail });

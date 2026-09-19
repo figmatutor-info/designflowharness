@@ -37,54 +37,32 @@
  */
 
 import { readFileSync, existsSync, statSync, readdirSync } from "node:fs";
+import { getArg, hasFlag, createLog } from "./lib/cli.mjs";
+import { parseImageSlots } from "./lib/layout-rules.mjs";
 import { resolve, extname, basename } from "node:path";
 
 // ==================== 설정 ====================
 
-const COLORS = {
-  reset: "\x1b[0m",
-  red: "\x1b[31m",
-  green: "\x1b[32m",
-  yellow: "\x1b[33m",
-  cyan: "\x1b[36m",
-};
-
-const args = process.argv.slice(2);
-const isJson = args.includes("--json");
-
-// --name 의 값을 읽는다.
-// ⚠️ `args[args.indexOf(name) + 1] || fallback` 패턴 금지 (check-snapshot.mjs 와 동일 이유).
-//    플래그가 없으면 indexOf 가 -1 → -1+1=0 이라 args[0] 이 값으로 잡힌다.
-function getArg(name, fallback) {
-  const i = args.indexOf(name);
-  if (i === -1) return fallback;
-  const v = args[i + 1];
-  if (v === undefined || v.startsWith("--")) return fallback;
-  return v;
-}
+const isJson = hasFlag("--json");
 
 const rulesPath = getArg("--rules", "design/03-design-rules/design-rules.md");
 const libraryOverride = getArg("--library", null);
 const maxPerScreen = parseInt(getArg("--max-per-screen", "4"), 10);
-
-const DEFAULT_LIBRARY = "design/assets/characters";
 
 // upload_assets 제한 (도구 스키마: Max 10MB per asset, PNG/JPG/GIF/WebP/SVG)
 const MAX_FILE_BYTES = 10 * 1024 * 1024;
 const MIN_FILE_BYTES = 1024; // 1KB 미만이면 깨진 파일로 본다
 const ALLOWED_EXT = [".png", ".jpg", ".jpeg", ".webp"];
 
-// 모바일 화면 슬롯에서 쓰는 비율만 허용 (default-tokens.md §I 의 역할별 비율표와 같다)
-const ALLOWED_RATIOS = ["1:1", "4:3", "3:4", "16:9", "9:16", "3:2", "2:3"];
+// 모바일 화면 슬롯에서 쓰는 비율만 허용 — default-tokens.md §I "슬롯 역할별 비율" 표와 같은 집합.
+// (hero 16:9 · card 4:3 · thumb/avatar 1:1 · full-bleed 3:4) 표를 바꾸면 여기도 바꾼다.
+const ALLOWED_RATIOS = ["1:1", "4:3", "3:4", "16:9"];
 
 const SLOT_TABLE_HEADING = "화면별 슬롯 계획";
 
 const results = [];
 
-function log(msg, color = "reset") {
-  if (isJson) return;
-  console.log(`${COLORS[color]}${msg}${COLORS.reset}`);
-}
+const log = createLog(isJson);
 
 function add(name, pass, detail) {
   results.push({ name, pass, detail });
@@ -106,16 +84,15 @@ function loadRules() {
 }
 
 // §I 의 `image-slots:` 선언. none 이면 이미지를 쓰지 않는 프로젝트다.
+// (파서·기본 경로는 check-phase.mjs 와 공유 — scripts/lib/layout-rules.mjs)
 function readImagePolicy(content) {
-  const m = content.match(/^\s*image-slots:\s*(used|none)\s*$/m);
-  return m ? m[1] : "used";
+  return parseImageSlots(content).policy;
 }
 
 // §I 의 `image-library:` 선언. 없으면 기본 라이브러리 경로.
 function readLibraryPath(content) {
   if (libraryOverride) return libraryOverride;
-  const m = content.match(/^\s*image-library:\s*(\S+)\s*$/m);
-  return m ? m[1].replace(/`/g, "") : DEFAULT_LIBRARY;
+  return parseImageSlots(content).library;
 }
 
 // "### 화면별 슬롯 계획" 아래 첫 마크다운 표를 행 객체 배열로 읽는다.

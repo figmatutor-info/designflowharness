@@ -67,14 +67,12 @@ const FRAME_NAMES_RAW = "__FRAME_NAMES__";
 
 const MAX_NODES = 6000; // 폭주 방지
 const MAX_FINDINGS = 200; // 응답 크기 방지 — 넘으면 truncated: true
-const TOLERANCE = 1; // 넘침 허용 오차(px). check-layout.mjs 와 같은 값
-
-// check-layout.mjs 의 BUILTIN_EXEMPT 와 같은 정규식. 여기만 바꾸지 말 것.
-const BUILTIN_EXEMPT =
+// ⚠️ 아래 셋은 scripts/lib/layout-rules.mjs 의 미러다 (Figma 샌드박스는 import 불가).
+//    lib 쪽을 바꾸면 여기도 함께 바꾼다. 여기만 바꾸지 말 것.
+const TOLERANCE = 1; // 넘침 허용 오차(px) — mirror of layout-rules.mjs TOLERANCE
+const BUILTIN_EXEMPT = // mirror of layout-rules.mjs BUILTIN_EXEMPT
   /^(DeviceFrame|Status ?Bar|Home ?Indicator|Safe ?Area|Divider|Spacer|Track|Img\/|Icon\/)/i;
-
-// check-layout.mjs 의 CONTAINER_TYPES 와 같다.
-const CONTAINER_TYPES = new Set(["FRAME", "COMPONENT", "COMPONENT_SET"]);
+const CONTAINER_TYPES = new Set(["FRAME", "COMPONENT", "COMPONENT_SET"]); // mirror of layout-rules.mjs CONTAINER_TYPES
 
 // ==================== 치환값 파싱 ====================
 
@@ -130,16 +128,25 @@ async function variableInfo(variableId) {
   return info;
 }
 
-// check-layout.mjs 의 componentNameOf 와 같은 규칙.
+// scripts/lib/layout-rules.mjs 의 componentNameOf 와 같은 규칙 (Plugin API 판).
 //   "Button/Variant=primary" → Button, "MissionCard · 제목" → MissionCard
-function componentNameOf(node) {
+// 인스턴스의 메인 컴포넌트는 getMainComponentAsync 로 읽는다 — 동기 `node.mainComponent` 는
+// dynamic-page 접근 모드에서 예외를 던진다 (figma-snapshot.js 와 같은 이유).
+async function componentNameOf(node) {
   let base = node.name || "";
-  if (node.type === "INSTANCE" && node.mainComponent) {
-    const mc = node.mainComponent;
-    base =
-      (mc.parent && mc.parent.type === "COMPONENT_SET"
-        ? mc.parent.name
-        : mc.name) || base;
+  if (node.type === "INSTANCE") {
+    let mc = null;
+    try {
+      mc = await node.getMainComponentAsync();
+    } catch (e) {
+      mc = null;
+    }
+    if (mc) {
+      base =
+        (mc.parent && mc.parent.type === "COMPONENT_SET"
+          ? mc.parent.name
+          : mc.name) || base;
+    }
   }
   // 변형(COMPONENT) 은 부모 세트 이름으로 판정한다 ("Size=md, State=default" 는 컴포넌트 이름이 아니다)
   if (
@@ -152,10 +159,10 @@ function componentNameOf(node) {
   return String(base).split(/[/·,]/)[0].trim();
 }
 
-function isExempt(node) {
+async function isExempt(node) {
   const name = String(node.name || "");
   if (BUILTIN_EXEMPT.test(name)) return "하네스 기본 면제";
-  if (FIXED_ALLOW.has(componentNameOf(node)))
+  if (FIXED_ALLOW.has(await componentNameOf(node)))
     return "design-rules 가 fixed 로 선언";
   return null;
 }
@@ -261,12 +268,16 @@ async function checkBindings(node, frameName) {
   }
 }
 
-function checkLayout(node, frameName) {
+async function checkLayout(node, frameName) {
   if (!CONTAINER_TYPES.has(node.type)) return;
   const mode = node.layoutMode || "NONE";
   const hasChildren = Array.isArray(node.children) && node.children.length > 0;
 
-  if (mode !== "NONE" && vSizingOf(node) === "FIXED" && !isExempt(node)) {
+  if (
+    mode !== "NONE" &&
+    vSizingOf(node) === "FIXED" &&
+    !(await isExempt(node))
+  ) {
     report(
       "fixed-height",
       frameName,
@@ -275,7 +286,7 @@ function checkLayout(node, frameName) {
     );
   }
 
-  if (mode === "NONE" && hasChildren && !isExempt(node)) {
+  if (mode === "NONE" && hasChildren && !(await isExempt(node))) {
     report(
       "no-auto-layout",
       frameName,
@@ -285,7 +296,8 @@ function checkLayout(node, frameName) {
   }
 }
 
-// 자식이 부모 안쪽(padding 제외) 밖으로 나가는지. check-layout.mjs 와 같이 아래/오른쪽만 본다.
+// 자식이 부모 안쪽(padding 제외) 밖으로 나가는지. 아래/오른쪽만 본다.
+// mirror of scripts/lib/layout-rules.mjs overflowOf (Plugin API 좌표계 판) — 둘을 함께 고친다.
 function checkOverflow(node, parent, frameName) {
   if (!parent || parent.type === "PAGE") return;
   if (typeof node.x !== "number" || typeof node.width !== "number") return;
@@ -329,7 +341,7 @@ async function walk(node, parent, frameName) {
   nodesScanned++;
 
   await checkBindings(node, frameName);
-  checkLayout(node, frameName);
+  await checkLayout(node, frameName);
   checkOverflow(node, parent, frameName);
   checkText(node, frameName);
 
