@@ -28,7 +28,7 @@
  * 옵션:
  *   --rules <path>       기본: design/03-design-rules/design-rules.md
  *   --library <path>     §I 의 image-library 선언을 덮어쓴다
- *   --max-per-screen <n> 화면당 슬롯 상한 (기본: 4)
+ *   --max-per-screen <n> 화면당 슬롯 상한 (기본: 6 · default-tokens.md §I 슬롯 수 상한과 같다)
  *   --json               JSON 출력
  *
  * exit code:
@@ -47,7 +47,7 @@ const isJson = hasFlag("--json");
 
 const rulesPath = getArg("--rules", "design/03-design-rules/design-rules.md");
 const libraryOverride = getArg("--library", null);
-const maxPerScreen = parseInt(getArg("--max-per-screen", "4"), 10);
+const maxPerScreen = parseInt(getArg("--max-per-screen", "6"), 10);
 
 // upload_assets 제한 (도구 스키마: Max 10MB per asset, PNG/JPG/GIF/WebP/SVG)
 const MAX_FILE_BYTES = 10 * 1024 * 1024;
