@@ -4,7 +4,7 @@
 
 - figma_file: 9mSXSf3cI36nDWiyolGXja
 - figma_file_url: https://www.figma.com/design/9mSXSf3cI36nDWiyolGXja/
-- design_rules_version: 1.0
+- design_rules_version: 1.1
 - start_date: 2026-09-18
 - design_rules_confirmed_at: 2026-09-18
 
@@ -405,7 +405,170 @@ character-asset-2.png 는 01-home/05-huddling-pick 두 곳에서 재사용되어
   next: audit 대기 (세 페이지 스냅샷 PASS 후 design-auditor)
 
 ### snapshot · 03 Screens ❌
+
 - profile: full · 배치 17개 · 노드 355개 (프레임 5개: 01 Home 82 · 02 Skill Library 86 · 03 Mission Detail 48 · 04 My Assets 64 · 05 Huddling Pick 75)
 - check-snapshot: FAIL (25/26) — "화면당 isPrimary 1개" 위반: DeviceFrame · 01 Home(0개), DeviceFrame · 02 Skill Library(0개), DeviceFrame · 05 Huddling Pick(0개). 나머지 25개 항목 전부 PASS (schema_version/file_key/frames 5개/노드 355개/isTapTarget 52개/isInstance 83개/변수 2계층 검증 등)
 - check-layout (03 Screens): PASS — 고정 높이 0건 · 오토레이아웃 없는 컨테이너 0건 · 콘텐츠 넘침 0건
 - 재추출 불필요: 스냅샷 추출 자체는 완결(잘림 없음, 구멍/중복 없음). isPrimary FAIL 은 Figma 노드 이름/variant 속성에 "primary"가 없는 것이 원인 — figma-builder 가 해당 화면들의 주요 CTA 요소 이름 또는 컴포넌트 variant 를 수정해야 한다.
+
+## STAGE=fix · Round 1 ✅
+
+완료: 2026-09-19 (design-rules.md v1.1 반영 · design_rules_version 도 1.1 로 갱신)
+입력: design/04-screens/fix-list.md (Round 1 · 코디네이터 작성 · 대상 전부 `figma`)
+
+### Critical (03 Screens · isPrimary 보정)
+
+| #   | 화면             | 노드                        | 조치                                                                 |
+| --- | ---------------- | --------------------------- | -------------------------------------------------------------------- |
+| 1   | 01 Home          | `71:84` Card 인스턴스       | 이름 `Card` → `Card · primary`                                       |
+| 2   | 02 Skill Library | `74:117` SkillCard 인스턴스 | 이름 `SkillCard` → `SkillCard · primary` (74:127 · 74:137 은 그대로) |
+| 3   | 05 Huddling Pick | `79:264` PickCard 인스턴스  | 이름 `PickCard` → `PickCard · primary` (79:272 는 그대로)            |
+
+수정 전 각 화면을 스캔해 기존 "primary" 명명 충돌이 없음을 확인(0건)한 뒤 진행. 화면당 정확히 1개.
+
+### Major (02 Components 마스터 수정 → 03 Screens 인스턴스에 자동 전파)
+
+| #   | 노드                                                                  | 바인딩/속성                                                                | 값                                  |
+| --- | --------------------------------------------------------------------- | -------------------------------------------------------------------------- | ----------------------------------- |
+| 4   | ItemRow 마스터 `TextCol` (`36:122`)                                   | itemSpacing → semantic `space-inline` (primitive `space-1` 별칭, 4px)      | 2px → 4px                           |
+| 5   | SkillCard 마스터 `TagsRow` (`37:26`)                                  | itemSpacing → semantic `space-tap-gap-min` (primitive `space-2` 별칭, 8px) | 6px → 8px                           |
+| 6   | TabBar 마스터 `TabItem` ×4 (`37:49`·`37:51`·`37:53`·`37:55`)          | `layoutSizingHorizontal` → `FILL` (부모 TabBar 390px 균등분할)             | 폭 24~49px(HUG) → 89.5px 균등 4등분 |
+| 7   | Tab 컴포넌트 세트 `State=active`(`37:17`) · `State=inactive`(`37:20`) | `setBoundVariable("height", …)` → semantic `size-tap-min`(44px)            | 높이 36 → 44                        |
+
+**전체 페이지 스캔 결과:** `TextCol` 이름의 노드는 ItemRow 마스터의 `36:122` 1개뿐 — Card/AssetCard 등
+다른 마스터에 동일 이름·2px 사례 없음(추가 처리 불필요).
+
+**부수 수정 (lint 1차에서 발견, fix-list 밖 사이드이펙트 아님 — #7 의 직접 결과):**
+Tab 컴포넌트 세트 컨테이너(`37:23`, layoutMode NONE)의 바운딩 박스가 이전 높이(36)에 고정돼 있어
+variant 높이를 44로 올린 뒤 `content-overflow` 2건(active/inactive 각 8px 아래로 넘침) 발생 →
+`tabSet.resize(24, 44)`로 컨테이너 높이만 맞춤(오토레이아웃 아님, HUG 규칙과 무관).
+
+**주의:** fix-list #4/#5 원문의 "semantic `space-1`/`space-2`" 표기는 실제로는 primitive 이름이었다
+(semantic 컬렉션에 `space-1`/`space-2`라는 변수는 없음 — 이는 이전 STAGE=components 기록에 남겨진
+"components.md 표기를 시맨틱 이름으로 오인"과 같은 종류의 함정). 값(4px/8px) 기준으로 실제 semantic
+별칭인 `space-inline`(→space-1)·`space-tap-gap-min`(→space-2)을 찾아 바인딩했다. Figma 수정 전
+`figma.variables.getLocalVariablesAsync()`로 alias 대상을 직접 조회해 확인(가정 없음).
+
+### figma-lint 결과
+
+- `__PAGE_NAME__="02 Components"`, `__FIXED_ALLOW__="Button,ProgressBar,SearchBar,Tab,TabBar,AppBar,BottomCTA,LoadingSpinner,DeviceFrame,Icon"`
+  - 1차: 2건 (content-overflow: Tab State=active/inactive, #7의 side effect)
+  - Tab 세트 컨테이너 resize 후 2차: **0건, passed: true** (32 프레임 · 418 노드)
+- `__PAGE_NAME__="03 Screens"`, 동일 `__FIXED_ALLOW__`
+  - **0건, passed: true** (5 프레임 · 360 노드) — Critical 이름 변경은 lint 대상 밖(이름만 변경, 구조/바인딩 불변)이라 애초에 위반 없음
+
+### 스크린샷 갱신
+
+5장 전부 재추출 후 기존 파일명 그대로 덮어씀 (390×844 PNG, get_screenshot → curl 다운로드):
+`design/04-screens/screenshots/01-home.png` · `02-skill-library.png` · `03-mission-detail.png` ·
+`04-my-assets.png` · `05-huddling-pick.png`
+
+### 스냅샷
+
+snapshot: requested (page=02 Components · profile=full · stage=fix)
+snapshot: requested (page=03 Screens · profile=full · stage=fix)
+
+멈춰서 질문으로 남긴 것: 없음. fix-list 밖 항목은 건드리지 않음(예: `04-my-assets`의
+BottomCTA/TabBar 설계 판단, `ItemRow` `Thumb`→`Img/` 개명 보류 건 — 둘 다 이전 라운드에서 이미
+질문/보류로 기록됨, 이번 라운드 범위 아님).
+
+figma_read_calls: 약 14회 (whoami 1 · get_metadata 1(부분 실패, use_figma 로 재확인) · use_figma 8(조사 4 + 수정 2 + lint 2) · get_screenshot 5)
+next: snapshot-runner 가 02 Components · 03 Screens 두 페이지 모두 PASS 확인 후 design-auditor 재실행
+
+### snapshot · 02 Components (fix r1) ✅
+
+- profile: full · 배치 10개 (신규 6 + 기존 재사용 4 — 변경 없는 프레임은 이전 STAGE 배치를 그대로 씀) · 프레임 32/32 · 노드 338개
+- 신규 추출: 프레임 0(Button, 재확인용) · 1~4(Card/ItemRow/Badge) · 4~8(ProgressBar/SearchBar/Tab/SkillCard) · 8~13(AssetCard/PickCard/TabBar/AppBar/Modal)
+- 재사용(기존 STAGE=components 배치, fix-list 대상 아님): 13~19 · 19~24 · 24~28 · 28~32
+- check-snapshot --stage components: PASS (18/18)
+- check-layout --page "02 Components": PASS (고정 높이 0건 · 오토레이아웃 누락 0건 · 콘텐츠 넘침 0건, 노드 338개)
+- 수정 확인: Tab State=active/inactive height=44 vSizing=FIXED · TabItem ×4 layoutSizingHorizontal=FILL & isTapTarget=true · ItemRow/TextCol itemSpacing=4 · SkillCard/TagsRow itemSpacing=8
+- 재추출 필요 없음
+
+### snapshot · 03 Screens (fix r1) ✅
+
+- profile: full · 배치 12개 (프레임 5개 × 각 2~3개 노드 청크) · 프레임 5/5 · 노드 355개
+- 배치 상세: f00(01 Home) 3개(0-20·20-40·40-82) · f01(02 Skill Library) 3개(0-40·40-63·63-86) ·
+  f02(03 Mission Detail) 2개(0-40·40-48) · f03(04 My Assets) 2개(0-40·40-64) ·
+  f04(05 Huddling Pick) 2개(0-40·40-75)
+- 파일: design/04-screens/snapshot-batches/screens-fix1-f0N-b0N.json (이전 라운드 screens-f0N-b0N.json 은 재사용하지 않고 전부 새로 뽑음)
+- merge-snapshot.mjs: 5개 프레임 전부 노드 청크 재조합 성공, 구멍·중복 없음
+- check-snapshot --stage screens: PASS (26/26) — "화면당 isPrimary 1개: 모든 화면 1개" 항목 포함
+- check-layout --page "03 Screens": PASS (고정 높이 0건 · 오토레이아웃 누락 0건 · 콘텐츠 넘침 0건, 노드 355개)
+- isPrimary 개별 확인:
+  - 01 Home: `Card · primary` (71:84) — 1개
+  - 02 Skill Library: `SkillCard · primary` (74:117) — 1개
+  - 05 Huddling Pick: `PickCard · primary` (79:264) — 1개
+  - (참고: 03 Mission Detail 의 BottomCTA Button, 04 My Assets 의 Button 도 variant=primary 로 isPrimary=true 이나 이번 라운드 확인 대상 밖)
+- 재추출 필요 없음
+
+## STAGE=fix · Round 2 ✅
+
+완료: 2026-09-19
+입력: design/04-screens/fix-list.md `Fix List · Round 2` (항목 #8 · 대상 전부 `figma`)
+
+### 조사: 12px semantic 변수 존재 여부
+
+design-rules.md §B semantic 표(space-screen-padding/section/card-padding/list-gap/inline/tap-gap-min)를
+전수 확인한 결과 **"패딩" 의도로 12px(={space-3})를 가리키는 semantic 변수는 없다.**
+`space-list-gap` 이 {space-3}(12px) 를 참조하긴 하나 용도가 "리스트 아이템 간" 간격이라 Tab 좌우
+padding 에 의미적으로 맞지 않는다 — 값이 같다고 다른 의도의 변수를 끌어쓰지 않았다.
+따라서 fix-list #8 처리 규칙 1의 **대안 경로**(minWidth = size-tap-min + 텍스트 중앙 정렬)를 택했다.
+
+### 적용 내용 (Tab 컴포넌트 세트, `02 Components`)
+
+| 노드                        | 변경                                                                                                             |
+| --------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| `State=active` (37:17)      | `setBoundVariable("minWidth", size-tap-min)` (semantic, ={size-44}) · 라벨(37:18) `textAlignHorizontal = CENTER` |
+| `State=inactive` (37:20)    | 동일 (라벨 37:21)                                                                                                |
+| `Underline` (37:19 · 37:22) | `layoutSizingHorizontal = "FILL"` — minWidth 로 확보된 부모 폭을 따라 늘어남                                     |
+| 세트 컨테이너 `Tab` (37:23) | `resize(44, 44)` — 두 variant 모두 44×44 로 커진 것에 맞춤 (기존 24×44)                                          |
+
+primitive 직접 바인딩 없음. 화면 인스턴스(02 Skill Library / 04 My Assets / 05 Huddling Pick) 개별
+override 없음 — 마스터만 수정, 인스턴스는 자동 전파.
+
+**결과 크기:** 두 variant 모두 최소 44×44 (라벨 "전체" 기준 HUG 폭이 minWidth 44 보다 작아 44로 고정,
+더 긴 라벨은 44보다 커질 수 있음 — 여전히 size-tap-min 이상이므로 탭 영역 위반 없음).
+
+### figma-lint 결과
+
+- `__PAGE_NAME__="02 Components"`, `__FIXED_ALLOW__="Button,ProgressBar,SearchBar,Tab,TabBar,AppBar,BottomCTA,LoadingSpinner,DeviceFrame,Icon"` → **0건, passed: true** (32 프레임 · 418 노드)
+- `__PAGE_NAME__="03 Screens"`, 동일 `__FIXED_ALLOW__` → **0건, passed: true** (5 프레임 · 360 노드)
+
+### 스크린샷 갱신
+
+Tab 이 있는 3개 화면 재추출 후 기존 파일명 덮어씀:
+`design/04-screens/screenshots/02-skill-library.png` · `04-my-assets.png` · `05-huddling-pick.png`
+(01-home, 03-mission-detail 은 Tab 미사용 — 변경 없음, 재추출 안 함)
+
+### 스냅샷
+
+snapshot: requested (page=02 Components · profile=full · stage=fix)
+snapshot: requested (page=03 Screens · profile=full · stage=fix)
+
+멈춰서 질문으로 남긴 것: 없음.
+
+figma_read_calls: 약 9회 (whoami 1 · get_metadata 1 · use_figma 5(조사 2 + 수정 1 + lint 2) · get_screenshot 3)
+next: snapshot-runner 두 페이지 PASS 후 design-auditor
+
+### snapshot · 02 Components (fix r2) ✅
+
+- profile: full · 배치 12개 (신규 3 + fix1 재사용 2 + STAGE=components 재사용 5 — 프레임 4~7 만 재추출) · 프레임 32/32 · 노드 338개
+- 신규 추출: 프레임 4~6(ProgressBar/SearchBar) · 프레임 6~7(Tab, 변경 대상) · 프레임 7~8(SkillCard) — 기존 fix1 배치(f04-b01, 4~8 범위)는 Tab 변경으로 폐기, 겹치는 원본 STAGE=components 배치(f01/f04/f08-b01)도 함께 제거해 구멍·중복 없이 재구성
+- 재사용: 프레임 0(Button, 노드 3청크) · 프레임 1~4(Card/ItemRow/Badge, fix1) · 프레임 8~13(AssetCard/PickCard/TabBar/AppBar/Modal, fix1) · 프레임 13~32(Icon 세트 등, STAGE=components 원본)
+- merge-snapshot.mjs: 32/32 프레임, 구멍·중복 없음
+- check-snapshot --stage components: PASS (18/18 · 변수 primitives 38 / semantic 39 전부 alias)
+- check-layout --page "02 Components": PASS (고정 높이 0건 · 오토레이아웃 누락 0건 · 콘텐츠 넘침 0건, 노드 338개)
+- Tab 수정 확인 (스냅샷 값 기준): 컨테이너 `Tab`(37:23) 44×44 · `State=active`(37:17)/`State=inactive`(37:20) 둘 다 size 44×44, vSizing=FIXED(design-rules 고정 높이 선언 대상이라 정상) · `Underline`(37:19/37:22) layoutSizingHorizontal=FILL. minWidth 바인딩 자체는 스키마에 별도 필드가 없어 size=44(=size-tap-min)로 간접 확인.
+- 재추출 필요 없음
+
+### snapshot · 03 Screens (fix r2) ✅
+
+- profile: full · 배치 12개 (fix1 f00×3 + fix2 f01×3 + fix1 f02×2 + fix2 f03×2 + fix2 f04×2) · 노드 355개
+- 재추출 대상: 프레임 1 `02 Skill Library`(86 nodes) · 프레임 3 `04 My Assets`(64 nodes) · 프레임 4 `05 Huddling Pick`(75 nodes). 프레임 0 `01 Home`/2 `03 Mission Detail` 은 Round 1 배치 재사용, 겹치는 Round 1 f01/f03/f04 배치는 삭제
+- Tab 인스턴스 폭 확인 (마스터 minWidth 44 전파):
+  - 02 Skill Library: 8개, 폭 44/44/57/57/44/44/44/44 — 전부 ≥44
+  - 04 My Assets: 5개, 폭 44/44/45/57/44 — 전부 ≥44
+  - 05 Huddling Pick: 7개, 전부 44 — 전부 ≥44
+- check-snapshot --stage screens: PASS (26/26)
+- check-layout --page "03 Screens": PASS (고정 높이 0건 · 오토레이아웃 누락 0건 · 콘텐츠 넘침 0건)

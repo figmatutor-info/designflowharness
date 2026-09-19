@@ -1,8 +1,8 @@
 ---
 status: confirmed
-version: 1.0
+version: 1.1
 created_at: 2026-09-18
-confirmed_at: 2026-09-18
+confirmed_at: 2026-09-19
 based_on:
   - scripts/default-tokens.md (default)
   - PRD.md (§9 브랜드 방향)
@@ -323,7 +323,8 @@ image-library: design/assets/characters
 
 ### Tab (언더라인 필터 탭)
 
-- Height: fixed(size-button-sm)
+- Height: fixed(size-tap-min)
+  (v1.1 · 2026-09-19: size-button-sm(36) 에서 변경. Tab 은 탭 타겟이므로 §G `Tap target: 최소 size-tap-min` 과 충돌하던 것을 해소. 사용자 확정)
 - States: active(color-text + 하단 언더라인 color-primary) / inactive(color-text-muted)
 - 용도: 스킬 라이브러리 카테고리·난이도 필터, 내 자산 상태 필터, 허들링 픽 카테고리·정렬
 
