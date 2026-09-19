@@ -223,6 +223,7 @@ node scripts/check-phase.mjs
 - 하네스 설계 원칙: docs/harness-principles.md (별도)
 - 토큰 문서 규격: docs/token-docs-spec.md
 - 각 에이전트 상세: .claude/agents/*.md
+- figma-builder STAGE 별 절차: docs/figma-builder/stage-{tokens,components,screens,fix}.md (에이전트 파일은 공통 규칙만 · STAGE 확정 후 해당 문서 1개만 Read)
 - 검증 스크립트: scripts/*.mjs (로컬 · 스냅샷 기반)
 - Figma 안에서 돌리는 스크립트: scripts/figma-snapshot.js (추출 · v4 프로필 docs/full) · scripts/figma-lint.js (즉시 검증) · scripts/figma-token-docs.js (토큰 문서)
 - 스냅샷 전담 에이전트: .claude/agents/snapshot-runner.md (figma-builder 가 STAGE 를 끝낼 때마다 코디네이터가 백그라운드로 띄운다)
