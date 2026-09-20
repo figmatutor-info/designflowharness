@@ -1,6 +1,8 @@
 # design-flow-harness
 
 > 디자이너가 AI와 일관되게 일하기 위한 4단계 파이프라인
+하네스 구조 관련된 내용은 이 영상을 참고해 보세요.
+https://youtu.be/yQcR1Dz5UDA?si=rnqF6nlvn7TSfW2O
 
 **Claude Code 전용** (`CLAUDE.md`, `.claude/agents`, `.claude/skills`).
 
