@@ -48,6 +48,7 @@ import {
   parseHeightDecl,
   componentNameOf,
   overflowOf,
+  isScrollViewport,
   describeOverflow,
 } from "./lib/layout-rules.mjs";
 
@@ -100,6 +101,7 @@ const heightDecl = parseHeightDecl(
 );
 
 function isExempt(node, frame, pageName) {
+  if (isScrollViewport(node)) return true;
   const name = String(node.name || "");
   if (BUILTIN_EXEMPT.test(name)) return "하네스 기본 면제";
   if (heightDecl.get(componentNameOf(node)) === "fixed")

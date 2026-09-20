@@ -11,6 +11,8 @@ background: false
 
 `figma-builder`가 만든 Figma 화면을 `design-rules.md` 기준으로 검증한다.
 
+**품질 계약:** `docs/ui-quality.md`를 읽는다. 화면 생성/수정·검수는 `docs/capture-protocol.md`도 따른다.
+
 **요청**: $ARGUMENTS
 
 > 이 스킬은 `design-auditor` 서브에이전트에서 실행된다 (프론트매터 `agent:` 로 고정).
@@ -45,7 +47,7 @@ background: false
 | spacing 그리드    | 4배수 아닌 값 0개                                                              |
 | 탭 영역           | 44×44 미만 0개                                                                 |
 | 세이프 에어리어   | 침범 0개                                                                       |
-| primary 개수      | 화면당 정확히 1개                                                              |
+| 주 행동 계약      | 상태별 single/collection/none과 actionId 일치                                                              |
 | 컴포넌트 재사용률 | ≥ 90% (손으로 만든 로컬 프레임 대비 · 인스턴스 내부·레이아웃 전용 프레임 제외) |
 | 토큰 계층         | primitive 직접 바인딩 0개                                                      |
 | 레이아웃 거동     | 세로 FIXED 컨테이너 0개 · 콘텐츠 넘침 0건 (HUG)                                |
@@ -58,6 +60,9 @@ background: false
 - 규칙 준수 (색, 타이포, 크기)
 - 사용성 (primary 눈에 띔, 탭 영역, 콘텐츠)
 - 이미지 (빈 슬롯 0개, 톤 일관성, 이미지 속 글자 없음)
+
+시각 검수는 필수 상태 전체를 비교하여 `visual-review.json`에 점수·근거를 기록한다.
+`npm run check:evidence` 실패 시 구조 검수가 PASS여도 완료할 수 없다.
 
 ## 산출물
 

@@ -77,21 +77,30 @@ export function componentNameOf(node) {
  * 자식이 부모 안쪽(padding 제외) 밖으로 나가는지. 아래/오른쪽만 본다.
  * 판정 불가(좌표·크기 없음)면 null, 넘침 없으면 { overBottom, overRight } 가 전부 TOLERANCE 이하.
  */
+// 이름에 Scroll을 붙이는 것만으로 면제하지 않는다. 실제 클리핑+스크롤 설정 필수.
+export function isScrollViewport(node) {
+  return node?.clipsContent === true && ["VERTICAL", "HORIZONTAL", "BOTH"].includes(node.overflowDirection);
+}
+
 export function overflowOf(node, parent) {
   if (!parent || !node.position || !node.size) return null;
   if (!parent.position || !parent.size) return null;
 
   const pad = parent.padding || { bottom: 0, right: 0 };
-  const overBottom = Math.round(
+  let overBottom = Math.round(
     node.position.y +
       node.size.height -
       (parent.position.y + parent.size.height - (pad.bottom || 0)),
   );
-  const overRight = Math.round(
+  let overRight = Math.round(
     node.position.x +
       node.size.width -
       (parent.position.x + parent.size.width - (pad.right || 0)),
   );
+  if (isScrollViewport(parent)) {
+    if (["VERTICAL", "BOTH"].includes(parent.overflowDirection)) overBottom = 0;
+    if (["HORIZONTAL", "BOTH"].includes(parent.overflowDirection)) overRight = 0;
+  }
   return {
     overBottom,
     overRight,

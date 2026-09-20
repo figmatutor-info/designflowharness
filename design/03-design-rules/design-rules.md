@@ -1,8 +1,8 @@
 ---
 status: confirmed
-version: 1.0
+version: 1.1
 created_at: 2026-09-19
-confirmed_at: 2026-09-19
+confirmed_at: 2026-09-20
 approved_by: user
 based_on:
   - scripts/default-tokens.md
@@ -227,7 +227,8 @@ based_on:
 
 ### 화면별 슬롯 계획
 
-> screens.md "이미지 슬롯 총계" 표 기준: 홈 3(4:3) · 스킬 라이브러리 0 · 미션 상세 0 · 내 자산 6(1:1) · 허들링 픽 6(4:3) = 총 15개.
+> screens.md "이미지 슬롯 총계" 표 기준: 홈 3(4:3) · 스킬 라이브러리 0 · 미션 상세 0 · 내 자산 6(1:1) · 허들링 픽 4(4:3) = 총 13개.
+> (v1.1 · 2026-09-20: 허들링 픽 3×2 그리드가 StatusBar 44 포함 시 뷰포트를 41px 초과해 2×2 로 축소 · 슬롯 5·6 제거 · 사용자 확정)
 
 | 슬롯 key                  | 화면             | role  | 비율  | 파일                    | 담을 내용                                 |
 | ------------------------- | ---------------- | ----- | ----- | ----------------------- | ----------------------------------------- |
@@ -244,8 +245,6 @@ based_on:
 | 05-huddling-pick-card-2   | 05-huddling-pick | card  | `4:3` | `character-asset-3.png` | 픽 카드 이미지 2                          |
 | 05-huddling-pick-card-3   | 05-huddling-pick | card  | `4:3` | `character-asset-4.png` | 픽 카드 이미지 3                          |
 | 05-huddling-pick-card-4   | 05-huddling-pick | card  | `4:3` | `character-asset-5.png` | 픽 카드 이미지 4                          |
-| 05-huddling-pick-card-5   | 05-huddling-pick | card  | `4:3` | `character-asset-6.png` | 픽 카드 이미지 5                          |
-| 05-huddling-pick-card-6   | 05-huddling-pick | card  | `4:3` | `character-asset-7.png` | 픽 카드 이미지 6                          |
 
 ---
 
@@ -452,7 +451,7 @@ based_on:
 
 - 필요 컴포넌트: BottomTabBar, MissionCard, Card, SkillCard, AssetCard, PickCard, SearchBar, FilterChip, SegmentedTab, StatusBadge, SummaryBox, MultiSelectGrid, BottomActionBar, AppBar, CenterModal, Button, EmptyState, LoadingSpinner
 - 화면 상태: default / loading / empty (전 화면 공통) + 미션 상세의 submitting / error
-- 이미지 슬롯: 홈 3(4:3) · 내 자산 6(1:1) · 허들링 픽 6(4:3) = 15개, 스킬 라이브러리·미션 상세는 이미지 없음
+- 이미지 슬롯: 홈 3(4:3) · 내 자산 6(1:1) · 허들링 픽 4(4:3) = 13개, 스킬 라이브러리·미션 상세는 이미지 없음
 
 ### 가정 로그 (default 사용)
 
@@ -460,4 +459,4 @@ based_on:
 - 타이포 스케일 → default 사용 (사용자 요청 없음)
 - Shadow/Motion → default 사용 (사용자 요청 없음)
 - 이미지 파일 선택 기준 → default-tokens.md §I "파일 선택 기준 (기본)" 그대로 적용 (사용자 지정 기준 없음)
-- 이미지 파일 배정 → `character-asset-1~8.png` 8개를 15개 슬롯에 재사용 배정 (같은 화면 내 순차 배정, 부족분은 재사용)
+- 이미지 파일 배정 → `character-asset-1~8.png` 8개를 13개 슬롯에 재사용 배정 (같은 화면 내 순차 배정, 부족분은 재사용)

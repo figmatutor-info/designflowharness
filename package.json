@@ -20,7 +20,11 @@
     "verify:strict": "node scripts/verify-design-rules.mjs --strict",
     "audit": "node scripts/figma-audit.mjs",
     "audit:json": "node scripts/figma-audit.mjs --json",
-    "test": "node --test --test-reporter=spec 'tests/**/*.test.mjs'"
+    "test": "node --test --test-reporter=spec 'tests/**/*.test.mjs'",
+    "check:contract": "node scripts/check-design-contract.mjs",
+    "capture:begin": "node scripts/design-evidence.mjs --begin",
+    "capture:seal": "node scripts/design-evidence.mjs --seal",
+    "check:evidence": "node scripts/design-evidence.mjs --check"
   },
   "keywords": [
     "design-system",

@@ -2,6 +2,8 @@
 
 > 디자이너가 AI와 일관되게 일하기 위한 4단계 파이프라인
 
+**Claude Code 전용** (`CLAUDE.md`, `.claude/agents`, `.claude/skills`).
+
 레퍼런스 수집부터 Figma 화면 생성까지, 매 단계 게이트를 통과하며 진행합니다.
 자연어로도, 슬래시 명령으로도 동작합니다.
 
@@ -150,7 +152,7 @@ design-flow-harness/
 
 **게이트 2 통과 조건:**
 
-- 화면 5개 이상, 각 primary 1개
+- 화면 5개 이상, screen-contract.json에 상태별 single/collection/none 주 행동 정책
 - 레퍼런스 매칭 필수
 - 사용자 검토·수정 후 승인
 
@@ -158,7 +160,7 @@ design-flow-harness/
 
 ```
 /generate-rules
-→ default-tokens.md + 브랜드 컬러
+→ 대표 화면 2안 비교 + 선택 방향 + 미결정 값에 default-tokens.md
 → design-rules.md (SSOT) 생성 · primitive → semantic 2계층
 → HTML 프리뷰 확인
 ```
@@ -194,8 +196,34 @@ design-flow-harness/
 - **이미지 슬롯 빈 곳 0개** (`Img/*` 노드가 전부 IMAGE fill)
 - **레이아웃 거동 0건** (오토레이아웃 컨테이너 세로 HUG · 콘텐츠 넘침 없음 — `check:layout`)
 - **토큰 문서 규격 PASS** (`check:token-docs`)
-- audit PASS (9개 항목) — 결과가 **현재 스냅샷을 읽은 것**이어야 한다 (`snapshot_date` 일치)
+- audit PASS (9개 항목) — 결과가 **현재 스냅샷을 읽은 것**이어야 한다 (snapshot/rules/contract SHA-256 일치)
+- 동일 capture_id의 세 페이지·필수 상태 PNG·최신 visual-review.json PASS
 - 사용자 완료 승인
+
+
+## UI 품질 보완 워크플로
+
+기존 Claude Code 에이전트 7개와 슬래시 명령 6개를 그대로 사용합니다.
+대표 화면의 디자인 방향을 먼저 비교하고, 실제 이미지·긴 문구·필수 상태로 시안을 검토합니다.
+주 행동은 제출형(single), 탐색형(collection), 행동 없는 상태(none)를 구분합니다.
+시각 검수는 위계·가독성·밀도·이미지 적합성·일관성에 화면별 근거를 남깁니다.
+
+```bash
+npm run check:contract   # 구조 담당: 화면/상태/행동 계약
+npm run capture:begin    # builder: 최종 Figma 수정 후 동결, capture_id 발급
+# runner: 동일 ID로 3페이지 추출·직렬 병합; builder: 필수 PNG 전부 재출력
+npm run capture:seal     # 코디네이터: 입력/출력 해시 봉인, 시각 검수 초안 생성
+npm run audit            # auditor: 구조 검사
+# auditor: 승인 시안과 PNG를 직접 비교해 visual-review.json 작성
+npm run check:evidence   # 최신 캡처·상태·시각 검수 증거
+npm run check:screens    # 최종 게이트
+```
+
+- [UI 품질 기준·화면 계약 예시](docs/ui-quality.md)
+- [캡처 순서·소유권·기존 프로젝트 업그레이드](docs/capture-protocol.md)
+
+기존 예제 산출물은 새 기준으로 자동 승인하지 않습니다. 계약·디자인 방향 기록·캡처 증거가
+없으면 게이트가 실패하며, 위 업그레이드 절차로 보완합니다. 독립 검증기의 구형 fixture 호환은 유지합니다.
 
 ## 🛠️ 검증 명령어
 

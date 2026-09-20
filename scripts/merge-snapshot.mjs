@@ -111,6 +111,8 @@ for (const { path, data } of batches) {
     problems.push(
       `page.profile 불일치: ${path} (${data.page?.profile ?? "없음"} ≠ ${first.page?.profile ?? "없음"}) — 같은 __PROFILE__ 로 다시 뽑을 것`,
     );
+  if ((data.page?.capture_id ?? null) !== (first.page?.capture_id ?? null))
+    problems.push(`capture_id 불일치: ${path} — 다른 수정 라운드 배치를 섞을 수 없다`);
   if (!data.frame_range)
     problems.push(
       `frame_range 없음: ${path} — 구버전 figma-snapshot.js 로 뽑았다. 다시 추출할 것`,
@@ -173,6 +175,8 @@ for (const group of chunkGroups.values()) {
   for (const { path, data } of chunks) {
     const f = data.page.frames[0];
     const { from, to, total_nodes } = f.node_range;
+    if ((f.id ?? null) !== (head.id ?? null))
+      problems.push(`청크의 프레임 id 불일치: ${path}`);
     if (f.name !== name)
       problems.push(
         `청크의 프레임 이름 불일치: ${path} ("${f.name}" ≠ "${name}") — 다른 프레임의 청크가 섞였다`,
@@ -319,6 +323,7 @@ if (!Array.isArray(out.pages)) out.pages = [];
 
 const newPage = { name: pageName, frames: mergedFrames };
 if (first.page?.profile) newPage.profile = first.page.profile;
+if (first.page?.capture_id) newPage.capture_id = first.page.capture_id;
 const idx = out.pages.findIndex((p) => p?.name === pageName);
 const replaced = idx >= 0;
 if (replaced) out.pages[idx] = newPage;

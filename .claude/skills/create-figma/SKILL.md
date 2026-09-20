@@ -13,6 +13,8 @@ background: false
 이미지는 생성하지 않는다. `design-rules.md` §I 표가 가리키는 `design/assets/characters/` 파일을
 화면 슬롯에 채워 넣는다(screens). 아이콘은 lucide 이름으로 CDN 에서 받는다.
 
+**품질 계약:** `docs/ui-quality.md`를 읽는다. 화면 생성/수정·검수는 `docs/capture-protocol.md`도 따른다.
+
 **요청**: $ARGUMENTS
 
 > 이 스킬은 `figma-builder` 서브에이전트에서 실행된다 (프론트매터 `agent:` 로 고정).

@@ -32,6 +32,8 @@ import { readFileSync, existsSync, readdirSync } from "node:fs";
 import { getArg, hasFlag, createLog } from "./lib/cli.mjs";
 import { parseImageSlots } from "./lib/layout-rules.mjs";
 import { join } from "node:path";
+import { CONTRACT_PATH, loadContract, requiredViews, previewErrors } from "./lib/screen-contract.mjs";
+import { fileHash, AUDIT_KEYS } from "./lib/design-evidence.mjs";
 import { execFileSync } from "node:child_process";
 
 // ==================== 유틸 ====================
@@ -247,21 +249,14 @@ function checkStructure() {
       detail: `${screenCount}개 화면 (최소 5개 필요)`,
     });
 
-    // 4. 필수 필드 (primary 액션 언급)
-    const primaryCount = (content.match(/primary/gi) || []).length;
-    results.push({
-      name: "primary 액션 정의",
-      pass: primaryCount >= screenCount,
-      detail: `primary 언급 ${primaryCount}회 (화면당 1개 필요)`,
-    });
-
-    // 5. 레퍼런스 매칭
-    const patternMatchCount = (content.match(/analysis\.md/gi) || []).length;
-    results.push({
-      name: "레퍼런스 매칭 (analysis.md 참조)",
-      pass: patternMatchCount >= screenCount,
-      detail: `매칭 언급 ${patternMatchCount}회 (화면당 1개 이상)`,
-    });
+    // 문서 전체의 단어 개수가 아니라 각 화면의 실제 필드를 검사한다.
+    const sections = content.split(/^## 화면 \d+[^\n]*$/m).slice(1);
+    const missingActions = sections.flatMap((section, i) =>
+      /\*\*primary 액션:\*\*\s*\S+/i.test(section) ? [] : [i + 1]);
+    results.push({ name: "화면별 주 행동 정의", pass: sections.length > 0 && !missingActions.length, detail: missingActions.length ? `누락 화면: ${missingActions.join(", ")}` : "각 화면에 정의됨" });
+    const missingReferences = sections.flatMap((section, i) =>
+      /analysis\.md/.test(section) && /패턴/.test(section) ? [] : [i + 1]);
+    results.push({ name: "화면별 레퍼런스 매칭", pass: sections.length > 0 && !missingReferences.length, detail: missingReferences.length ? `누락 화면: ${missingReferences.join(", ")}` : "각 화면에 참조됨" });
   }
 
   if (fileExists(flowsPath)) {
@@ -276,6 +271,12 @@ function checkStructure() {
     });
   }
 
+  results.push(subCheck({ label: "화면·상태·행동 계약", file: "check-design-contract.mjs", command: "npm run check:contract" }));
+  try {
+    const contract = loadContract(CONTRACT_PATH, true);
+    const count = (readFile(screensPath)?.match(/^## 화면 \d+/gm) || []).length;
+    results.push({ name: "문서·계약 화면 수 일치", pass: contract.screens.length === count, detail: `screens.md ${count}개 / 계약 ${contract.screens.length}개` });
+  } catch { /* 위 계약 검사에서 파일/형식 오류 보고 */ }
   return {
     phase: "structure",
     gate: 2,
@@ -363,6 +364,7 @@ function checkRules() {
     // 발견하면 되돌리는 비용이 크다. 레이아웃은 HTML 에서 먼저 확정하고,
     // Phase 4 는 확정된 시안을 옮기기만 하게 한다.
     results.push(checkPreviewScreens());
+    results.push({ name: "디자인 방향 비교 기록", pass: Boolean(readFile("design/03-design-rules/design-direction.md")?.trim()), detail: "design-direction.md: 대표 화면 2안 비교·선택 근거 (실제 품질은 시각 검수)" });
 
     // 8. 컴포넌트 카탈로그 완결성
     //
@@ -402,8 +404,6 @@ function checkRules() {
 // screens.md 의 화면 수와 시안 수가 맞아야 한다.
 function checkPreviewScreens() {
   const previewPath = "design/03-design-rules/preview.html";
-  const screensPath = "design/02-structure/screens.md";
-
   if (!fileExists(previewPath)) {
     return {
       name: "preview.html 화면 시안",
@@ -415,42 +415,13 @@ function checkPreviewScreens() {
     };
   }
 
-  const html = readFile(previewPath);
-  const mockups = [...html.matchAll(/data-screen\s*=\s*["']([^"']+)["']/g)].map(
-    (m) => m[1],
-  );
-  const unique = [...new Set(mockups)];
-
-  const screensSrc = fileExists(screensPath) ? readFile(screensPath) : "";
-  const expected = (screensSrc.match(/^## 화면 \d+/gm) || []).length;
-
-  if (expected === 0) {
-    return {
-      name: "preview.html 화면 시안",
-      pass: unique.length > 0,
-      detail:
-        unique.length > 0
-          ? `시안 ${unique.length}개 (screens.md 미확인 — 개수 대조 생략)`
-          : "data-screen 마커가 없습니다 — 토큰 스와치만 있고 화면 시안이 없는 상태",
-    };
+  try {
+    const contract = loadContract(CONTRACT_PATH, true);
+    const errors = previewErrors(readFile(previewPath), contract);
+    return { name: "preview.html 필수 화면·상태 시안", pass: errors.length === 0, detail: errors.join("; ") || `${requiredViews(contract).length}개 화면·상태 마커 일치 (시각 검수 별도)` };
+  } catch (error) {
+    return { name: "preview.html 필수 화면·상태 시안", pass: false, detail: error.message };
   }
-
-  if (unique.length < expected) {
-    return {
-      name: "preview.html 화면 시안",
-      pass: false,
-      detail:
-        `시안 ${unique.length}개 / screens.md 화면 ${expected}개 — ${expected - unique.length}개 부족\n` +
-        `    → 발견된 마커: ${unique.length ? unique.join(", ") : "(없음)"}\n` +
-        `    → 화면마다 data-screen="{번호}-{이름}" 래퍼를 두고 390x844 로 렌더하세요.`,
-    };
-  }
-
-  return {
-    name: "preview.html 화면 시안",
-    pass: true,
-    detail: `시안 ${unique.length}개 (screens.md 화면 ${expected}개와 일치)`,
-  };
 }
 
 // default-tokens.md 의 "## 컴포넌트 기본값" 아래 ### 항목들을 뽑는다.
@@ -591,13 +562,17 @@ function checkScreens() {
       detail: /## STAGE=components.*✅/.test(content) ? "완료" : "미완료",
     });
 
-    // 5. screens STAGE 완료 (모든 화면)
-    const screenComplete = (content.match(/^## screen: \d+/gm) || []).length;
-    results.push({
-      name: "screens STAGE 완료 (5개+)",
-      pass: screenComplete >= 5,
-      detail: `${screenComplete}개 화면 로그 (최소 5개)`,
-    });
+    // 로그 제목은 사람용이다. 완료 여부는 필수 상태 프레임/파일의 실제 존재로 판정.
+    try {
+      const contract = loadContract(CONTRACT_PATH, true);
+      const snapshot = JSON.parse(readFile(snapshotPath));
+      const frames = snapshot.pages?.find((p) => p.name === "03 Screens")?.frames || [];
+      const views = requiredViews(contract);
+      const missing = views.filter((v) => frames.filter((f) => f.name === v.frame).length !== 1 || !fileExists(v.screenshot));
+      results.push({ name: "필수 화면·상태 산출물", pass: contract.screens.length >= 5 && !missing.length, detail: `${views.length - missing.length}/${views.length}개 상태 존재 · 기본 화면 ${contract.screens.length}개` });
+    } catch (error) {
+      results.push({ name: "필수 화면·상태 산출물", pass: false, detail: `계약/스냅샷 확인 필요: ${error.message}` });
+    }
   }
 
   // 6. 스크린샷 5개 이상
@@ -767,35 +742,20 @@ function checkScreens() {
       if (audit.passed !== true) {
         detail = `FAIL — ${passedChecks ?? "?"}/${totalChecks ?? "?"} 항목 통과, 위반 ${violations}건`;
       } else {
-        // 신선도: audit 이 "지금 이 스냅샷" 을 읽었는지 본다.
-        // figma-audit.mjs 가 결과에 입력 스냅샷의 snapshot_date 를 적어 두므로 그 값이 현재
-        // figma-snapshot.json 의 snapshot_date 와 같아야 한다. 날짜 선후 비교만 하면 다른 스냅샷
-        // 파일로 감사한 결과도 "더 최신" 이라는 이유로 통과한다.
-        const currentSnapDate = (() => {
-          try {
-            return JSON.parse(readFile(snapshotPath))?.snapshot_date ?? null;
-          } catch {
-            return null;
-          }
-        })();
-        const auditedSnapDate = audit.snapshot_date ?? null;
-
-        if (!auditedSnapDate) {
-          pass = false;
-          detail = `audit 결과에 snapshot_date 없음 (구버전 figma-audit 출력) — npm run audit 재실행 필요`;
-        } else if (currentSnapDate && auditedSnapDate !== currentSnapDate) {
-          pass = false;
-          detail = `audit 이 다른 스냅샷을 읽음 (audit: ${auditedSnapDate} / 현재: ${currentSnapDate}) — npm run audit 재실행 필요`;
-        } else {
-          pass = true;
-          detail = `PASS (${passedChecks}/${totalChecks} 항목, 위반 0건)`;
-        }
+        // 날짜가 같아도 파일 내용이 바뀌면 결과는 무효다.
+        const expected = { snapshot: fileHash(snapshotPath), rules: fileHash("design/03-design-rules/design-rules.md"), contract: fileHash(CONTRACT_PATH) };
+        const fresh = Object.entries(expected).every(([key, value]) => audit.input_hashes?.[key] === value);
+        const complete = AUDIT_KEYS.every((key) => audit.results?.[key]?.status === "PASS") && totalChecks === AUDIT_KEYS.length && passedChecks === AUDIT_KEYS.length && violations === 0;
+        pass = fresh && complete;
+        detail = !fresh ? "검증 입력 해시 불일치/누락 — npm run audit 재실행 필요" : !complete ? "audit PASS 항목 누락/모순" : "PASS (현재 입력 해시 일치)";
       }
     } catch (err) {
       detail = `JSON 파싱 실패: ${err.message}`;
     }
     results.push({ name: "audit 통과 (구조 검증 결과)", pass, detail });
   }
+
+  results.push(subCheck({ label: "캡처 신선도·시각 품질·상태 검수", file: "design-evidence.mjs", command: "npm run check:evidence" }));
 
   // 12. audit-report.md 존재 — 사람이 읽는 요약. 판정 근거가 아니라 산출물 확인이다.
   results.push({
@@ -815,6 +775,14 @@ function checkScreens() {
 }
 
 // ==================== 출력 ====================
+
+function enforceDiagnosticMode(result) {
+  if (isShallow) {
+    result.checks.push({ name: "정식 게이트 검사 필요", pass: false, detail: "--shallow는 진단 전용. 검사 생략으로 완료 판정 불가" });
+    result.passed = false;
+  }
+  return result;
+}
 
 function printResult(result) {
   if (isJson) return;
@@ -877,12 +845,12 @@ function main() {
     log("\n🚪 전체 게이트 검증 시작", "cyan");
     log("=".repeat(50), "cyan");
     for (const [key, checker] of Object.entries(checkers)) {
-      const result = checker();
+      const result = enforceDiagnosticMode(checker());
       results.push(result);
       printResult(result);
     }
   } else if (checkers[phase]) {
-    const result = checkers[phase]();
+    const result = enforceDiagnosticMode(checkers[phase]());
     results.push(result);
     printResult(result);
   } else {

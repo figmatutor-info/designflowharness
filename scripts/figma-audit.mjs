@@ -63,6 +63,8 @@
 
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
 import { getArg, hasFlag, createLog } from "./lib/cli.mjs";
+import { CONTRACT_PATH, loadContract, checkActions } from "./lib/screen-contract.mjs";
+import { fileHash } from "./lib/design-evidence.mjs";
 import {
   BUILTIN_EXEMPT,
   CONTAINER_TYPES,
@@ -70,6 +72,7 @@ import {
   parseHeightDecl,
   fixedComponentsOf,
   overflowOf,
+  isScrollViewport,
   describeOverflow,
 } from "./lib/layout-rules.mjs";
 
@@ -88,6 +91,7 @@ const outputPath = getArg(
 );
 
 const log = createLog(isJson);
+const contractPath = getArg("--contract", hasFlag("--snapshot") ? null : CONTRACT_PATH);
 
 // 감사 대상 페이지. 다른 페이지로 대체하지 않는다 (01 Tokens 는 docs 프로필이라 fills/textStyle 이 없어
 // 팔레트는 허위 PASS, 나머지는 전부 FAIL 로 나온다 — 그런 결과는 감사가 아니다).
@@ -358,7 +362,7 @@ function checkTapTargets(snapshot, rules) {
 // 모든 노드를 검사하면 화면마다 배경·앱바·탭바가 전부 위반으로 잡혀 게이트가
 // 구조적으로 통과 불가능해진다.
 function isContentNode(node) {
-  return Boolean(node.isTapTarget) || node.type === "TEXT";
+  return Boolean(node.isTapTarget) || node.type === "TEXT" || isScrollViewport(node);
 }
 
 function checkSafeArea(snapshot, rules) {
@@ -373,12 +377,25 @@ function checkSafeArea(snapshot, rules) {
     const frameHeight = frame.height || rules.deviceHeightFallback;
     const bottomLimit = frameHeight - rules.safeAreaBottom;
 
+    const byId = new Map(getAllNodes(frame).map((n) => [n.id, n]));
     getAllNodes(frame)
       .filter(isContentNode)
       .forEach((node) => {
         checked++;
-        const y = node.position?.y ?? 0;
-        const h = node.size?.height ?? 0;
+        let y = node.position?.y ?? 0;
+        let bottom = y + (node.size?.height ?? 0);
+        let parent = byId.get(node.parentId);
+        const seen = new Set();
+        while (parent && !seen.has(parent.id)) {
+          seen.add(parent.id);
+          if (isScrollViewport(parent)) {
+            y = Math.max(y, parent.position?.y ?? 0);
+            bottom = Math.min(bottom, (parent.position?.y ?? 0) + (parent.size?.height ?? 0));
+          }
+          parent = byId.get(parent.parentId);
+        }
+        if (bottom <= y) return; // 뷰포트 밖의 스크롤 콘텐츠는 현재 화면에 보이지 않는다.
+        const h = bottom - y;
 
         // 상단 침범
         if (y < rules.safeAreaTop) {
@@ -412,6 +429,13 @@ function checkSafeArea(snapshot, rules) {
 
 // 6. primary 버튼 개수
 function checkPrimaryCount(snapshot) {
+  try {
+    const contract = loadContract(contractPath, hasFlag("--contract"));
+    if (contract) return checkActions(snapshot, contract);
+  } catch (error) {
+    return { status: "FAIL", count: 1, violations: [{ issue: error.message }] };
+  }
+  // 구형 fixture의 독립 실행 호환. 최종 게이트는 계약을 필수로 요구한다.
   const violations = [];
   const screensPage = getScreensPage(snapshot);
   if (!screensPage) return { status: "FAIL", violations: [] };
@@ -599,6 +623,7 @@ function checkLayoutHug(snapshot, rules) {
   }
 
   const exempt = (node) => {
+    if (isScrollViewport(node)) return true;
     if (BUILTIN_EXEMPT.test(String(node.name || ""))) return true;
     const base = String(node.mainComponent || node.name || "")
       .split(/[/·,]/)[0]
@@ -678,6 +703,10 @@ function runAudit() {
     audit_date: new Date().toISOString(),
     // 어느 스냅샷을 감사했는지. check-phase 가 현재 스냅샷과 일치하는지로 신선도를 판정한다.
     snapshot_date: snapshot.snapshot_date ?? null,
+    input_hashes: {
+      snapshot: fileHash(snapshotPath), rules: fileHash(rulesPath),
+      contract: contractPath && existsSync(contractPath) ? fileHash(contractPath) : null,
+    },
     file_key: snapshot.file_key,
     passed: overallPassed,
     results,
@@ -709,7 +738,7 @@ function printReport(audit) {
     spacing_grid: "spacing 그리드",
     tap_targets: "탭 영역",
     safe_area: "세이프 에어리어",
-    primary_count: "primary 개수",
+    primary_count: "주 행동 계약 (구형 입력: primary 개수)",
     component_reuse: "컴포넌트 재사용률",
     token_layering: "토큰 계층 (semantic 전용)",
     layout_hug: "레이아웃 거동 (컨테이너 HUG · 넘침)",

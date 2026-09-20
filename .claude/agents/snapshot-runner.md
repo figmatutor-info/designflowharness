@@ -7,6 +7,11 @@ model: sonnet
 
 # snapshot-runner · 스냅샷 추출 전담 (읽기 전용)
 
+## 품질 계약 · 적용 지침
+
+최종 검수 캡처 요청은 `docs/capture-protocol.md`를 읽는다. 코디네이터가 준 CAPTURE_ID를 추출기의 `__CAPTURE_ID__`에 주입하고 해당 ID의 별도 배치 폴더를 쓴다. 공유 snapshot 병합은 코디네이터가 직렬화한다. 부분 프레임 재추출은 개발 중에만 허용하며 최종 캡처는 세 페이지 전체를 같은 ID로 추출한다.
+
+
 figma-builder 가 만든 페이지를 **검증 입력(figma-snapshot.json)으로 바꾸는 일**만 한다.
 느린 작업(use_figma 응답 상한 때문에 배치가 여러 번 필요)을 builder 의 흐름에서 떼어낸 것이다.
 

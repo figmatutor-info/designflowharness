@@ -93,6 +93,9 @@
 
 const FILE_KEY = "__FILE_KEY__";
 const PAGE_NAME = "__PAGE_NAME__";
+// 최종 동결 캡처만 주입. 개발 중 추출은 미치환 허용.
+const CAPTURE_RAW = "__CAPTURE_ID__";
+const CAPTURE_ID = /^[a-f0-9-]{36}$/.test(CAPTURE_RAW) ? CAPTURE_RAW : null;
 
 // 배치 추출 범위 (0-based, from 포함 / to 미포함).
 // use_figma 응답에는 크기 상한이 있어서 프레임이 많은 페이지는 한 번에 못 뽑는다.
@@ -395,6 +398,8 @@ async function extractNode(node, frameOrigin, parentId) {
     size,
     position,
     layout: layoutInfo(node),
+    ...(node.clipsContent === true ? { clipsContent: true } : {}),
+    ...(node.overflowDirection && node.overflowDirection !== "NONE" ? { overflowDirection: node.overflowDirection } : {}),
   };
 
   // 비어 있으면 키를 생략한다 (v4). 읽는 쪽은 `|| []` / truthy 로 기본값 처리한다.
@@ -418,7 +423,10 @@ async function extractNode(node, frameOrigin, parentId) {
     out.textAutoResize = node.textAutoResize ?? null;
   }
 
-  if (isTapTarget(node, mainName)) out.isTapTarget = true;
+  // 주 행동은 색/이름이 아니라 실제 탭 대상에 명시한 의미다.
+  const actionId = node.getPluginData("harnessAction");
+  if (actionId) out.actionId = actionId;
+  if (actionId || isTapTarget(node, mainName)) out.isTapTarget = true;
   if (isPrimary(node, mainName)) out.isPrimary = true;
   if (node.type === "INSTANCE") out.isInstance = true;
   if (mainName) out.mainComponent = mainName;
@@ -473,6 +481,7 @@ async function extractFrame(frame, nodeFrom, nodeTo) {
   }
 
   const out = {
+    id: frame.id,
     name: frame.name,
     width: Math.round(frame.width ?? 0),
     height: Math.round(frame.height ?? 0),
@@ -570,6 +579,7 @@ const result = {
   page: {
     name: page.name,
     profile: PROFILE,
+    ...(CAPTURE_ID ? { capture_id: CAPTURE_ID } : {}),
     frames,
   },
 };
