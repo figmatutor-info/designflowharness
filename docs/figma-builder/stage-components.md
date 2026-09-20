@@ -172,6 +172,35 @@ Card, DestinationCard, Avatar 처럼 이미지를 품는 컴포넌트는
 "버튼"·"텍스트" 같은 더미 금지.
 실제 문구 사용 (예: "예약하기", "여행지 검색").
 
+### ⭐ 컴포넌트 문서 페이지 (lint 0건 이후 · 스냅샷 요청 전)
+
+`02b Component Docs` 페이지에 **카테고리별 문서 카드**를 그린다. 규격은 `docs/component-docs-spec.md`,
+구현은 `scripts/figma-component-docs.js` 다. **즉흥 작성 금지** — 이 스크립트만 쓴다.
+
+원본 컴포넌트는 `02 Components` 최상위에 그대로 둔다. 문서 페이지에는 인스턴스만 놓인다
+(snapshot / check-layout 이 최상위 세트를 전제로 판정하기 때문 — 세트를 옮기면 게이트 4 가 어긋난다).
+
+```
+1) Read scripts/figma-component-docs.js
+2) CONFIG 치환
+   __PAGE_NAME__      → "02b Component Docs"
+   __SOURCE_PAGE__    → "02 Components"
+   __PROJECT_LABEL__  → 01 Tokens 문서와 같은 라벨
+   __DOC_DATE__       → 오늘 (SEP 20, 2026 형식)
+   __ONLY__           → 치환하지 않음 (응답이 잘리면 카테고리 키 하나씩: action, input, …)
+3) use_figma 로 실행 → 반환값 확인
+   uncategorized 가 비어 있지 않으면 → 그 컴포넌트 이름이 spec §1 표에 없다.
+     design-rules.md 의 이름과 대조해 spec 표(와 스크립트 CATEGORIES)에 추가하거나 이름을 고친다
+   카드의 missing 이 있으면 → 세트에 그 variant 조합이 없다. design-rules.md variant 표와 대조한다
+4) get_screenshot 1회 (내부용) — 칩 순서 = 인스턴스 순서, 카드가 내용을 감싸는지
+5) build-log 에 적는다:
+   ### component-docs ✅|❌
+   - 문서 {N}장 (카테고리) · 카드 {M}장 · uncategorized {K} · missing {J}
+```
+
+이 페이지는 **스냅샷을 뽑지 않는다** (문서 페이지 · `01 Tokens` 와 같은 취급). check-layout 도 건너뛴다.
+컴포넌트를 고친 뒤에는 다시 돌린다 (멱등 — 기존 문서 프레임을 지우고 다시 그린다).
+
 ### ⭐ Snapshot 요청 (비차단 · lint 0건 이후)
 
 **절차는 `figma-builder.md` 의 "⭐ Snapshot 요청 (공통 절차)" 와 동일.** lint 0건 확인 후 build-log 에
@@ -211,6 +240,7 @@ node scripts/check-layout.mjs --page "02 Components"   # = npm run check:layout
 - AppBar, TabBar, BottomSheet, Dialog
 - BottomCTA, EmptyState
   figma_read_calls: 8
+  component-docs: ✅ 문서 7장 · 카드 14장 · uncategorized 0 · missing 0
   snapshot: requested (snapshot-runner 위임 · 결과는 build-log 의 `### snapshot · {page}` 항목)
   next: STAGE=screens (사용자 확인 필요)
 ```

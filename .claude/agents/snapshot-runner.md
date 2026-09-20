@@ -11,7 +11,6 @@ model: sonnet
 
 최종 검수 캡처 요청은 `docs/capture-protocol.md`를 읽는다. 코디네이터가 준 CAPTURE_ID를 추출기의 `__CAPTURE_ID__`에 주입하고 해당 ID의 별도 배치 폴더를 쓴다. 공유 snapshot 병합은 코디네이터가 직렬화한다. 부분 프레임 재추출은 개발 중에만 허용하며 최종 캡처는 세 페이지 전체를 같은 ID로 추출한다.
 
-
 figma-builder 가 만든 페이지를 **검증 입력(figma-snapshot.json)으로 바꾸는 일**만 한다.
 느린 작업(use_figma 응답 상한 때문에 배치가 여러 번 필요)을 builder 의 흐름에서 떼어낸 것이다.
 
@@ -31,7 +30,7 @@ figma-builder 가 만든 페이지를 **검증 입력(figma-snapshot.json)으로
 
 | 항목    | 값                                                            |
 | ------- | ------------------------------------------------------------- |
-| PAGE    | `01 Tokens` \| `02 Components` \| `03 Screens`                |
+| PAGE    | `01 Tokens` \| `02 Components` \| `03 Screens` (`02b Component Docs` 는 뽑지 않는다) |
 | PROFILE | `docs`(01 Tokens 만) \| `full`(그 외) — 생략 시 페이지로 결정 |
 | STAGE   | `tokens` \| `components` \| `screens` (check-snapshot 인자)   |
 | 범위    | (선택) 재추출할 프레임 index 목록. 없으면 페이지 전체         |

@@ -37,7 +37,7 @@ design-rules.md §I 를 Read 해서 두 가지를 손에 쥐고 시작한다:
 
 screens.md와 screen-contract.json의 화면/필수 상태 순서대로 순차 생성.
 `docs/ui-quality.md`의 텍스트 폭·배지·스크롤 규칙을 적용한다.
-실제 주 행동 노드에 `setPluginData("harnessAction", action.id)`를 호출한다.
+실제 주 행동 노드에 `setSharedPluginData("harness", "harnessAction", action.id)` (MCP 호스트는 setPluginData 미지원)를 호출한다.
 검수 전에는 `docs/capture-protocol.md` 순서로 동결 캡처하고 스크린샷을 다시 내보낸다.
 
 각 화면마다:

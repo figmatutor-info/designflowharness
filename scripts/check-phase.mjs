@@ -32,7 +32,12 @@ import { readFileSync, existsSync, readdirSync } from "node:fs";
 import { getArg, hasFlag, createLog } from "./lib/cli.mjs";
 import { parseImageSlots } from "./lib/layout-rules.mjs";
 import { join } from "node:path";
-import { CONTRACT_PATH, loadContract, requiredViews, previewErrors } from "./lib/screen-contract.mjs";
+import {
+  CONTRACT_PATH,
+  loadContract,
+  requiredViews,
+  previewErrors,
+} from "./lib/screen-contract.mjs";
 import { fileHash, AUDIT_KEYS } from "./lib/design-evidence.mjs";
 import { execFileSync } from "node:child_process";
 
@@ -252,11 +257,25 @@ function checkStructure() {
     // 문서 전체의 단어 개수가 아니라 각 화면의 실제 필드를 검사한다.
     const sections = content.split(/^## 화면 \d+[^\n]*$/m).slice(1);
     const missingActions = sections.flatMap((section, i) =>
-      /\*\*primary 액션:\*\*\s*\S+/i.test(section) ? [] : [i + 1]);
-    results.push({ name: "화면별 주 행동 정의", pass: sections.length > 0 && !missingActions.length, detail: missingActions.length ? `누락 화면: ${missingActions.join(", ")}` : "각 화면에 정의됨" });
+      /\*\*primary 액션:\*\*\s*\S+/i.test(section) ? [] : [i + 1],
+    );
+    results.push({
+      name: "화면별 주 행동 정의",
+      pass: sections.length > 0 && !missingActions.length,
+      detail: missingActions.length
+        ? `누락 화면: ${missingActions.join(", ")}`
+        : "각 화면에 정의됨",
+    });
     const missingReferences = sections.flatMap((section, i) =>
-      /analysis\.md/.test(section) && /패턴/.test(section) ? [] : [i + 1]);
-    results.push({ name: "화면별 레퍼런스 매칭", pass: sections.length > 0 && !missingReferences.length, detail: missingReferences.length ? `누락 화면: ${missingReferences.join(", ")}` : "각 화면에 참조됨" });
+      /analysis\.md/.test(section) && /패턴/.test(section) ? [] : [i + 1],
+    );
+    results.push({
+      name: "화면별 레퍼런스 매칭",
+      pass: sections.length > 0 && !missingReferences.length,
+      detail: missingReferences.length
+        ? `누락 화면: ${missingReferences.join(", ")}`
+        : "각 화면에 참조됨",
+    });
   }
 
   if (fileExists(flowsPath)) {
@@ -271,12 +290,24 @@ function checkStructure() {
     });
   }
 
-  results.push(subCheck({ label: "화면·상태·행동 계약", file: "check-design-contract.mjs", command: "npm run check:contract" }));
+  results.push(
+    subCheck({
+      label: "화면·상태·행동 계약",
+      file: "check-design-contract.mjs",
+      command: "npm run check:contract",
+    }),
+  );
   try {
     const contract = loadContract(CONTRACT_PATH, true);
     const count = (readFile(screensPath)?.match(/^## 화면 \d+/gm) || []).length;
-    results.push({ name: "문서·계약 화면 수 일치", pass: contract.screens.length === count, detail: `screens.md ${count}개 / 계약 ${contract.screens.length}개` });
-  } catch { /* 위 계약 검사에서 파일/형식 오류 보고 */ }
+    results.push({
+      name: "문서·계약 화면 수 일치",
+      pass: contract.screens.length === count,
+      detail: `screens.md ${count}개 / 계약 ${contract.screens.length}개`,
+    });
+  } catch {
+    /* 위 계약 검사에서 파일/형식 오류 보고 */
+  }
   return {
     phase: "structure",
     gate: 2,
@@ -364,7 +395,14 @@ function checkRules() {
     // 발견하면 되돌리는 비용이 크다. 레이아웃은 HTML 에서 먼저 확정하고,
     // Phase 4 는 확정된 시안을 옮기기만 하게 한다.
     results.push(checkPreviewScreens());
-    results.push({ name: "디자인 방향 비교 기록", pass: Boolean(readFile("design/03-design-rules/design-direction.md")?.trim()), detail: "design-direction.md: 대표 화면 2안 비교·선택 근거 (실제 품질은 시각 검수)" });
+    results.push({
+      name: "디자인 방향 비교 기록",
+      pass: Boolean(
+        readFile("design/03-design-rules/design-direction.md")?.trim(),
+      ),
+      detail:
+        "design-direction.md: 대표 화면 2안 비교·선택 근거 (실제 품질은 시각 검수)",
+    });
 
     // 8. 컴포넌트 카탈로그 완결성
     //
@@ -418,9 +456,19 @@ function checkPreviewScreens() {
   try {
     const contract = loadContract(CONTRACT_PATH, true);
     const errors = previewErrors(readFile(previewPath), contract);
-    return { name: "preview.html 필수 화면·상태 시안", pass: errors.length === 0, detail: errors.join("; ") || `${requiredViews(contract).length}개 화면·상태 마커 일치 (시각 검수 별도)` };
+    return {
+      name: "preview.html 필수 화면·상태 시안",
+      pass: errors.length === 0,
+      detail:
+        errors.join("; ") ||
+        `${requiredViews(contract).length}개 화면·상태 마커 일치 (시각 검수 별도)`,
+    };
   } catch (error) {
-    return { name: "preview.html 필수 화면·상태 시안", pass: false, detail: error.message };
+    return {
+      name: "preview.html 필수 화면·상태 시안",
+      pass: false,
+      detail: error.message,
+    };
   }
 }
 
@@ -566,12 +614,25 @@ function checkScreens() {
     try {
       const contract = loadContract(CONTRACT_PATH, true);
       const snapshot = JSON.parse(readFile(snapshotPath));
-      const frames = snapshot.pages?.find((p) => p.name === "03 Screens")?.frames || [];
+      const frames =
+        snapshot.pages?.find((p) => p.name === "03 Screens")?.frames || [];
       const views = requiredViews(contract);
-      const missing = views.filter((v) => frames.filter((f) => f.name === v.frame).length !== 1 || !fileExists(v.screenshot));
-      results.push({ name: "필수 화면·상태 산출물", pass: contract.screens.length >= 5 && !missing.length, detail: `${views.length - missing.length}/${views.length}개 상태 존재 · 기본 화면 ${contract.screens.length}개` });
+      const missing = views.filter(
+        (v) =>
+          frames.filter((f) => f.name === v.frame).length !== 1 ||
+          !fileExists(v.screenshot),
+      );
+      results.push({
+        name: "필수 화면·상태 산출물",
+        pass: contract.screens.length >= 5 && !missing.length,
+        detail: `${views.length - missing.length}/${views.length}개 상태 존재 · 기본 화면 ${contract.screens.length}개`,
+      });
     } catch (error) {
-      results.push({ name: "필수 화면·상태 산출물", pass: false, detail: `계약/스냅샷 확인 필요: ${error.message}` });
+      results.push({
+        name: "필수 화면·상태 산출물",
+        pass: false,
+        detail: `계약/스냅샷 확인 필요: ${error.message}`,
+      });
     }
   }
 
@@ -743,11 +804,25 @@ function checkScreens() {
         detail = `FAIL — ${passedChecks ?? "?"}/${totalChecks ?? "?"} 항목 통과, 위반 ${violations}건`;
       } else {
         // 날짜가 같아도 파일 내용이 바뀌면 결과는 무효다.
-        const expected = { snapshot: fileHash(snapshotPath), rules: fileHash("design/03-design-rules/design-rules.md"), contract: fileHash(CONTRACT_PATH) };
-        const fresh = Object.entries(expected).every(([key, value]) => audit.input_hashes?.[key] === value);
-        const complete = AUDIT_KEYS.every((key) => audit.results?.[key]?.status === "PASS") && totalChecks === AUDIT_KEYS.length && passedChecks === AUDIT_KEYS.length && violations === 0;
+        const expected = {
+          snapshot: fileHash(snapshotPath),
+          rules: fileHash("design/03-design-rules/design-rules.md"),
+          contract: fileHash(CONTRACT_PATH),
+        };
+        const fresh = Object.entries(expected).every(
+          ([key, value]) => audit.input_hashes?.[key] === value,
+        );
+        const complete =
+          AUDIT_KEYS.every((key) => audit.results?.[key]?.status === "PASS") &&
+          totalChecks === AUDIT_KEYS.length &&
+          passedChecks === AUDIT_KEYS.length &&
+          violations === 0;
         pass = fresh && complete;
-        detail = !fresh ? "검증 입력 해시 불일치/누락 — npm run audit 재실행 필요" : !complete ? "audit PASS 항목 누락/모순" : "PASS (현재 입력 해시 일치)";
+        detail = !fresh
+          ? "검증 입력 해시 불일치/누락 — npm run audit 재실행 필요"
+          : !complete
+            ? "audit PASS 항목 누락/모순"
+            : "PASS (현재 입력 해시 일치)";
       }
     } catch (err) {
       detail = `JSON 파싱 실패: ${err.message}`;
@@ -755,7 +830,13 @@ function checkScreens() {
     results.push({ name: "audit 통과 (구조 검증 결과)", pass, detail });
   }
 
-  results.push(subCheck({ label: "캡처 신선도·시각 품질·상태 검수", file: "design-evidence.mjs", command: "npm run check:evidence" }));
+  results.push(
+    subCheck({
+      label: "캡처 신선도·시각 품질·상태 검수",
+      file: "design-evidence.mjs",
+      command: "npm run check:evidence",
+    }),
+  );
 
   // 12. audit-report.md 존재 — 사람이 읽는 요약. 판정 근거가 아니라 산출물 확인이다.
   results.push({
@@ -778,7 +859,11 @@ function checkScreens() {
 
 function enforceDiagnosticMode(result) {
   if (isShallow) {
-    result.checks.push({ name: "정식 게이트 검사 필요", pass: false, detail: "--shallow는 진단 전용. 검사 생략으로 완료 판정 불가" });
+    result.checks.push({
+      name: "정식 게이트 검사 필요",
+      pass: false,
+      detail: "--shallow는 진단 전용. 검사 생략으로 완료 판정 불가",
+    });
     result.passed = false;
   }
   return result;

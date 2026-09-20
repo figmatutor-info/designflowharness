@@ -63,7 +63,11 @@
 
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
 import { getArg, hasFlag, createLog } from "./lib/cli.mjs";
-import { CONTRACT_PATH, loadContract, checkActions } from "./lib/screen-contract.mjs";
+import {
+  CONTRACT_PATH,
+  loadContract,
+  checkActions,
+} from "./lib/screen-contract.mjs";
 import { fileHash } from "./lib/design-evidence.mjs";
 import {
   BUILTIN_EXEMPT,
@@ -91,7 +95,10 @@ const outputPath = getArg(
 );
 
 const log = createLog(isJson);
-const contractPath = getArg("--contract", hasFlag("--snapshot") ? null : CONTRACT_PATH);
+const contractPath = getArg(
+  "--contract",
+  hasFlag("--snapshot") ? null : CONTRACT_PATH,
+);
 
 // 감사 대상 페이지. 다른 페이지로 대체하지 않는다 (01 Tokens 는 docs 프로필이라 fills/textStyle 이 없어
 // 팔레트는 허위 PASS, 나머지는 전부 FAIL 로 나온다 — 그런 결과는 감사가 아니다).
@@ -362,7 +369,9 @@ function checkTapTargets(snapshot, rules) {
 // 모든 노드를 검사하면 화면마다 배경·앱바·탭바가 전부 위반으로 잡혀 게이트가
 // 구조적으로 통과 불가능해진다.
 function isContentNode(node) {
-  return Boolean(node.isTapTarget) || node.type === "TEXT" || isScrollViewport(node);
+  return (
+    Boolean(node.isTapTarget) || node.type === "TEXT" || isScrollViewport(node)
+  );
 }
 
 function checkSafeArea(snapshot, rules) {
@@ -390,7 +399,10 @@ function checkSafeArea(snapshot, rules) {
           seen.add(parent.id);
           if (isScrollViewport(parent)) {
             y = Math.max(y, parent.position?.y ?? 0);
-            bottom = Math.min(bottom, (parent.position?.y ?? 0) + (parent.size?.height ?? 0));
+            bottom = Math.min(
+              bottom,
+              (parent.position?.y ?? 0) + (parent.size?.height ?? 0),
+            );
           }
           parent = byId.get(parent.parentId);
         }
@@ -704,8 +716,12 @@ function runAudit() {
     // 어느 스냅샷을 감사했는지. check-phase 가 현재 스냅샷과 일치하는지로 신선도를 판정한다.
     snapshot_date: snapshot.snapshot_date ?? null,
     input_hashes: {
-      snapshot: fileHash(snapshotPath), rules: fileHash(rulesPath),
-      contract: contractPath && existsSync(contractPath) ? fileHash(contractPath) : null,
+      snapshot: fileHash(snapshotPath),
+      rules: fileHash(rulesPath),
+      contract:
+        contractPath && existsSync(contractPath)
+          ? fileHash(contractPath)
+          : null,
     },
     file_key: snapshot.file_key,
     passed: overallPassed,

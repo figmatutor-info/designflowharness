@@ -62,8 +62,9 @@ const snapshotPath = getArg(
 const rulesPath = getArg("--rules", "design/03-design-rules/design-rules.md");
 const onlyPage = getArg("--page", null);
 
-// 토큰 문서 페이지는 제품 UI 가 아니다 (문서 카드는 고정 크기가 규격이다)
-const SKIP_PAGES = new Set(["01 Tokens"]);
+// 문서 페이지는 제품 UI 가 아니다 (토큰 문서 카드는 고정 크기가 규격이고,
+// 컴포넌트 문서는 인스턴스만 놓은 참고 페이지다 — 원본은 02 Components 에서 검사한다)
+const SKIP_PAGES = new Set(["01 Tokens", "02b Component Docs"]);
 
 // 컴포넌트 세트 직속 variant 면제를 적용하는 페이지. 스냅샷 프레임에는 type 이 없어서
 // "프레임 직속(parentId 없음)" 만으로는 세트인지 화면인지 구분할 수 없다 — 화면 페이지에서

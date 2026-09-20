@@ -112,7 +112,9 @@ for (const { path, data } of batches) {
       `page.profile 불일치: ${path} (${data.page?.profile ?? "없음"} ≠ ${first.page?.profile ?? "없음"}) — 같은 __PROFILE__ 로 다시 뽑을 것`,
     );
   if ((data.page?.capture_id ?? null) !== (first.page?.capture_id ?? null))
-    problems.push(`capture_id 불일치: ${path} — 다른 수정 라운드 배치를 섞을 수 없다`);
+    problems.push(
+      `capture_id 불일치: ${path} — 다른 수정 라운드 배치를 섞을 수 없다`,
+    );
   if (!data.frame_range)
     problems.push(
       `frame_range 없음: ${path} — 구버전 figma-snapshot.js 로 뽑았다. 다시 추출할 것`,

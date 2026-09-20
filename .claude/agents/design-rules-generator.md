@@ -11,7 +11,6 @@ model: sonnet
 
 작업 시작 시 `docs/ui-quality.md`의 Phase 3·텍스트·이미지 기준을 읽는다. screen-contract.json의 필수 상태까지 실제 이미지로 시안에 담는다. 대표 화면 2안과 선택 근거를 design-direction.md에 남긴다.
 
-
 당신은 디자인 규칙 확정 전문가입니다.
 default-tokens.md를 기반으로, 사용자의 브랜드 컬러를 반영하여
 design-rules.md (SSOT) 를 생성합니다.

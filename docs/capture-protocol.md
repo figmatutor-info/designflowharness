@@ -19,7 +19,7 @@
 
 1. structure-builder가 `npm run check:contract`, 규칙 담당이 `npm run check:rules`를 통과한다.
 2. builder가 계약의 모든 required 상태를 만들고 lint를 실행한다.
-   주 행동의 실제 탭 대상에 `node.setPluginData("harnessAction", "open-skill")`처럼 의미를 기록한다.
+   주 행동의 실제 탭 대상에 `node.setSharedPluginData("harness", "harnessAction", "open-skill")`처럼 의미를 기록한다.
    single은 한 대상, collection은 동등한 각 카드에 같은 ID. 보조 행동에는 이 값을 붙이지 않는다.
    `none` 상태에서는 기본 상태에서 상속된 메타데이터를 빈 문자열로 지운다.
    이름/버튼 색 변경으로 주 행동 검사를 맞추지 않는다.

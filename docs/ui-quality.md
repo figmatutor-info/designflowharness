@@ -18,30 +18,39 @@ structure-builder는 screens.md·flows.md와 함께 screen-contract.json을 작�
 ```json
 {
   "schema_version": 1,
-  "screens": [{
-    "id": "02-skill-library",
-    "purpose": "목적에 맞는 실무 스킬을 찾아 상세를 연다",
-    "references": ["analysis.md · 필터 칩 패턴"],
-    "states": [{
-      "id": "default",
-      "required": true,
-      "frame": "DeviceFrame · 02 Skill Library",
-      "screenshot": "design/04-screens/screenshots/02-skill-library.png",
-      "action": {"mode": "collection", "id": "open-skill"},
-      "checks": ["동등한 카드가 같은 가중치로 보임", "필터 선택 상태가 구분됨"]
-    }, {
-      "id": "empty",
-      "required": true,
-      "frame": "DeviceFrame · 02 Skill Library · empty",
-      "screenshot": "design/04-screens/screenshots/02-skill-library-empty.png",
-      "action": {"mode": "single", "id": "clear-filters"},
-      "checks": ["결과 없음의 이유와 필터 초기화가 보임"]
-    }, {
-      "id": "loading",
-      "required": false,
-      "reason": "이번 시연은 탐색과 결과 없음 복구만 검증하며 로딩은 후속 범위"
-    }]
-  }]
+  "screens": [
+    {
+      "id": "02-skill-library",
+      "purpose": "목적에 맞는 실무 스킬을 찾아 상세를 연다",
+      "references": ["analysis.md · 필터 칩 패턴"],
+      "states": [
+        {
+          "id": "default",
+          "required": true,
+          "frame": "DeviceFrame · 02 Skill Library",
+          "screenshot": "design/04-screens/screenshots/02-skill-library.png",
+          "action": { "mode": "collection", "id": "open-skill" },
+          "checks": [
+            "동등한 카드가 같은 가중치로 보임",
+            "필터 선택 상태가 구분됨"
+          ]
+        },
+        {
+          "id": "empty",
+          "required": true,
+          "frame": "DeviceFrame · 02 Skill Library · empty",
+          "screenshot": "design/04-screens/screenshots/02-skill-library-empty.png",
+          "action": { "mode": "single", "id": "clear-filters" },
+          "checks": ["결과 없음의 이유와 필터 초기화가 보임"]
+        },
+        {
+          "id": "loading",
+          "required": false,
+          "reason": "이번 시연은 탐색과 결과 없음 복구만 검증하며 로딩은 후속 범위"
+        }
+      ]
+    }
+  ]
 }
 ```
 
@@ -115,13 +124,13 @@ API 의미: [Figma overflowDirection](https://developers.figma.com/docs/plugins/
 
 각 차원에 1~5점과 화면 위치·구체적인 관찰 근거를 적는다.
 
-| 키 | 판단 기준 |
-| --- | --- |
-| hierarchy | 핵심 과업/정보가 먼저 보이고 부가 정보가 경쟁하지 않음 |
-| readability | 제목·본문·배지가 자연스럽게 읽히며 잘림/부자연스러운 줄바꿈 없음 |
-| density | 화면 목적에 맞는 밀도, 섹션별 여백과 폭 배분 |
-| image_relevance | 내용 식별에 기여하는 이미지; 이미지가 없으면 그 적합성 근거 |
-| consistency | 컴포넌트·탭·상태 표현과 정보 위계가 화면 사이에서 일관됨 |
+| 키              | 판단 기준                                                        |
+| --------------- | ---------------------------------------------------------------- |
+| hierarchy       | 핵심 과업/정보가 먼저 보이고 부가 정보가 경쟁하지 않음           |
+| readability     | 제목·본문·배지가 자연스럽게 읽히며 잘림/부자연스러운 줄바꿈 없음 |
+| density         | 화면 목적에 맞는 밀도, 섹션별 여백과 폭 배분                     |
+| image_relevance | 내용 식별에 기여하는 이미지; 이미지가 없으면 그 적합성 근거      |
+| consistency     | 컴포넌트·탭·상태 표현과 정보 위계가 화면 사이에서 일관됨         |
 
 공통 기준: 1=핵심 과업 방해, 2=여러 큰 문제, 3=사용 가능하나 중요한 개선 필요,
 4=출시 검토 가능하며 작은 보완만 있음, 5=레퍼런스 비교에서도 명확하고 정돈됨.

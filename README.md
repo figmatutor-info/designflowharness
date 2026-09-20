@@ -200,7 +200,6 @@ design-flow-harness/
 - 동일 capture_id의 세 페이지·필수 상태 PNG·최신 visual-review.json PASS
 - 사용자 완료 승인
 
-
 ## UI 품질 보완 워크플로
 
 기존 Claude Code 에이전트 7개와 슬래시 명령 6개를 그대로 사용합니다.
