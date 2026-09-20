@@ -28,7 +28,11 @@
 
 import { readFileSync, existsSync } from "node:fs";
 import { getArg, hasFlag, createLog } from "./lib/cli.mjs";
-import { CONTRACT_PATH, loadContract, checkActions } from "./lib/screen-contract.mjs";
+import {
+  CONTRACT_PATH,
+  loadContract,
+  checkActions,
+} from "./lib/screen-contract.mjs";
 
 // ==================== 설정 ====================
 
@@ -317,23 +321,37 @@ function checkAuditSignals(frames) {
   );
 
   let contract;
-  try { contract = loadContract(getArg("--contract", hasFlag("--snapshot") ? null : CONTRACT_PATH), hasFlag("--contract")); }
-  catch (error) { add("화면 행동 계약", false, error.message); return; }
+  try {
+    contract = loadContract(
+      getArg("--contract", hasFlag("--snapshot") ? null : CONTRACT_PATH),
+      hasFlag("--contract"),
+    );
+  } catch (error) {
+    add("화면 행동 계약", false, error.message);
+    return;
+  }
   if (contract) {
-    const result = checkActions({ pages: [{ name: "03 Screens", frames }] }, contract);
-    add("화면 행동 계약", result.status === "PASS", result.violations.map((v) => `${v.screen}: ${v.issue}`).join("; ") || "필수 상태·행동 일치");
+    const result = checkActions(
+      { pages: [{ name: "03 Screens", frames }] },
+      contract,
+    );
+    add(
+      "화면 행동 계약",
+      result.status === "PASS",
+      result.violations.map((v) => `${v.screen}: ${v.issue}`).join("; ") ||
+        "필수 상태·행동 일치",
+    );
   } else {
-  const framesWithoutPrimary = frames.filter(
-    (f) => (f?.nodes || []).filter((n) => n.isPrimary).length !== 1,
-  );
-  add(
-    "화면당 isPrimary 1개",
-    framesWithoutPrimary.length === 0,
-    framesWithoutPrimary.length === 0
-      ? "모든 화면 1개"
-      : `${framesWithoutPrimary.map((f) => `${f.name}(${(f.nodes || []).filter((n) => n.isPrimary).length}개)`).join(", ")}`,
-  );
-
+    const framesWithoutPrimary = frames.filter(
+      (f) => (f?.nodes || []).filter((n) => n.isPrimary).length !== 1,
+    );
+    add(
+      "화면당 isPrimary 1개",
+      framesWithoutPrimary.length === 0,
+      framesWithoutPrimary.length === 0
+        ? "모든 화면 1개"
+        : `${framesWithoutPrimary.map((f) => `${f.name}(${(f.nodes || []).filter((n) => n.isPrimary).length}개)`).join(", ")}`,
+    );
   }
 
   const instanceCount = frames.reduce(

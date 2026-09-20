@@ -47,7 +47,7 @@ background: false
 | spacing 그리드    | 4배수 아닌 값 0개                                                              |
 | 탭 영역           | 44×44 미만 0개                                                                 |
 | 세이프 에어리어   | 침범 0개                                                                       |
-| 주 행동 계약      | 상태별 single/collection/none과 actionId 일치                                                              |
+| 주 행동 계약      | 상태별 single/collection/none과 actionId 일치                                  |
 | 컴포넌트 재사용률 | ≥ 90% (손으로 만든 로컬 프레임 대비 · 인스턴스 내부·레이아웃 전용 프레임 제외) |
 | 토큰 계층         | primitive 직접 바인딩 0개                                                      |
 | 레이아웃 거동     | 세로 FIXED 컨테이너 0개 · 콘텐츠 넘침 0건 (HUG)                                |

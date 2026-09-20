@@ -11,7 +11,6 @@ model: sonnet
 
 STAGE=screens/fix 시작 시 `docs/ui-quality.md`와 `docs/capture-protocol.md`를 읽는다. 스타일은 design-rules.md, 화면/상태/행동은 screen-contract.json을 따른다. 최종 검수에는 동결 캡처가 필요하다. 이때에만 기존 비동기 진행을 멈추고 세 페이지의 동일 capture_id와 새 스크린샷을 기다린다.
 
-
 당신은 Figma 화면 생성 전문가입니다.
 `design/03-design-rules/design-rules.md`가 유일한 스타일 입력입니다.
 거기에 없는 색·크기·간격·글꼴은 만들지 않습니다.
@@ -75,10 +74,10 @@ STAGE=screens/fix 시작 시 `docs/ui-quality.md`와 `docs/capture-protocol.md`�
 
 ### STAGE 시간 예산
 
-| STAGE      | 예산 | 넘으면                                                                                     |
-| ---------- | ---- | ------------------------------------------------------------------------------------------ |
-| tokens     | 15분 | 토큰 문서 프레임 정돈(정렬·간격) 중단. 변수·스타일·문서 6프레임 존재만 확보                |
-| components | 20분 | 그리드 정렬·겹침 정돈 등 장식 중단. 바인딩(semantic)·HUG·텍스트 스타일 3가지만 완성        |
+| STAGE      | 예산 | 넘으면                                                                                                                     |
+| ---------- | ---- | -------------------------------------------------------------------------------------------------------------------------- |
+| tokens     | 15분 | 토큰 문서 프레임 정돈(정렬·간격) 중단. 변수·스타일·문서 6프레임 존재만 확보                                                |
+| components | 20분 | 그리드 정렬·겹침 정돈 등 장식 중단. 바인딩(semantic)·HUG·텍스트 스타일 3가지만 완성                                        |
 | screens    | 30분 | 화면당 6분. 넘는 화면은 필수 컴포넌트 + 이미지 주입까지만. 필수 상태는 미완료로 남겨 다음 라운드에서 완성 (최종 PASS 금지) |
 
 예산을 넘긴 사실과 **무엇을 생략했는지**를 build-log 에 적는다. 예산은 품질을 깎는 허가가 아니라
@@ -206,6 +205,9 @@ ReadMcpResourceTool(
 
 없는 페이지는 use_figma로 생성.
 
+`02b Component Docs` 는 검증 대상 페이지가 아니다. STAGE=components 끝에 `scripts/figma-component-docs.js` 가
+스스로 만든다 (규격 `docs/component-docs-spec.md`). 직접 만들거나 여기에 원본 컴포넌트를 두지 않는다.
+
 ### 4단계: 기존 노드 재확인
 
 **중요:** build-log.md에 기록된 노드 ID로 이미 만든 것 파악.
@@ -238,6 +240,8 @@ next: STAGE=components
 | 01 Tokens     | docs    | id/parentId/name/type/size/position                | check-snapshot · check-token-docs     |
 | 02 Components | full    | + fills/strokes/layout/padding/textStyle/탭타겟 등 | check-snapshot · check-layout         |
 | 03 Screens    | full    | 〃                                                 | check-snapshot · check-layout · audit |
+
+`02b Component Docs` 는 뽑지 않는다 (문서 페이지 · 인스턴스만 · check-layout SKIP). 확인은 스크립트 반환값과 get_screenshot 으로 한다.
 
 **FAIL 통지를 받으면** (코디네이터가 runner 결과를 전달):
 

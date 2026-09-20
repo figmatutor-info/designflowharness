@@ -309,20 +309,30 @@ function isPrimary(node, mainName) {
 // 세로 스택(VERTICAL)에서 높이를 지배하는 건 primaryAxisSizingMode,
 // 가로 스택(HORIZONTAL)에서 높이를 지배하는 건 counterAxisSizingMode 다.
 // 판정기가 헷갈리지 않게 vSizing 으로 정규화해서 같이 내보낸다.
+// 이 호스트 런타임은 노드 타입에 없는 속성(예: VECTOR 의 overflowDirection)을 읽으면
+// undefined 가 아니라 throw 한다. 타입별로 있을 수도 없을 수도 있는 속성은 전부 이걸로 읽는다.
+function prop(node, key) {
+  try {
+    return node[key];
+  } catch (_) {
+    return undefined;
+  }
+}
+
 function layoutInfo(node) {
-  const mode = node.layoutMode || "NONE";
+  const mode = prop(node, "layoutMode") || "NONE";
   const info = {
     layoutMode: mode,
-    layoutSizingHorizontal: node.layoutSizingHorizontal ?? null,
-    layoutSizingVertical: node.layoutSizingVertical ?? null,
+    layoutSizingHorizontal: prop(node, "layoutSizingHorizontal") ?? null,
+    layoutSizingVertical: prop(node, "layoutSizingVertical") ?? null,
     primaryAxisSizingMode: null,
     counterAxisSizingMode: null,
     vSizing: null, // "HUG" | "FIXED" | "FILL" | null(오토레이아웃 아님)
   };
 
   if (mode !== "NONE") {
-    info.primaryAxisSizingMode = node.primaryAxisSizingMode ?? null;
-    info.counterAxisSizingMode = node.counterAxisSizingMode ?? null;
+    info.primaryAxisSizingMode = prop(node, "primaryAxisSizingMode") ?? null;
+    info.counterAxisSizingMode = prop(node, "counterAxisSizingMode") ?? null;
     const own =
       mode === "VERTICAL"
         ? info.primaryAxisSizingMode
@@ -348,6 +358,23 @@ function autoLayoutPadding(node) {
 }
 
 // ==================== 노드 추출 ====================
+
+// harnessAction 은 builder 가 setSharedPluginData("harness", "harnessAction", id) 로 심는다.
+// (MCP 호스트 런타임은 setPluginData/getPluginData 를 지원하지 않는다.) 예전 파일 호환을 위해
+// shared 가 비어 있으면 getPluginData 를 시도하되, 미지원 호스트에서는 조용히 "" 로 취급한다.
+const HARNESS_NS = "harness";
+function readHarnessAction(node) {
+  let v = "";
+  try {
+    v = node.getSharedPluginData(HARNESS_NS, "harnessAction") || "";
+  } catch (_) {}
+  if (!v) {
+    try {
+      v = node.getPluginData("harnessAction") || "";
+    } catch (_) {}
+  }
+  return v;
+}
 
 async function extractNode(node, frameOrigin, parentId) {
   const box = node.absoluteBoundingBox;
@@ -398,33 +425,36 @@ async function extractNode(node, frameOrigin, parentId) {
     size,
     position,
     layout: layoutInfo(node),
-    ...(node.clipsContent === true ? { clipsContent: true } : {}),
-    ...(node.overflowDirection && node.overflowDirection !== "NONE" ? { overflowDirection: node.overflowDirection } : {}),
+    ...(prop(node, "clipsContent") === true ? { clipsContent: true } : {}),
+    ...(prop(node, "overflowDirection") &&
+    prop(node, "overflowDirection") !== "NONE"
+      ? { overflowDirection: prop(node, "overflowDirection") }
+      : {}),
   };
 
   // 비어 있으면 키를 생략한다 (v4). 읽는 쪽은 `|| []` / truthy 로 기본값 처리한다.
-  const fills = await paints(node.fills);
-  const strokes = await paints(node.strokes);
+  const fills = await paints(prop(node, "fills"));
+  const strokes = await paints(prop(node, "strokes"));
   if (fills.length > 0) out.fills = fills;
   if (strokes.length > 0) out.strokes = strokes;
 
   const padding = autoLayoutPadding(node);
   if (padding) out.padding = padding;
 
-  if (node.layoutMode && node.layoutMode !== "NONE") {
-    out.itemSpacing = node.itemSpacing ?? 0;
+  if (prop(node, "layoutMode") && prop(node, "layoutMode") !== "NONE") {
+    out.itemSpacing = prop(node, "itemSpacing") ?? 0;
   }
 
   if (node.type === "TEXT") {
-    const id = node.textStyleId;
+    const id = prop(node, "textStyleId");
     // figma.mixed = 한 텍스트에 여러 스타일 → 스타일 미적용으로 간주(위반).
     // null 이어도 키를 남긴다 — audit 이 "스타일 없음" 을 이 키로 판정한다.
     out.textStyle = id === figma.mixed ? null : await styleName(id);
-    out.textAutoResize = node.textAutoResize ?? null;
+    out.textAutoResize = prop(node, "textAutoResize") ?? null;
   }
 
   // 주 행동은 색/이름이 아니라 실제 탭 대상에 명시한 의미다.
-  const actionId = node.getPluginData("harnessAction");
+  const actionId = readHarnessAction(node);
   if (actionId) out.actionId = actionId;
   if (actionId || isTapTarget(node, mainName)) out.isTapTarget = true;
   if (isPrimary(node, mainName)) out.isPrimary = true;

@@ -134,6 +134,7 @@ design/
 - **snapshot 은 scripts/figma-snapshot.js 로만 추출한다** (추출 코드 즉흥 작성 금지 · 경량화는 스크립트의 `__PROFILE__=docs` 만)
 - **snapshot 추출은 snapshot-runner 가 백그라운드로 한다.** figma-builder 는 lint 0건이면 요청만 남기고 다음 STAGE 로 간다. audit 전에는 세 페이지 스냅샷 전부 PASS 필수
 - **토큰 문서 프레임은 scripts/figma-token-docs.js 로만 그린다** (규격은 docs/token-docs-spec.md · 즉흥 작성 금지)
+- **컴포넌트 문서 페이지(`02b Component Docs`)는 scripts/figma-component-docs.js 로만 그린다** (규격은 docs/component-docs-spec.md · 원본 세트는 `02 Components` 최상위에 두고 문서에는 인스턴스만 · 스냅샷 대상 아님)
 - **일반 컨테이너는 내용을 감싼다 (세로 HUG).** 고정 높이는 선언된 컴포넌트와 실제 클리핑·스크롤이 설정된 viewport만 허용 (check-layout.mjs 검사)
 - **화면 이미지는 design-rules.md §I 표가 가리키는 `design/assets/characters/` 파일만 쓴다** (이미지 생성·외부 URL 금지)
 - **아이콘은 lucide 이름으로 적고 CDN 에서 받는다** (손으로 그리지 않는다 · 버전 고정)
@@ -246,9 +247,10 @@ node scripts/check-phase.mjs
 
 - 하네스 설계 원칙: docs/harness-principles.md (별도)
 - 토큰 문서 규격: docs/token-docs-spec.md
+- 컴포넌트 문서 규격 (카테고리별 카드 · `02b Component Docs`): docs/component-docs-spec.md
 - 각 에이전트 상세: .claude/agents/*.md
 - figma-builder STAGE 별 절차: docs/figma-builder/stage-{tokens,components,screens,fix}.md (에이전트 파일은 공통 규칙만 · STAGE 확정 후 해당 문서 1개만 Read)
 - 검증 스크립트: scripts/*.mjs (로컬 · 스냅샷 기반)
-- Figma 안에서 돌리는 스크립트: scripts/figma-snapshot.js (추출 · v4 프로필 docs/full) · scripts/figma-lint.js (즉시 검증) · scripts/figma-token-docs.js (토큰 문서)
+- Figma 안에서 돌리는 스크립트: scripts/figma-snapshot.js (추출 · v4 프로필 docs/full) · scripts/figma-lint.js (즉시 검증) · scripts/figma-token-docs.js (토큰 문서) · scripts/figma-component-docs.js (컴포넌트 문서 카드)
 - 스냅샷 전담 에이전트: .claude/agents/snapshot-runner.md (figma-builder 가 STAGE 를 끝낼 때마다 코디네이터가 백그라운드로 띄운다)
 - 기본 토큰: scripts/default-tokens.md

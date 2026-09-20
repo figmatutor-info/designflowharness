@@ -161,7 +161,10 @@ async function componentNameOf(node) {
 
 // mirror of scripts/lib/layout-rules.mjs isScrollViewport (Plugin API에서도 같은 속성)
 function isScrollViewport(node) {
-  return node?.clipsContent === true && ["VERTICAL", "HORIZONTAL", "BOTH"].includes(node.overflowDirection);
+  return (
+    node?.clipsContent === true &&
+    ["VERTICAL", "HORIZONTAL", "BOTH"].includes(node.overflowDirection)
+  );
 }
 
 async function isExempt(node) {
@@ -315,7 +318,8 @@ function checkOverflow(node, parent, frameName) {
   );
   if (isScrollViewport(parent)) {
     if (["VERTICAL", "BOTH"].includes(parent.overflowDirection)) overBottom = 0;
-    if (["HORIZONTAL", "BOTH"].includes(parent.overflowDirection)) overRight = 0;
+    if (["HORIZONTAL", "BOTH"].includes(parent.overflowDirection))
+      overRight = 0;
   }
   if (overRight > TOLERANCE || overBottom > TOLERANCE) {
     const parts = [];
