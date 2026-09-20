@@ -94,3 +94,9 @@ fix-list.md 의 각 행에는 `대상` 열이 있다. **이 열을 먼저 읽는
 - 반복 실패 (같은 결함 3회)
   → 근본적 규칙 문제, design-rules-generator 재검토 제안
 ```
+
+## 수정 후 증거 갱신
+
+텍스트 폭·줄바꿈·스크롤·이미지 역할은 `docs/ui-quality.md`를 따른다.
+수정한 결과는 `docs/capture-protocol.md`에 따라 새 캡처로 검수한다.
+기존 audit/visual-review 해시를 수정해 재사용하지 않는다.

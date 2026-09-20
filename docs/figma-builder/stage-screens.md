@@ -35,7 +35,10 @@ design-rules.md §I 를 Read 해서 두 가지를 손에 쥐고 시작한다:
 
 ### 절차
 
-screens.md의 화면 목록 순서대로 순차 생성.
+screens.md와 screen-contract.json의 화면/필수 상태 순서대로 순차 생성.
+`docs/ui-quality.md`의 텍스트 폭·배지·스크롤 규칙을 적용한다.
+실제 주 행동 노드에 `setPluginData("harnessAction", action.id)`를 호출한다.
+검수 전에는 `docs/capture-protocol.md` 순서로 동결 캡처하고 스크린샷을 다시 내보낸다.
 
 각 화면마다:
 
@@ -49,8 +52,8 @@ screens.md의 화면 목록 순서대로 순차 생성.
 
      **A. 화면 직속 슬롯** (role 이 hero / full-bleed — 컴포넌트 밖에 놓이는 이미지)
      · **RECTANGLE 로 만든다. FRAME 으로 만들지 않는다.**
-     FRAME 은 컴포넌트 재사용률(≥90%)의 분모에 들어가 audit 을 FAIL 시킨다
-     (`figma-audit.mjs` 는 FRAME·INSTANCE 만 센다. RECTANGLE 은 세지 않는다)
+     단일 이미지 표면에는 RECTANGLE이 적합하다. 복합 구조가 필요하면 컴포넌트를 사용한다.
+     재사용률 수치만 맞추려고 필요한 컨테이너 구조를 제거하지 않는다.
      · 이름은 `Img/{슬롯 key}`
      · 크기는 §I 표의 `비율` 열에 맞춘다
      · radius 는 semantic 토큰 바인딩 (`radius-card` 등)
@@ -145,7 +148,7 @@ screens.md의 "필요 상태" 항목:
 **규칙:**
 
 - default는 반드시 생성
-- 다른 상태는 화면당 필요한 것만
+- screen-contract.json의 required 상태는 전부 생성; 제외 상태는 계약에 이유 기록
 - 각 상태마다 별도 프레임 (같은 페이지에 나열)
 
 ### 화면 규칙 검증
@@ -164,7 +167,7 @@ screens.md의 "필요 상태" 항목:
 
 - 프레임 크기 정확히 390×844
 - safe-area 침범 없음 (상단 44, 하단 34)
-- primary 버튼 정확히 1개
+- 주 행동의 실제 탭 대상에 harnessAction 메타데이터 (single/collection/none 계약)
 - **`Img/*` 슬롯이 전부 IMAGE fill 로 채워짐** (빈 슬롯 0개)
   · 주입 코드가 슬롯별 `fills[0].type` 을 돌려주게 한다. IMAGE 가 아닌 슬롯이 있으면
   주입이 실패한 것이다. 화면을 넘기지 말고 그 자리에서 다시 주입한다
@@ -295,7 +298,7 @@ primitive 는 `aliasOf: null`, semantic 은 전부 primitive 이름을 가리켜
 - `size.width/height`: tap-min 검증용
 - `position.y`: safe-area 검증용
 - `isTapTarget`: 탭 가능 여부
-- `isPrimary`: primary 버튼 여부 (화면당 1개)
+- `isPrimary`: 구형 스냅샷 호환용; 현재 행동 검증은 `actionId`와 screen-contract.json 사용
 - `isInstance`: 컴포넌트 인스턴스 여부 (재사용률 계산)
 
 ### build-log 갱신 (화면마다)

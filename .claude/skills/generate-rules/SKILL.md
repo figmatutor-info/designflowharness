@@ -11,6 +11,8 @@ background: false
 
 `default-tokens.md`를 기반으로 사용자의 브랜드 컬러를 반영하여 `design-rules.md` (SSOT)를 생성한다.
 
+**품질 계약:** `docs/ui-quality.md`를 읽는다.
+
 **요청**: $ARGUMENTS
 
 > 이 스킬은 `design-rules-generator` 서브에이전트에서 실행된다 (프론트매터 `agent:` 로 고정).
@@ -45,17 +47,18 @@ design/03-design-rules/
 ## 프로세스
 
 1. default-tokens.md 로드 (모든 값 default로 시작)
-2. 브랜드 컬러 사용자 결정 (유일한 사용자 개입)
+2. 대표 화면 2안 비교 후 디자인 방향·브랜드 컬러 결정 (기존 승인 방향은 재사용)
 3. design-rules.md 초안 생성 (status: draft)
 4. tokens.md, components.md 상세 파일 생성
-5. preview.html 생성 (색 스와치 + 주요 컴포넌트 렌더)
+5. preview.html에 실제 이미지·문구로 모든 화면/필수 상태 렌더
 6. 사용자에게 프리뷰 확인 요청
 7. 승인 시 status: confirmed 마킹
 
+추가 산출물: `design-direction.md`(선택 근거), `direction-options.html`(대표 2안).
+
 ## 목표
 
-- 사용자는 브랜드 컬러 1개만 결정
-- 나머지 모두 검증된 default 사용 (원칙 4)
+- 사용자는 대표 방향과 전체 시안을 검토; 세부 미결정 값은 default 사용 (원칙 4)
 - HTML 프리뷰로 시각적 확인 가능
 - 게이트 3 통과 (status: confirmed + 사용자 승인)
 

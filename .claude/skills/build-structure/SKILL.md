@@ -11,6 +11,8 @@ background: false
 
 `analysis.md`와 PRD를 종합해 `screens.md`(화면 5개+)와 `flows.md`(시나리오 2-3개)를 생성한다.
 
+**품질 계약:** `docs/ui-quality.md`를 읽는다.
+
 **요청**: $ARGUMENTS
 
 > 이 스킬은 `structure-builder` 서브에이전트에서 실행된다 (프론트매터 `agent:` 로 고정).
@@ -45,10 +47,12 @@ design/02-structure/
         "당신은 앱을 엽니다. 홈 화면이 보입니다. (①)"
 ```
 
+추가 산출물: `design/02-structure/screen-contract.json`. 완료 전 `npm run check:contract`.
+
 ## 목표
 
 - 화면 최소 5개
-- 각 화면 primary 액션 정확히 1개
+- screen-contract.json에 화면·필수 상태·single/collection/none 주 행동 정책·사용자 체크 정의
 - 각 화면 레퍼런스 패턴 매칭 필수
 - 시나리오 2-3개 (주요 사용자 여정)
 - 게이트 2 통과 (구조 완성 + 사용자 승인)

@@ -1,6 +1,7 @@
 # design-flow-harness
 
 디자이너가 AI와 일관되게 일하기 위한 4단계 파이프라인.
+실행 환경: **Claude Code 전용** (`.claude/agents` · `.claude/skills`).
 대상: 모바일 앱 (iOS/Android, 390×844).
 
 레퍼런스 수집부터 Figma 화면 생성까지, 매 단계 게이트를 통과하며 진행한다.
@@ -101,12 +102,15 @@ design/
 │   ├── design-rules.md    ⭐ 유일한 규칙 SSOT
 │   ├── tokens.md
 │   ├── components.md
+│   ├── design-direction.md / direction-options.html (방향 비교)
 │   └── preview.html
 │
 ├── 04-screens/            ← Phase 4
 │   ├── figma-file-key.txt      (사용자가 만든 Figma 파일 키)
 │   ├── figma-snapshot.json     (audit 입력 · figma-snapshot.js 로만 추출)
 │   ├── build-log.md
+│   ├── build-manifest.json    (캡처 상태·입력/산출물 해시)
+│   ├── visual-review.json     (상태별 시각 검수 근거)
 │   ├── audit-report.md
 │   ├── audit-structural.json   (figma-audit.mjs 출력)
 │   ├── fix-list.md             (audit FAIL 시만 생성)
@@ -130,12 +134,31 @@ design/
 - **snapshot 은 scripts/figma-snapshot.js 로만 추출한다** (추출 코드 즉흥 작성 금지 · 경량화는 스크립트의 `__PROFILE__=docs` 만)
 - **snapshot 추출은 snapshot-runner 가 백그라운드로 한다.** figma-builder 는 lint 0건이면 요청만 남기고 다음 STAGE 로 간다. audit 전에는 세 페이지 스냅샷 전부 PASS 필수
 - **토큰 문서 프레임은 scripts/figma-token-docs.js 로만 그린다** (규격은 docs/token-docs-spec.md · 즉흥 작성 금지)
-- **컨테이너는 내용을 감싼다 (세로 HUG).** 고정 높이는 design-rules.md 에 `Height: fixed` 로 선언된 것만 허용 (check-layout.mjs 가 검사)
+- **일반 컨테이너는 내용을 감싼다 (세로 HUG).** 고정 높이는 선언된 컴포넌트와 실제 클리핑·스크롤이 설정된 viewport만 허용 (check-layout.mjs 검사)
 - **화면 이미지는 design-rules.md §I 표가 가리키는 `design/assets/characters/` 파일만 쓴다** (이미지 생성·외부 URL 금지)
 - **아이콘은 lucide 이름으로 적고 CDN 에서 받는다** (손으로 그리지 않는다 · 버전 고정)
 - **이미지 슬롯을 빈 채로 두고 Phase 4 를 끝내지 않는다** (게이트 4에서 FAIL)
 - **각 에이전트는 자기 담당 폴더 외 편집 금지**
 - **사용자 승인 없이 다음 Phase로 자동 진행 금지**
+
+---
+
+## UI 품질과 검수 증거
+
+- 구조 담당은 `screen-contract.json`에 필수 상태와 주 행동 정책(single/collection/none)을 작성한다.
+- 규칙 담당은 대표 화면 2안·선택 이유를 `design-direction.md`에 기록한다. 기존 승인 방향은 재사용한다.
+- 최종 HTML 시안에는 실제 콘텐츠와 라이브러리 이미지를 넣고 필수 상태까지 비교한다.
+- 텍스트 폭·자연스러운 줄바꿈·이미지의 내용 식별·탭 선택 상태·스크롤을 검수한다.
+- 주 행동은 실제 탭 대상의 `harnessAction` 메타데이터로 검사한다. 이름이나 색만으로 판정하지 않는다.
+- 개발 중에는 기존 비동기 runner를 유지한다. 최종 검수 때는 Figma 수정을 동결하고
+  `capture:begin` → 동일 ID의 세 페이지 추출·새 PNG → `capture:seal` → audit → 시각 검수 순서로 진행한다.
+- snapshot 공유 파일의 병합은 직렬화한다. 수정이 있으면 캡처를 다시 시작한다.
+- `visual-review.json`에 화면별 점수와 관찰 근거를 남긴다. 각 차원 4/5 이상,
+  필수 사용자 체크 통과, 미해결 Critical/Major 0건이어야 한다. 구조 PASS만으로 완료 금지.
+- 기존 승인 산출물은 자동 재작성하지 않는다. 새 계약/증거가 없으면 보완 항목을 보고한다.
+
+상세 기준은 `docs/ui-quality.md`, 소유권·실행 순서는 `docs/capture-protocol.md`를 해당 단계에서 읽는다.
+기존 사용자 승인 게이트에 방향 선택과 상태 범위를 묶고 세부 값마다 승인 절차를 추가하지 않는다.
 
 ---
 
@@ -163,7 +186,8 @@ Phase 4 의 STAGE 별 예산과 재시도 상한은 `.claude/agents/figma-builde
 
 ## 진행 상태 확인
 
-각 Phase 완료 여부는 해당 폴더 존재로 판단.
+폴더와 build-log는 작업 위치를 안내한다. 완료 여부는 계약·실제 산출물·최신 검수 증거로 판단한다.
+폴더 존재나 ✅ 로그만으로 완료를 선언하지 않는다.
 
 ```bash
 # 현재 어디까지 왔는지

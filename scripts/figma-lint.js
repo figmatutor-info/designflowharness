@@ -159,7 +159,13 @@ async function componentNameOf(node) {
   return String(base).split(/[/·,]/)[0].trim();
 }
 
+// mirror of scripts/lib/layout-rules.mjs isScrollViewport (Plugin API에서도 같은 속성)
+function isScrollViewport(node) {
+  return node?.clipsContent === true && ["VERTICAL", "HORIZONTAL", "BOTH"].includes(node.overflowDirection);
+}
+
 async function isExempt(node) {
+  if (isScrollViewport(node)) return true;
   const name = String(node.name || "");
   if (BUILTIN_EXEMPT.test(name)) return "하네스 기본 면제";
   if (FIXED_ALLOW.has(await componentNameOf(node)))
@@ -303,10 +309,14 @@ function checkOverflow(node, parent, frameName) {
   if (typeof node.x !== "number" || typeof node.width !== "number") return;
   const padRight = parent.paddingRight || 0;
   const padBottom = parent.paddingBottom || 0;
-  const overRight = Math.round(node.x + node.width - (parent.width - padRight));
-  const overBottom = Math.round(
+  let overRight = Math.round(node.x + node.width - (parent.width - padRight));
+  let overBottom = Math.round(
     node.y + node.height - (parent.height - padBottom),
   );
+  if (isScrollViewport(parent)) {
+    if (["VERTICAL", "BOTH"].includes(parent.overflowDirection)) overBottom = 0;
+    if (["HORIZONTAL", "BOTH"].includes(parent.overflowDirection)) overRight = 0;
+  }
   if (overRight > TOLERANCE || overBottom > TOLERANCE) {
     const parts = [];
     if (overBottom > TOLERANCE) parts.push(`아래로 ${overBottom}px`);
